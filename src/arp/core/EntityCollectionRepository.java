@@ -1,6 +1,12 @@
 package arp.core;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public abstract class EntityCollectionRepository<ID, T> {
+
+	private static AtomicInteger ids = new AtomicInteger();
+
+	private int id = ids.incrementAndGet();
 
 	private Store<ID, T> store;
 
@@ -23,9 +29,7 @@ public abstract class EntityCollectionRepository<ID, T> {
 			return null;
 		}
 
-		acquireLock(id, processContext);
-
-		T entity = store.findAndLock(id);
+		T entity = store.findForTake(id);
 		if (entity != null) {
 			processContext.putCollectionEntityInProcessForGet(this.id, id, entity);
 			processContext.addEntityCollectionRepository(this.id, this);

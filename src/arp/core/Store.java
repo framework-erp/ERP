@@ -5,13 +5,13 @@ import java.util.Set;
 
 public interface Store<I, T> {
 
-	public T findAndLock(I id);
+	public T findForTake(I id);
 
-	public T findByIdForRead(I id);
+	public T findForRead(I id);
 
 	public boolean has(I id);
 
-	public T findByIdForRemoveReturn(I id);
+	public T findForRemoveReturn(I id);
 
 	public void checkAndUpdateAll(Map<I, T> entities);
 

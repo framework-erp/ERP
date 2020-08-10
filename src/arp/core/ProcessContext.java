@@ -1,8 +1,6 @@
 package arp.core;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -13,8 +11,6 @@ public class ProcessContext {
 	private Map<Integer, RepositoryProcessEntities<?, ?>> processEntities = new HashMap<>();
 
 	private Map<Integer, EntityCollectionRepository<?, ?>> entityCollectionRepositories = new HashMap<>();
-
-	private List<AtomicInteger> acquiredLocks = new ArrayList<>();
 
 	public void startProcess() {
 		if (started) {
