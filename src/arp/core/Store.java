@@ -9,10 +9,6 @@ public interface Store<I, T> {
 
 	public T findForRead(I id);
 
-	public boolean has(I id);
-
-	public T findForRemoveReturn(I id);
-
 	public void checkAndUpdateAll(Map<I, T> entities);
 
 	public void saveAll(Map<I, T> entities);

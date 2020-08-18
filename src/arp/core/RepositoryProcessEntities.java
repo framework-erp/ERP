@@ -7,61 +7,38 @@ public class RepositoryProcessEntities<ID, T> {
 
 	private int repositoryId;
 
-	private Map<ID, T> getEntities = new HashMap<>();
-
-	private Map<ID, T> putEntities = new HashMap<>();
-
-	private Map<ID, T> removeEntities = new HashMap<>();
+	private Map<ID, ProcessEntity<T>> entities = new HashMap<>();
 
 	public RepositoryProcessEntities(int repositoryId) {
 		this.repositoryId = repositoryId;
 	}
 
-	public void putEntityForGet(ID id, T entity) {
-		getEntities.put(id, entity);
+	public void takeEntityFromRepoAndPutInProcess(ID entityId, T entity) {
+		ProcessEntity<T> processEntity = new ProcessEntity<>();
+		processEntity.setEntity(entity);
+		processEntity.setState(new TakenProcessEntityState());
+		entities.put(entityId, processEntity);
 	}
 
-	public void putEntityForGetForRead(ID id, T entity) {
-		getForReadEntities.put(id, entity);
-	}
-
-	public void putEntityForPut(ID id, T entity) {
-		putEntities.put(id, entity);
-	}
-
-	public void putEntityForRemove(ID id, T entity) {
-		removeEntities.put(id, entity);
-	}
-
-	public boolean hasRemovedEntity(ID id) {
-		return removeEntities.containsKey(id);
-	}
-
-	public void removeEntity(ID id) {
-		T entity = putEntities.remove(id);
-		if (entity == null) {
-			entity = getEntities.remove(id);
+	public ProcessEntity<T> takeEntity(ID entityId) {
+		ProcessEntity<T> processEntity = entities.get(entityId);
+		if (processEntity == null) {
+			return null;
 		}
-		getForReadEntities.remove(id);
-		if (entity != null) {
-			removeEntities.put(id, entity);
+		processEntity.updateStateByTake();
+		return processEntity;
+	}
+
+	public void putEntityInProcess(ID entityId, T entity) {
+		ProcessEntity<T> processEntity = entities.get(entityId);
+		if (processEntity == null) {
+			processEntity = new ProcessEntity<>();
+			processEntity.setEntity(entity);
+			processEntity.setState(new CreatedProcessEntityState());
+			entities.put(entityId, processEntity);
+		} else {
+			processEntity.updateStateByPut();
 		}
-	}
-
-	public Map<ID, T> getGetEntities() {
-		return getEntities;
-	}
-
-	public Map<ID, T> getPutEntities() {
-		return putEntities;
-	}
-
-	public Map<ID, T> getRemoveEntities() {
-		return removeEntities;
-	}
-
-	public int getRepositoryId() {
-		return repositoryId;
 	}
 
 }

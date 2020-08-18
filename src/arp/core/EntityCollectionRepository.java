@@ -21,19 +21,19 @@ public abstract class EntityCollectionRepository<ID, T> {
 			throw new RuntimeException("can not use repository without a process");
 		}
 
-		T entityInProcess = processContext.findCollectionEntityInProcess(this.id, id);
-		if (entityInProcess != null) {
-			return entityInProcess;
-		}
-
-		if (processContext.collectionEntityRemovedInProcess(this.id, id)) {
-			return null;
+		ProcessEntity<T> processEntity = processContext.getEntityInProcessForTake(this.id, id);
+		if (processEntity != null) {
+			ProcessEntityState entityState = processEntity.getState();
+			if (entityState instanceof CreatedProcessEntityState || entityState instanceof TakenProcessEntityState) {
+				return processEntity.getEntity();
+			} else {
+				return null;
+			}
 		}
 
 		T entity = store.findForTake(id);
 		if (entity != null) {
-			processContext.putCollectionEntityInProcessForGet(this.id, id, entity);
-			processContext.addEntityCollectionRepository(this.id, this);
+			processContext.takeEntityFromRepoAndPutInProcess(this.id, id, entity);
 		}
 		return entity;
 	}
@@ -43,25 +43,10 @@ public abstract class EntityCollectionRepository<ID, T> {
 		if (!processContext.isStarted()) {
 			throw new RuntimeException("can not use repository without a process");
 		}
-
-		T entityInProcess = processContext.findCollectionEntityInProcessForRead(this.id, id);
-		if (entityInProcess != null) {
-			return entityInProcess;
-		}
-
-		if (processContext.collectionEntityRemovedInProcess(this.id, id)) {
-			return null;
-		}
-
-		T entity = store.findByIdForRead(id);
-		if (entity != null) {
-			processContext.putCollectionEntityInProcessForGetForRead(this.id, id, entity);
-			processContext.addEntityCollectionRepository(this.id, this);
-		}
-		return entity;
+		return store.findForRead(id);
 	}
 
-	public T put(T entity) {
+	public void put(T entity) {
 
 		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
 		if (!processContext.isStarted()) {
@@ -69,37 +54,30 @@ public abstract class EntityCollectionRepository<ID, T> {
 		}
 
 		ID id = getId(entity);
-		if (processContext.collectionEntityRemovedInProcess(this.id, id)) {
-			T entityInProcess = processContext.findCollectionEntityInProcess(this.id, id);
-			if (entityInProcess != null) {
-				return entityInProcess;
-			}
-			processContext.putCollectionEntityInProcessForPut(this.id, id, entity);
-			processContext.addEntityCollectionRepository(this.id, this);
-			return entity;
-		}
+		processContext.putEntityInProcess(this.id, id, entity);
 
-		acquireLock(id, processContext);
-
-		T entityInProcess = processContext.findCollectionEntityInProcess(this.id, id);
-		if (entityInProcess != null) {
-			return entityInProcess;
-		}
-
-		if (store.has(id)) {
-			T existsEntity = store.findByIdForUpdate(id);
-			processContext.putCollectionEntityInProcessForGet(this.id, id, existsEntity);
-			processContext.addEntityCollectionRepository(this.id, this);
-			return existsEntity;
-		}
-
-		processContext.putCollectionEntityInProcessForPut(this.id, id, entity);
-		processContext.addEntityCollectionRepository(this.id, this);
-		return entity;
 	}
 
 	public T putIfAbsent(T entity) {
+		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
+		if (!processContext.isStarted()) {
+			throw new RuntimeException("can not use repository without a process");
+		}
 
+		ID id = getId(entity);
+
+		// TODO 找不到就返回null，不能放进去，需要后续store处理
+		ProcessEntity<T> processEntity = processContext.putIfAbsentEntityInProcess(this.id, id, entity);
+		if (processEntity != null) {
+			ProcessEntityState entityState = processEntity.getState();
+			if (!(entityState instanceof TransientProcessEntityState)) {
+				return processEntity.getEntity();
+			}
+		}
+
+		T entityFromStore = store.createIfAbsent(id, entity);// TODO createIfAbsent 的新对象具有排除其他take的语义，也就是create之后随之take
+		processContext.takeEntityFromRepoAndPutInProcess(this.id, id, entityFromStore);
+		return entityFromStore;
 	}
 
 	protected abstract ID getId(T entity);
@@ -116,7 +94,7 @@ public abstract class EntityCollectionRepository<ID, T> {
 		store.removeAll(entities.keySet());
 	}
 
-	public T remove(ID id) {
+	public T remove(ID id) {// TODO 默认删除自带独占语义
 		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
 		T entityInProcess = processContext.findCollectionEntityInProcess(this.id, id);
 		if (entityInProcess != null) {
