@@ -61,6 +61,15 @@ public class ProcessContext {
 		entities.takeEntityFromRepoAndPutInProcess(entityId, entity);
 	}
 
+	public <ID, T> void takeEntityFromRepoAndPutInProcessAsRemoved(int repositoryId, ID entityId, T entity) {
+		RepositoryProcessEntities entities = processEntities.get(repositoryId);
+		if (entities == null) {
+			entities = new RepositoryProcessEntities<>(repositoryId);
+			processEntities.put(repositoryId, entities);
+		}
+		entities.takeEntityFromRepoAndPutInProcessAsRemoved(entityId, entity);
+	}
+
 	public <ID, T> void putEntityInProcess(int repositoryId, ID entityId, T entity) {
 		RepositoryProcessEntities entities = processEntities.get(repositoryId);
 		if (entities == null) {
@@ -68,6 +77,42 @@ public class ProcessContext {
 			processEntities.put(repositoryId, entities);
 		}
 		entities.putEntityInProcess(entityId, entity);
+	}
+
+	public <ID, T> ProcessEntity<T> putIfAbsentEntityInProcess(int repositoryId, ID entityId, T entity) {
+		RepositoryProcessEntities entities = processEntities.get(repositoryId);
+		if (entities == null) {
+			return null;
+		}
+		ProcessEntity<T> processEntity = entities.findEntity(entityId);
+		if (processEntity == null) {
+			return null;
+		}
+		if (processEntity.getState() instanceof RemovedProcessEntityState) {
+			processEntity.setEntity(entity);
+			processEntity.updateStateByPut();
+			return processEntity;
+		} else if (processEntity.getState() instanceof TransientProcessEntityState) {
+			return null;
+		} else {
+			return processEntity;
+		}
+	}
+
+	public <ID, T> ProcessEntity<T> removeEntityInProcess(int repositoryId, ID entityId) {
+		RepositoryProcessEntities entities = processEntities.get(repositoryId);
+		if (entities == null) {
+			return null;
+		}
+		ProcessEntity<T> processEntity = entities.findEntity(entityId);
+		if (processEntity == null) {
+			return null;
+		}
+		if (processEntity.getState() instanceof TransientProcessEntityState) {
+			return null;
+		}
+		processEntity.updateStateByRemove();
+		return processEntity;
 	}
 
 	public <ID, T> void addEntityCollectionRepository(int repositoryId, EntityCollectionRepository<ID, T> repository) {

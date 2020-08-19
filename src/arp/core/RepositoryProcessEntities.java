@@ -20,6 +20,13 @@ public class RepositoryProcessEntities<ID, T> {
 		entities.put(entityId, processEntity);
 	}
 
+	public void takeEntityFromRepoAndPutInProcessAsRemoved(ID entityId, T entity) {
+		ProcessEntity<T> processEntity = new ProcessEntity<>();
+		processEntity.setEntity(entity);
+		processEntity.setState(new RemovedProcessEntityState());
+		entities.put(entityId, processEntity);
+	}
+
 	public ProcessEntity<T> takeEntity(ID entityId) {
 		ProcessEntity<T> processEntity = entities.get(entityId);
 		if (processEntity == null) {
@@ -27,6 +34,10 @@ public class RepositoryProcessEntities<ID, T> {
 		}
 		processEntity.updateStateByTake();
 		return processEntity;
+	}
+
+	public ProcessEntity<T> findEntity(ID entityId) {
+		return entities.get(entityId);
 	}
 
 	public void putEntityInProcess(ID entityId, T entity) {

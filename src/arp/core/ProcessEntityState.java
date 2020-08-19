@@ -5,7 +5,5 @@ public interface ProcessEntityState {
 
 	public ProcessEntityState put();
 
-	public ProcessEntityState putIfAbsent();
-
 	public ProcessEntityState remove();
 }

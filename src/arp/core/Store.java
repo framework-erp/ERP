@@ -3,16 +3,19 @@ package arp.core;
 import java.util.Map;
 import java.util.Set;
 
-public interface Store<I, T> {
+public interface Store<ID, T> {
 
-	public T findForTake(I id);
+	public T findForTake(ID id);
 
-	public T findForRead(I id);
+	public T findForRead(ID id);
 
-	public void checkAndUpdateAll(Map<I, T> entities);
+	// 有返回，相当于随后findForTake
+	public T createIfAbsent(ID id, T entity);
 
-	public void saveAll(Map<I, T> entities);
+	public void checkAndUpdateAll(Map<ID, T> entities);
 
-	public void removeAll(Set<I> ids);
+	public void saveAll(Map<ID, T> entities);
+
+	public void removeAll(Set<ID> ids);
 
 }

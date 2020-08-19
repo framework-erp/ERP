@@ -12,6 +12,10 @@ public class ProcessEntity<T> {
 		state = state.put();
 	}
 
+	public void updateStateByRemove() {
+		state = state.remove();
+	}
+
 	public ProcessEntityState getState() {
 		return state;
 	}

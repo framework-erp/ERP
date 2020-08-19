@@ -13,14 +13,8 @@ public class TakenProcessEntityState implements ProcessEntityState {
 	}
 
 	@Override
-	public ProcessEntityState putIfAbsent() {
-		return this;
-	}
-
-	@Override
 	public ProcessEntityState remove() {
-		// TODO Auto-generated method stub
-		return null;
+		return new RemovedProcessEntityState();
 	}
 
 }
