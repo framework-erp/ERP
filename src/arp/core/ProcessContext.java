@@ -33,10 +33,9 @@ public class ProcessContext {
 
 	private void flushProcessEntities() throws Exception {
 		for (RepositoryProcessEntities entities : processEntities.values()) {
-			EntityCollectionRepository repository = entityCollectionRepositories.get(entities.getRepositoryId());
-			repository.removeEntitiesInProcess(entities.getRemoveEntities());
-			repository.saveEntitiesInProcess(entities.getPutEntities());
-			repository.updateEntitiesInProcess(entities.getGetEntities());
+			EntityCollectionRepository repository = EntityCollectionRepository
+					.getRepository(entities.getRepositoryId());
+			repository.flushEntitiesInProcess(entities.getEntities());
 		}
 	}
 

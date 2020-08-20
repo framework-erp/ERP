@@ -7,13 +7,23 @@ public abstract class EntityCollectionRepository<ID, T> {
 
 	private static AtomicInteger ids = new AtomicInteger();
 
-	private int id = ids.incrementAndGet();
+	private static EntityCollectionRepository[] repositories = new EntityCollectionRepository[1024];
+
+	private int id;
 
 	private Store<ID, T> store;
 
+	static EntityCollectionRepository getRepository(int id) {
+		return repositories[id];
+	}
+
 	protected EntityCollectionRepository(Store<ID, T> store) {
 		this.store = store;
+		id = ids.incrementAndGet();
+		repositories[id] = this;
 	}
+
+	protected abstract ID getId(T entity);
 
 	public T take(ID id) {
 		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
@@ -79,20 +89,6 @@ public abstract class EntityCollectionRepository<ID, T> {
 		return entityFromStore;
 	}
 
-	protected abstract ID getId(T entity);
-
-	void updateEntitiesInProcess(Map<ID, T> entities) {
-		store.checkAndUpdateAll(entities);
-	}
-
-	void saveEntitiesInProcess(Map<ID, T> entities) {
-		store.saveAll(entities);
-	}
-
-	void removeEntitiesInProcess(Map<ID, T> entities) {
-		store.removeAll(entities.keySet());
-	}
-
 	public T remove(ID id) {
 		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
 		if (!processContext.isStarted()) {
@@ -109,6 +105,11 @@ public abstract class EntityCollectionRepository<ID, T> {
 		}
 		return entityFromStore;
 
+	}
+
+	void flushEntitiesInProcess(Map<ID, T> entities) {
+		// TODO 需区分单个还是批量调用store
+		store.checkAndUpdateAll(entities);
 	}
 
 }

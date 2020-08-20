@@ -52,4 +52,12 @@ public class RepositoryProcessEntities<ID, T> {
 		}
 	}
 
+	public int getRepositoryId() {
+		return repositoryId;
+	}
+
+	public Map<ID, ProcessEntity<T>> getEntities() {
+		return entities;
+	}
+
 }
