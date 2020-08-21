@@ -35,7 +35,12 @@ public class ProcessContext {
 		for (RepositoryProcessEntities entities : processEntities.values()) {
 			EntityCollectionRepository repository = EntityCollectionRepository
 					.getRepository(entities.getRepositoryId());
-			repository.flushEntitiesInProcess(entities.getEntities());
+			Map processEntities = entities.getEntities();
+			processEntities.entrySet().forEach((entry) -> {
+//TODO 按 创建、更新、删除 分类出3个集合
+			});
+
+			repository.deleteEntities();
 		}
 	}
 

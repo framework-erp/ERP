@@ -1,6 +1,6 @@
 package arp.core;
 
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class EntityCollectionRepository<ID, T> {
@@ -107,9 +107,8 @@ public abstract class EntityCollectionRepository<ID, T> {
 
 	}
 
-	void flushEntitiesInProcess(Map<ID, T> entities) {
-		// TODO 需区分单个还是批量调用store
-		store.checkAndUpdateAll(entities);
+	void deleteEntities(Set<ID> ids) {
+		store.removeAll(ids);
 	}
 
 }
