@@ -1,5 +1,6 @@
 package arp.core;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -109,6 +110,14 @@ public abstract class EntityCollectionRepository<ID, T> {
 
 	void deleteEntities(Set<ID> ids) {
 		store.removeAll(ids);
+	}
+
+	void updateEntities(Map entitiesToUpdate) {
+		store.checkAndUpdateAll(entitiesToUpdate);
+	}
+
+	void createEntities(Map entitiesToCreate) {
+		store.createAll(entitiesToCreate);
 	}
 
 }

@@ -1,7 +1,10 @@
 package arp.core;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProcessContext {
@@ -24,7 +27,7 @@ public class ProcessContext {
 			releaseAcquiredLocks();
 			clear();
 			started = false;
-			throw new RuntimeException("save and update process entities faild", e);
+			throw new RuntimeException("flush process entities faild", e);
 		}
 		releaseAcquiredLocks();
 		clear();
@@ -36,11 +39,31 @@ public class ProcessContext {
 			EntityCollectionRepository repository = EntityCollectionRepository
 					.getRepository(entities.getRepositoryId());
 			Map processEntities = entities.getEntities();
-			processEntities.entrySet().forEach((entry) -> {
-//TODO 按 创建、更新、删除 分类出3个集合
-			});
+			Map entitiesToCreate = new HashMap();
+			Map entitiesToUpdate = new HashMap();
+			Set idsToRemove = new HashSet();
 
-			repository.deleteEntities();
+			for (Object obj : processEntities.entrySet()) {
+				Entry entry = (Entry) obj;
+				Object id = entry.getKey();
+				ProcessEntity processEntity = (ProcessEntity) entry.getValue();
+				if (processEntity.getState() instanceof CreatedProcessEntityState) {
+					entitiesToCreate.put(id, processEntity.getEntity());
+				} else if (processEntity.getState() instanceof TakenProcessEntityState) {
+					entitiesToUpdate.put(id, processEntity.getEntity());
+				} else if (processEntity.getState() instanceof RemovedProcessEntityState) {
+					idsToRemove.add(id);
+				}
+			}
+			if (!idsToRemove.isEmpty()) {
+				repository.deleteEntities(idsToRemove);
+			}
+			if (!entitiesToUpdate.isEmpty()) {
+				repository.updateEntities(entitiesToUpdate);
+			}
+			if (!entitiesToCreate.isEmpty()) {
+				repository.createEntities(entitiesToCreate);
+			}
 		}
 	}
 

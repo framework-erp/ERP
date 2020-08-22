@@ -14,7 +14,7 @@ public interface Store<ID, T> {
 
 	public void checkAndUpdateAll(Map<ID, T> entities);
 
-	public void saveAll(Map<ID, T> entities);
+	public void createAll(Map<ID, T> entities);
 
 	public void removeAll(Set<ID> ids);
 
