@@ -142,14 +142,6 @@ public class ProcessContext {
 		return processEntity;
 	}
 
-	public <ID, T> void addEntityCollectionRepository(int repositoryId, EntityCollectionRepository<ID, T> repository) {
-		entityCollectionRepositories.putIfAbsent(repositoryId, repository);
-	}
-
-	public void addAcquiredLock(AtomicInteger lock) {
-		acquiredLocks.add(lock);
-	}
-
 	public void processFaild() {
 		releaseAcquiredLocks();
 		clear();
@@ -166,24 +158,6 @@ public class ProcessContext {
 		for (AtomicInteger lock : acquiredLocks) {
 			lock.set(0);
 		}
-	}
-
-	public <ID> void removeCollectionEntityInProcess(int repositoryId, ID entityId) {
-		RepositoryProcessEntities entities = processEntities.get(repositoryId);
-		if (entities == null) {
-			entities = new RepositoryProcessEntities<>(repositoryId);
-			processEntities.put(repositoryId, entities);
-		}
-		entities.removeEntity(entityId);
-	}
-
-	public <ID, T> void putCollectionEntityInProcessForRemove(int repositoryId, ID entityId, T entity) {
-		RepositoryProcessEntities entities = processEntities.get(repositoryId);
-		if (entities == null) {
-			entities = new RepositoryProcessEntities<>(repositoryId);
-			processEntities.put(repositoryId, entities);
-		}
-		entities.putEntityForRemove(entityId, entity);
 	}
 
 }

@@ -85,7 +85,7 @@ public abstract class EntityCollectionRepository<ID, T> {
 			}
 		}
 
-		T entityFromStore = store.createIfAbsent(id, entity);
+		T entityFromStore = store.createIfAbsentAndTake(id, entity);
 		processContext.takeEntityFromRepoAndPutInProcess(this.id, id, entityFromStore);
 		return entityFromStore;
 	}
@@ -112,11 +112,11 @@ public abstract class EntityCollectionRepository<ID, T> {
 		store.removeAll(ids);
 	}
 
-	void updateEntities(Map entitiesToUpdate) {
+	void updateEntities(Map<ID, T> entitiesToUpdate) {
 		store.checkAndUpdateAll(entitiesToUpdate);
 	}
 
-	void createEntities(Map entitiesToCreate) {
+	void createEntities(Map<ID, T> entitiesToCreate) {
 		store.createAll(entitiesToCreate);
 	}
 
