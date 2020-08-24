@@ -26,12 +26,12 @@ public abstract class PersistenceStore<ID, T> implements Store<ID, T> {
 	// 有返回，相当于随后findForTake
 	@Override
 	public T createIfAbsentAndTake(ID id, T entity) {
-		T entityTaken = createIfAbsentAndLock(id);
+		T entityTaken = createIfAbsentAndLock(id, entity);
 		originalEntities.put(id, EntityCopier.copy(entityTaken));
 		return entityTaken;
 	}
 
-	protected abstract T createIfAbsentAndLock(ID id);
+	protected abstract T createIfAbsentAndLock(ID id, T entity);
 
 	@Override
 	public void checkAndUpdateAll(Map<ID, T> entities) {

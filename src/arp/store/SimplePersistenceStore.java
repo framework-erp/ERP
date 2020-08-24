@@ -1,62 +1,55 @@
 package arp.store;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
-public class SimplePersistenceStore<ID, T> extends PersistenceStore<ID, T> {
+public abstract class SimplePersistenceStore<ID, T> extends PersistenceStore<ID, T> {
 
 	@Override
 	public T findForRead(ID id) {
-		// TODO Auto-generated method stub
-		return null;
+		return findOne(id);
 	}
+
+	protected abstract T findOne(ID id);
 
 	@Override
 	protected T findAndLock(ID id) {
-		// TODO Auto-generated method stub
-		return null;
+		return findOne(id);
 	}
 
 	@Override
-	protected T createIfAbsentAndLock(ID id) {
-		// TODO Auto-generated method stub
-		return null;
+	protected T createIfAbsentAndLock(ID id, T entity) {
+		create(id, entity);
+		return entity;
 	}
 
 	@Override
 	protected void updateAndUnlockBatch(Map<ID, T> entitiesToUpdate) {
-		// TODO Auto-generated method stub
-
+		for (Entry<ID, T> entry : entitiesToUpdate.entrySet()) {
+			update(entry.getKey(), entry.getValue());
+		}
 	}
+
+	protected abstract void update(ID id, T entity);
 
 	@Override
 	protected void updateAndUnlock(ID id, T entity) {
-		// TODO Auto-generated method stub
-
+		update(id, entity);
 	}
 
 	@Override
 	protected void createBatch(Map<ID, T> entities) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	protected void create(ID id, T entity) {
-		// TODO Auto-generated method stub
-
+		for (Entry<ID, T> entry : entities.entrySet()) {
+			create(entry.getKey(), entry.getValue());
+		}
 	}
 
 	@Override
 	protected void removeBatch(Set<ID> ids) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	protected void remove(ID id) {
-		// TODO Auto-generated method stub
-
+		for (ID id : ids) {
+			remove(id);
+		}
 	}
 
 }
