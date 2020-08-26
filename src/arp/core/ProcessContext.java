@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProcessContext {
 
@@ -150,13 +149,29 @@ public class ProcessContext {
 
 	private void clear() {
 		processEntities.clear();
-		entityCollectionRepositories.clear();
-		acquiredLocks.clear();
 	}
 
 	private void releaseAcquiredLocks() {
-		for (AtomicInteger lock : acquiredLocks) {
-			lock.set(0);
+		for (RepositoryProcessEntities entities : processEntities.values()) {
+			EntityCollectionRepository repository = EntityCollectionRepository
+					.getRepository(entities.getRepositoryId());
+
+			Map processEntities = entities.getEntities();
+			Set idsToUnlock = new HashSet();
+
+			for (Object obj : processEntities.entrySet()) {
+				Entry entry = (Entry) obj;
+				Object id = entry.getKey();
+				ProcessEntity processEntity = (ProcessEntity) entry.getValue();
+				if (processEntity.getState() instanceof TakenProcessEntityState) {
+					idsToUnlock.add(id);
+				} else if (processEntity.getState() instanceof RemovedProcessEntityState) {
+					idsToUnlock.add(id);
+				}
+			}
+
+			repository.returnEntities(idsToUnlock);
+
 		}
 	}
 

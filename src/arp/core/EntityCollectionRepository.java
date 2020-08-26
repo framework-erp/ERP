@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import arp.store.MemStore;
+
 public abstract class EntityCollectionRepository<ID, T> {
 
 	private static AtomicInteger ids = new AtomicInteger();
@@ -16,6 +18,12 @@ public abstract class EntityCollectionRepository<ID, T> {
 
 	static EntityCollectionRepository getRepository(int id) {
 		return repositories[id];
+	}
+
+	protected EntityCollectionRepository() {
+		store = new MemStore<>();
+		id = ids.incrementAndGet();
+		repositories[id] = this;
 	}
 
 	protected EntityCollectionRepository(Store<ID, T> store) {
@@ -120,4 +128,7 @@ public abstract class EntityCollectionRepository<ID, T> {
 		store.createAll(entitiesToCreate);
 	}
 
+	void returnEntities(Set<ID> ids) {
+		store.returnAll(ids);
+	}
 }

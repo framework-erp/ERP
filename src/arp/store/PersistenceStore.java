@@ -103,4 +103,20 @@ public abstract class PersistenceStore<ID, T> implements Store<ID, T> {
 	// 别忘了也要一并删除锁
 	protected abstract void remove(ID id);
 
+	@Override
+	public void returnAll(Set<ID> ids) {
+		if (ids.isEmpty()) {
+			return;
+		}
+		if (ids.size() == 1) {
+			unlock(ids.iterator().next());
+		} else {
+			unlockBatch(ids);
+		}
+	}
+
+	protected abstract void unlockBatch(Set<ID> ids);
+
+	protected abstract void unlock(ID id);
+
 }

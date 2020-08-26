@@ -18,4 +18,6 @@ public interface Store<ID, T> {
 
 	public void removeAll(Set<ID> ids);
 
+	public void returnAll(Set<ID> ids);
+
 }

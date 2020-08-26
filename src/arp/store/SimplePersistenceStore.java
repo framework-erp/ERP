@@ -52,4 +52,12 @@ public abstract class SimplePersistenceStore<ID, T> extends PersistenceStore<ID,
 		}
 	}
 
+	@Override
+	protected void unlockBatch(Set<ID> ids) {
+	}
+
+	@Override
+	protected void unlock(ID id) {
+	}
+
 }
