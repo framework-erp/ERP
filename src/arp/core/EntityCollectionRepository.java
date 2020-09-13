@@ -120,8 +120,8 @@ public abstract class EntityCollectionRepository<ID, T> {
 		store.removeAll(ids);
 	}
 
-	void updateEntities(Map<ID, T> entitiesToUpdate) {
-		store.checkAndUpdateAll(entitiesToUpdate);
+	void updateEntities(Map<ID, T> entitiesToReturn) {
+		store.checkAndUpdateAll(entitiesToReturn);
 	}
 
 	void createEntities(Map<ID, T> entitiesToCreate) {
