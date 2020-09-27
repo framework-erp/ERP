@@ -1,8 +1,8 @@
 package test.arp.core;
 
-import arp.core.EntityCollectionRepository;
+import arp.core.Repository;
 
-public class TestEntityRepository extends EntityCollectionRepository<Integer, TestEntity> {
+public class TestEntityRepository extends Repository<Integer, TestEntity> {
 
 	@Override
 	protected Integer getId(TestEntity entity) {

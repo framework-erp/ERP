@@ -35,7 +35,7 @@ public class ProcessContext {
 
 	private void flushProcessEntities() throws Exception {
 		for (RepositoryProcessEntities entities : processEntities.values()) {
-			EntityCollectionRepository repository = EntityCollectionRepository
+			Repository repository = Repository
 					.getRepository(entities.getRepositoryId());
 			Map processEntities = entities.getEntities();
 			Map entitiesToCreate = new HashMap();
@@ -55,7 +55,7 @@ public class ProcessContext {
 				}
 			}
 			if (!idsToRemove.isEmpty()) {
-				repository.deleteEntities(idsToRemove);
+				repository.removeAll(idsToRemove);
 			}
 			if (!entitiesToUpdate.isEmpty()) {
 				repository.updateEntities(entitiesToUpdate);
@@ -153,7 +153,7 @@ public class ProcessContext {
 
 	private void releaseAcquiredLocks() {
 		for (RepositoryProcessEntities entities : processEntities.values()) {
-			EntityCollectionRepository repository = EntityCollectionRepository
+			Repository repository = Repository
 					.getRepository(entities.getRepositoryId());
 
 			Map processEntities = entities.getEntities();

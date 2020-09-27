@@ -4,37 +4,35 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import arp.store.MemStore;
-
-public abstract class EntityCollectionRepository<ID, T> {
+public abstract class Repository<ID, T> {
 
 	private static AtomicInteger ids = new AtomicInteger();
 
-	private static EntityCollectionRepository[] repositories = new EntityCollectionRepository[1024];
+	private static Repository[] repositories = new Repository[1024];
 
 	private int id;
 
-	private Store<ID, T> store;
+	private Map<ID, T> mockStore;
 
-	static EntityCollectionRepository getRepository(int id) {
+	private boolean mock = false;
+
+	static Repository getRepository(int id) {
 		return repositories[id];
 	}
 
-	protected EntityCollectionRepository() {
-		store = new MemStore<>();
+	protected Repository() {
 		id = ids.incrementAndGet();
 		repositories[id] = this;
 	}
 
-	protected EntityCollectionRepository(Store<ID, T> store) {
-		this.store = store;
-		id = ids.incrementAndGet();
-		repositories[id] = this;
+	protected Repository(boolean mock) {
+		this();
+		this.mock = mock;
 	}
 
 	protected abstract ID getId(T entity);
 
-	public T take(ID id) {
+	public T findByIdForUpdate(ID id) {
 		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
 		if (!processContext.isStarted()) {
 			throw new RuntimeException("can not use repository without a process");
@@ -50,22 +48,42 @@ public abstract class EntityCollectionRepository<ID, T> {
 			}
 		}
 
-		T entity = store.findForTake(id);
+		T entity = findByIdForUpdateFromStore(id);
 		if (entity != null) {
 			processContext.takeEntityFromRepoAndPutInProcess(this.id, id, entity);
 		}
 		return entity;
 	}
 
-	public T copy(ID id) {
+	private T findByIdForUpdateFromStore(ID id) {
+		if (!mock) {
+			return doFindByIdForUpdate(id);
+		} else {
+			return mockStore.get(id);
+		}
+	}
+
+	protected abstract T doFindByIdForUpdate(ID id);
+
+	public T findById(ID id) {
 		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
 		if (!processContext.isStarted()) {
 			throw new RuntimeException("can not use repository without a process");
 		}
-		return store.findForRead(id);
+		return findByIdFromStore(id);
 	}
 
-	public void put(T entity) {
+	private T findByIdFromStore(ID id) {
+		if (!mock) {
+			return doFindById(id);
+		} else {
+			return mockStore.get(id);
+		}
+	}
+
+	protected abstract T doFindById(ID id);
+
+	public void save(T entity) {
 
 		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
 		if (!processContext.isStarted()) {
@@ -77,7 +95,7 @@ public abstract class EntityCollectionRepository<ID, T> {
 
 	}
 
-	public T putIfAbsent(T entity) {
+	public T saveIfAbsent(T entity) {
 		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
 		if (!processContext.isStarted()) {
 			throw new RuntimeException("can not use repository without a process");
@@ -93,10 +111,21 @@ public abstract class EntityCollectionRepository<ID, T> {
 			}
 		}
 
-		T entityFromStore = store.createIfAbsentAndTake(id, entity);
+		T entityFromStore = saveIfAbsentToStore(id, entity);
 		processContext.takeEntityFromRepoAndPutInProcess(this.id, id, entityFromStore);
 		return entityFromStore;
 	}
+
+	private T saveIfAbsentToStore(ID id, T entity) {
+		if (!mock) {
+			return doSaveIfAbsent(id, entity);
+		} else {
+			T t = mockStore.putIfAbsent(id, entity);
+			return t == null ? entity : t;
+		}
+	}
+
+	protected abstract T doSaveIfAbsent(ID id, T entity);
 
 	public T remove(ID id) {
 		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
@@ -108,7 +137,7 @@ public abstract class EntityCollectionRepository<ID, T> {
 			return processEntity.getEntity();
 		}
 
-		T entityFromStore = store.findForTake(id);
+		T entityFromStore = findByIdForUpdateFromStore(id);
 		if (entityFromStore != null) {
 			processContext.takeEntityFromRepoAndPutInProcessAsRemoved(this.id, id, entityFromStore);
 		}
@@ -117,18 +146,26 @@ public abstract class EntityCollectionRepository<ID, T> {
 	}
 
 	void deleteEntities(Set<ID> ids) {
-		store.removeAll(ids);
+		removeAll(ids);
 	}
+
+	protected abstract void removeAll(Set<ID> ids);
 
 	void updateEntities(Map<ID, T> entitiesToReturn) {
-		store.checkAndUpdateAll(entitiesToReturn);
+		updateAll(entitiesToReturn);
 	}
+
+	protected abstract void updateAll(Map<ID, T> entities);
 
 	void createEntities(Map<ID, T> entitiesToCreate) {
-		store.createAll(entitiesToCreate);
+		saveAll(entitiesToCreate);
 	}
 
+	protected abstract void saveAll(Map<ID, T> entities);
+
 	void returnEntities(Set<ID> ids) {
-		store.returnAll(ids);
+		unlockAll(ids);
 	}
+
+	protected abstract void unlockAll(Set<ID> ids);
 }
