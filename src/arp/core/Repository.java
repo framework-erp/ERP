@@ -1,5 +1,6 @@
 package arp.core;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,6 +29,9 @@ public abstract class Repository<ID, T> {
 	protected Repository(boolean mock) {
 		this();
 		this.mock = mock;
+		if (mock) {
+			mockStore = new HashMap<>();
+		}
 	}
 
 	protected abstract ID getId(T entity);
@@ -146,25 +150,47 @@ public abstract class Repository<ID, T> {
 	}
 
 	void deleteEntities(Set<ID> ids) {
-		removeAll(ids);
+
+		if (!mock) {
+			removeAll(ids);
+		} else {
+			for (ID id : ids) {
+				mockStore.remove(id);
+			}
+		}
+
 	}
 
 	protected abstract void removeAll(Set<ID> ids);
 
 	void updateEntities(Map<ID, T> entitiesToReturn) {
-		updateAll(entitiesToReturn);
+
+		if (!mock) {
+			updateAll(entitiesToReturn);
+		} else {
+		}
+
 	}
 
 	protected abstract void updateAll(Map<ID, T> entities);
 
 	void createEntities(Map<ID, T> entitiesToCreate) {
-		saveAll(entitiesToCreate);
+
+		if (!mock) {
+			saveAll(entitiesToCreate);
+		} else {
+			mockStore.putAll(entitiesToCreate);
+		}
+
 	}
 
 	protected abstract void saveAll(Map<ID, T> entities);
 
 	void returnEntities(Set<ID> ids) {
-		unlockAll(ids);
+		if (!mock) {
+			unlockAll(ids);
+		} else {
+		}
 	}
 
 	protected abstract void unlockAll(Set<ID> ids);
