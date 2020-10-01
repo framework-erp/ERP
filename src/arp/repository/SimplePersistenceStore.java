@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public abstract class SimplePersistenceStore<ID, T> extends PersistenceStore<ID, T> {
+public abstract class SimplePersistenceStore<ID, T> extends PersistenceRepository<ID, T> {
 
 	@Override
 	public T findForRead(ID id) {
