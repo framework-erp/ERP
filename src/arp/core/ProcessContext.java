@@ -55,7 +55,7 @@ public class ProcessContext {
 				}
 			}
 			if (!idsToRemove.isEmpty()) {
-				repository.removeAll(idsToRemove);
+				repository.removeAllToStore(idsToRemove);
 			}
 			if (!entitiesToUpdate.isEmpty()) {
 				repository.updateEntities(entitiesToUpdate);

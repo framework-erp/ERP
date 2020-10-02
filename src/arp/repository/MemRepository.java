@@ -56,18 +56,18 @@ public abstract class MemRepository<ID, T> extends Repository<ID, T> {
 	}
 
 	@Override
-	protected T doFindByIdForUpdate(ID id) {
+	protected T findByIdForUpdateFromStore(ID id) {
 		acquireLock(id);
 		return data.get(id);
 	}
 
 	@Override
-	protected T doFindById(ID id) {
+	protected T findByIdFromStore(ID id) {
 		return EntityCopier.copy(data.get(id));
 	}
 
 	@Override
-	protected T doSaveIfAbsent(ID id, T entity) {
+	protected T saveIfAbsentToStore(ID id, T entity) {
 		acquireLock(id);
 		T existsEntity = data.putIfAbsent(id, entity);
 		if (existsEntity != null) {
@@ -78,7 +78,7 @@ public abstract class MemRepository<ID, T> extends Repository<ID, T> {
 	}
 
 	@Override
-	protected void removeAll(Set<ID> ids) {
+	protected void removeAllToStore(Set<ID> ids) {
 		for (ID id : ids) {
 			data.remove(id);
 			locks.remove(id);
@@ -86,7 +86,7 @@ public abstract class MemRepository<ID, T> extends Repository<ID, T> {
 	}
 
 	@Override
-	protected void updateAll(Map<ID, T> entities) {
+	protected void updateAllToStore(Map<ID, T> entities) {
 		for (Entry<ID, T> entry : entities.entrySet()) {
 			ID id = entry.getKey();
 			data.put(id, EntityCopier.copy(entry.getValue()));
@@ -95,14 +95,14 @@ public abstract class MemRepository<ID, T> extends Repository<ID, T> {
 	}
 
 	@Override
-	protected void saveAll(Map<ID, T> entities) {
+	protected void saveAllToStore(Map<ID, T> entities) {
 		for (Entry<ID, T> entry : entities.entrySet()) {
 			data.put(entry.getKey(), EntityCopier.copy(entry.getValue()));
 		}
 	}
 
 	@Override
-	protected void unlockAll(Set<ID> ids) {
+	protected void unlockAllToStore(Set<ID> ids) {
 		for (ID id : ids) {
 			unlock(id);
 		}
