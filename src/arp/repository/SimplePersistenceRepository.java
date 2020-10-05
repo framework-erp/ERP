@@ -6,6 +6,13 @@ import java.util.Set;
 
 public abstract class SimplePersistenceRepository<ID, T> extends PersistenceRepository<ID, T> {
 
+	protected SimplePersistenceRepository() {
+	}
+
+	protected SimplePersistenceRepository(boolean mock) {
+		super(mock);
+	}
+
 	@Override
 	protected T findByIdForUpdateImpl(ID id) {
 		return findByIdImpl(id);
