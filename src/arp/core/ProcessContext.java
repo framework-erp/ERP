@@ -1,10 +1,13 @@
 package arp.core;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProcessContext {
 
@@ -12,31 +15,40 @@ public class ProcessContext {
 
 	private Map<Integer, RepositoryProcessEntities<?, ?>> processEntities = new HashMap<>();
 
+	private List<AtomicInteger> singleEntityAcquiredLocks = new ArrayList<>();
+
 	public void startProcess() {
 		if (started) {
 			throw new RuntimeException("can not start a process in another started process");
 		}
 		started = true;
+		Unsafe.loadFence();
 	}
 
 	public void finishProcess() {
+		Unsafe.storeFence();
 		try {
 			flushProcessEntities();
 		} catch (Exception e) {
-			releaseAcquiredLocks();
+			try {
+				releaseAcquiredLocks();
+			} catch (Exception e1) {
+			}
 			clear();
 			started = false;
 			throw new RuntimeException("flush process entities faild", e);
 		}
-		releaseAcquiredLocks();
+		try {
+			releaseAcquiredLocks();
+		} catch (Exception e) {
+		}
 		clear();
 		started = false;
 	}
 
 	private void flushProcessEntities() throws Exception {
 		for (RepositoryProcessEntities entities : processEntities.values()) {
-			Repository repository = Repository
-					.getRepository(entities.getRepositoryId());
+			Repository repository = Repository.getRepository(entities.getRepositoryId());
 			Map processEntities = entities.getEntities();
 			Map entitiesToCreate = new HashMap();
 			Map entitiesToUpdate = new HashMap();
@@ -142,7 +154,10 @@ public class ProcessContext {
 	}
 
 	public void processFaild() {
-		releaseAcquiredLocks();
+		try {
+			releaseAcquiredLocks();
+		} catch (Exception e) {
+		}
 		clear();
 		started = false;
 	}
@@ -151,10 +166,9 @@ public class ProcessContext {
 		processEntities.clear();
 	}
 
-	private void releaseAcquiredLocks() {
+	private void releaseAcquiredLocks() throws Exception {
 		for (RepositoryProcessEntities entities : processEntities.values()) {
-			Repository repository = Repository
-					.getRepository(entities.getRepositoryId());
+			Repository repository = Repository.getRepository(entities.getRepositoryId());
 
 			Map processEntities = entities.getEntities();
 			Set idsToUnlock = new HashSet();
@@ -173,6 +187,13 @@ public class ProcessContext {
 			repository.returnEntities(idsToUnlock);
 
 		}
+		for (AtomicInteger lock : singleEntityAcquiredLocks) {
+			lock.set(0);
+		}
+	}
+
+	public void addSingleEntityAcquiredLock(AtomicInteger lock) {
+		singleEntityAcquiredLocks.add(lock);
 	}
 
 }
