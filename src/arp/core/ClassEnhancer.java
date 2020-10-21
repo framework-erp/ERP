@@ -84,10 +84,12 @@ public class ClassEnhancer {
 			@Override
 			public MethodVisitor visitMethod(int access, String name, String desc, String signature,
 					String[] exceptions) {
+				String returnTypeDesc = desc.substring(desc.indexOf(")") + 1);
 				return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions),
 						access, name, desc) {
 
 					private boolean isProcess;
+					private boolean publish;
 
 					private Label lTryBlockStart;
 					private Label lTryBlockEnd;
@@ -96,6 +98,15 @@ public class ClassEnhancer {
 						isProcess = Type.getDescriptor(Process.class).equals(desc);
 						if (isProcess) {
 							clsInfoMap.put("hasProcess", true);
+							return new AnnotationVisitor(Opcodes.ASM5, super.visitAnnotation(desc, visible)) {
+								@Override
+								public void visit(String name, Object value) {
+									if ("publish".equals(name)) {
+										publish = true;
+									}
+									super.visit(name, value);
+								}
+							};
 						}
 						return super.visitAnnotation(desc, visible);
 					}
@@ -129,6 +140,66 @@ public class ClassEnhancer {
 
 					protected void onMethodExit(int opcode) {
 						if (isProcess) {
+							if (publish) {
+								if (Type.getDescriptor(void.class).equals(returnTypeDesc)) {
+									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
+											"publish", Type.getMethodDescriptor(Type.getType(void.class)), false);
+								} else if (Type.getDescriptor(byte.class).equals(returnTypeDesc)) {
+									visitInsn(Opcodes.DUP);
+									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
+											"publish", Type.getMethodDescriptor(Type.getType(void.class),
+													Type.getType(byte.class)),
+											false);
+								} else if (Type.getDescriptor(char.class).equals(returnTypeDesc)) {
+									visitInsn(Opcodes.DUP);
+									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
+											"publish", Type.getMethodDescriptor(Type.getType(void.class),
+													Type.getType(char.class)),
+											false);
+								} else if (Type.getDescriptor(short.class).equals(returnTypeDesc)) {
+									visitInsn(Opcodes.DUP);
+									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
+											"publish", Type.getMethodDescriptor(Type.getType(void.class),
+													Type.getType(short.class)),
+											false);
+								} else if (Type.getDescriptor(float.class).equals(returnTypeDesc)) {
+									visitInsn(Opcodes.DUP);
+									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
+											"publish", Type.getMethodDescriptor(Type.getType(void.class),
+													Type.getType(float.class)),
+											false);
+								} else if (Type.getDescriptor(int.class).equals(returnTypeDesc)) {
+									visitInsn(Opcodes.DUP);
+									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
+											"publish",
+											Type.getMethodDescriptor(Type.getType(void.class), Type.getType(int.class)),
+											false);
+								} else if (Type.getDescriptor(double.class).equals(returnTypeDesc)) {
+									visitInsn(Opcodes.DUP2);
+									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
+											"publish", Type.getMethodDescriptor(Type.getType(void.class),
+													Type.getType(double.class)),
+											false);
+								} else if (Type.getDescriptor(long.class).equals(returnTypeDesc)) {
+									visitInsn(Opcodes.DUP2);
+									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
+											"publish", Type.getMethodDescriptor(Type.getType(void.class),
+													Type.getType(long.class)),
+											false);
+								} else if (Type.getDescriptor(boolean.class).equals(returnTypeDesc)) {
+									visitInsn(Opcodes.DUP);
+									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
+											"publish", Type.getMethodDescriptor(Type.getType(void.class),
+													Type.getType(boolean.class)),
+											false);
+								} else {
+									visitInsn(Opcodes.DUP);
+									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
+											"publish", Type.getMethodDescriptor(Type.getType(void.class),
+													Type.getType(Object.class)),
+											false);
+								}
+							}
 							visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessWrapper.class),
 									"afterProcessFinish", "()V", false);
 						}
