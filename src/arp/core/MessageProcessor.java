@@ -1,10 +1,22 @@
 package arp.core;
 
+import java.util.List;
 import java.util.Map;
 
 public class MessageProcessor {
 
-	private Map<String, Object> processObjects;
+	private static Object[] listenerProcessObjects;// listener处理对象
+	private static int listenerProcessObjectsIdx;
+
+	private static Map<String, List<Integer>> processListenersIndex;// 过程的listeners索引
+
+	public static void defineListener(int idx, String processDesc) {
+
+	}
+
+	public static void addListener(int idx, String processDesc) {
+
+	}
 
 	public void process(Message msg) {
 		String processDesc = msg.getProcessDesc();
