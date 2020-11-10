@@ -42,6 +42,7 @@ public class ClassEnhancer {
 			injectMessageProcessor();
 			loadClasses(enhancedClassBytes);
 			loadClassMessageProcessor();
+			MessageProcessor.defineListener(idx, processDesc);
 		}
 	}
 
@@ -62,7 +63,7 @@ public class ClassEnhancer {
 
 	}
 
-	private static byte[] parseListeners(byte[] bytes, List<Map<String, Object>> listnersList) {
+	private static void parseListeners(byte[] bytes, List<Map<String, Object>> listnersList) {
 		ClassReader cr = new ClassReader(bytes);
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		Map<String, Object> clsInfoMap = new HashMap<>();
@@ -75,26 +76,27 @@ public class ClassEnhancer {
 			}
 
 			@Override
-			public MethodVisitor visitMethod(int access, String name, String desc, String signature,
+			public MethodVisitor visitMethod(int access, String name, String mthDesc, String signature,
 					String[] exceptions) {
-				String returnTypeDesc = desc.substring(desc.indexOf(")") + 1);
-				return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions),
-						access, name, desc) {
+				String returnTypeDesc = mthDesc.substring(mthDesc.indexOf(")") + 1);
+				return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(access, name, mthDesc, signature, exceptions),
+						access, name, mthDesc) {
 
 					private boolean isListener;
 
-					private Label lTryBlockStart;
-					private Label lTryBlockEnd;
-
 					public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-						isProcess = Type.getDescriptor(Process.class).equals(desc);
-						if (isProcess) {
-							clsInfoMap.put("hasProcess", true);
+						isListener = Type.getDescriptor(Listener.class).equals(desc);
+						if (isListener) {
+							clsInfoMap.put("hasListener", true);
 							return new AnnotationVisitor(Opcodes.ASM5, super.visitAnnotation(desc, visible)) {
 								@Override
 								public void visit(String name, Object value) {
-									if ("publish".equals(name)) {
-										publish = true;
+									if ("value".equals(name)) {
+										Map<String, Object> listenerData = new HashMap<>();
+										listenerData.put("processDesc", value);// 源过程描述
+										listenerData.put("listenerProcessObjType", clsInfoMap.get("name"));// listener所在的处理类类型
+										listenerData.put("listenerMthDesc", mthDesc);
+										listnersList.add(listenerData);
 									}
 									super.visit(name, value);
 								}
@@ -103,161 +105,10 @@ public class ClassEnhancer {
 						return super.visitAnnotation(desc, visible);
 					}
 
-					protected void onMethodEnter() {
-						if (isProcess) {
-							visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessWrapper.class),
-									"beforeProcessStart", "()V", false);
-
-							lTryBlockStart = new Label();
-							lTryBlockEnd = new Label();
-
-							mark(lTryBlockStart);
-						}
-						super.onMethodEnter();
-					}
-
-					public void visitMaxs(int maxStack, int maxLocals) {
-						if (isProcess) {
-							mark(lTryBlockEnd);
-							catchException(lTryBlockStart, lTryBlockEnd, null);
-
-							visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessWrapper.class),
-									"afterProcessFaild", "()V", false);
-
-							throwException();
-
-						}
-						super.visitMaxs(maxStack, maxLocals);
-					}
-
-					protected void onMethodExit(int opcode) {
-						if (isProcess) {
-							if (publish) {
-								if (Type.getDescriptor(void.class).equals(returnTypeDesc)) {
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
-									visitLdcInsn(desc);
-									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(Type.getType(void.class),
-													Type.getType(String.class), Type.getType(String.class),
-													Type.getType(String.class)),
-											false);
-								} else if (Type.getDescriptor(byte.class).equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
-									visitLdcInsn(desc);
-									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(Type.getType(void.class),
-													Type.getType(String.class), Type.getType(String.class),
-													Type.getType(String.class), Type.getType(byte.class)),
-											false);
-								} else if (Type.getDescriptor(char.class).equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
-									visitLdcInsn(desc);
-									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(Type.getType(void.class),
-													Type.getType(String.class), Type.getType(String.class),
-													Type.getType(String.class), Type.getType(char.class)),
-											false);
-								} else if (Type.getDescriptor(short.class).equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
-									visitLdcInsn(desc);
-									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(Type.getType(void.class),
-													Type.getType(String.class), Type.getType(String.class),
-													Type.getType(String.class), Type.getType(short.class)),
-											false);
-								} else if (Type.getDescriptor(float.class).equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
-									visitLdcInsn(desc);
-									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(Type.getType(void.class),
-													Type.getType(String.class), Type.getType(String.class),
-													Type.getType(String.class), Type.getType(float.class)),
-											false);
-								} else if (Type.getDescriptor(int.class).equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
-									visitLdcInsn(desc);
-									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(Type.getType(void.class),
-													Type.getType(String.class), Type.getType(String.class),
-													Type.getType(String.class), Type.getType(int.class)),
-											false);
-								} else if (Type.getDescriptor(double.class).equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP2);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
-									visitLdcInsn(desc);
-									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(Type.getType(void.class),
-													Type.getType(String.class), Type.getType(String.class),
-													Type.getType(String.class), Type.getType(double.class)),
-											false);
-								} else if (Type.getDescriptor(long.class).equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP2);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
-									visitLdcInsn(desc);
-									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(Type.getType(void.class),
-													Type.getType(String.class), Type.getType(String.class),
-													Type.getType(String.class), Type.getType(long.class)),
-											false);
-								} else if (Type.getDescriptor(boolean.class).equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
-									visitLdcInsn(desc);
-									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(Type.getType(void.class),
-													Type.getType(String.class), Type.getType(String.class),
-													Type.getType(String.class), Type.getType(boolean.class)),
-											false);
-								} else {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
-									visitLdcInsn(desc);
-									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(Type.getType(void.class),
-													Type.getType(Object.class), Type.getType(String.class),
-													Type.getType(String.class), Type.getType(String.class)),
-											false);
-								}
-							}
-							visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessWrapper.class),
-									"afterProcessFinish", "()V", false);
-						}
-						super.onMethodExit(opcode);
-					}
-
 				};
 			}
 
 		}, ClassReader.EXPAND_FRAMES);
-		if (Boolean.TRUE.equals(clsInfoMap.get("hasProcess"))) {
-			byte[] enhancedBytes = cw.toByteArray();
-			enhancedClassBytes.put((String) clsInfoMap.get("name"), enhancedBytes);
-		}
 	}
 
 	private static void loadClasses(Map<String, byte[]> enhancedClassBytes) throws Exception {
@@ -310,7 +161,7 @@ public class ClassEnhancer {
 							return new AnnotationVisitor(Opcodes.ASM5, super.visitAnnotation(desc, visible)) {
 								@Override
 								public void visit(String name, Object value) {
-									if ("publish".equals(name)) {
+									if ("publish".equals(name) && Boolean.TRUE.equals(value)) {
 										publish = true;
 									}
 									super.visit(name, value);
