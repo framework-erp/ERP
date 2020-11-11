@@ -46,6 +46,32 @@ public class ClassEnhancer {
 		}
 	}
 
+	private static void enhanceClassesForListners(Map<String, byte[]> enhancedClassBytes,
+			List<Map<String, Object>> listnersList) {
+		int startIdx = 0;
+		int listnersCount = 0;
+		String listenerProcessObjType = null;
+		for (int i = 0; i < listnersList.size(); i++) {
+			Map<String, Object> listenerData = listnersList.get(i);
+			if (listenerData.get("listenerProcessObjType").equals(listenerProcessObjType)) {
+				listnersCount++;
+			} else {
+				enhanceProcessClassWithListners(enhancedClassBytes, listenerProcessObjType, startIdx, listnersCount);
+				startIdx = i;
+				listenerProcessObjType = (String) listenerData.get("listenerProcessObjType");
+			}
+		}
+	}
+
+	private static void enhanceProcessClassWithListners(Map<String, byte[]> enhancedClassBytes,
+			String listenerProcessObjType, int startIdx, int listnersCount) {
+		if (listnersCount == 0) {
+			return;
+		}
+		byte[] bytes = enhancedClassBytes.get(listenerProcessObjType);
+//TODO bytes里的所有构造器要注入
+	}
+
 	private static void enhanceClassesForPackage(String pkg, Map<String, byte[]> enhancedClassBytes) throws Exception {
 		String pkgDir = pkg.replace('.', '/');
 		URL url = Thread.currentThread().getContextClassLoader().getResource(pkgDir);
@@ -78,7 +104,6 @@ public class ClassEnhancer {
 			@Override
 			public MethodVisitor visitMethod(int access, String name, String mthDesc, String signature,
 					String[] exceptions) {
-				String returnTypeDesc = mthDesc.substring(mthDesc.indexOf(")") + 1);
 				return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(access, name, mthDesc, signature, exceptions),
 						access, name, mthDesc) {
 
@@ -87,7 +112,6 @@ public class ClassEnhancer {
 					public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
 						isListener = Type.getDescriptor(Listener.class).equals(desc);
 						if (isListener) {
-							clsInfoMap.put("hasListener", true);
 							return new AnnotationVisitor(Opcodes.ASM5, super.visitAnnotation(desc, visible)) {
 								@Override
 								public void visit(String name, Object value) {
