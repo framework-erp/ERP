@@ -49,6 +49,8 @@ public class MessageProcessor {
 	private void processByListener(int listenerIndex, Object listenerProcessObject, Message msg) {
 		// TODO 字节码生成开始
 		if (listenerIndex == 0) {
+			ArrayList service1 = (ArrayList) listenerProcessObject;
+			service1.add(msg.getProcessOutput());
 //			service1 = listenerProcessObject;
 //			 service1.receiveAAA()
 			return;
