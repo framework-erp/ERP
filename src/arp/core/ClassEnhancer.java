@@ -59,7 +59,7 @@ public class ClassEnhancer {
 			String listenerProcessObjType = (String) listenerData.get("listenerProcessObjType");
 			String messageProcessorClasseType = listenerProcessObjType.replace('.', '/') + "/MessageProcessor_"
 					+ (String) listenerData.get("listenerMthName");
-			ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+			ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 			cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, messageProcessorClasseType, null,
 					Type.getType(Object.class).getInternalName(),
 					new String[] { Type.getType(MessageProcessor.class).getInternalName() });
@@ -71,6 +71,7 @@ public class ClassEnhancer {
 					Type.getMethodDescriptor(Type.getType(void.class),
 							Type.getType("L" + listenerProcessObjType.replace('.', '/') + ";")),
 					null, null);
+			cmv.visitMaxs(2, 2);
 			cmv.visitCode();
 			cmv.visitVarInsn(Opcodes.ALOAD, 0);
 			cmv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", "()V", false);
@@ -83,6 +84,7 @@ public class ClassEnhancer {
 
 			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PROTECTED, "process",
 					Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), null, null);
+			mv.visitMaxs(2, 2);
 			mv.visitCode();
 			mv.visitVarInsn(Opcodes.ALOAD, 0);
 			mv.visitFieldInsn(Opcodes.GETFIELD, messageProcessorClasseType, "processor",
@@ -102,6 +104,13 @@ public class ClassEnhancer {
 			mv.visitEnd();
 
 			byte[] enhancedBytes = cw.toByteArray();
+
+//			File outputFile = new File("output.class");
+//			FileOutputStream outputFileStream = null;
+//			outputFileStream = new FileOutputStream(outputFile);
+//			outputFileStream.write(enhancedBytes);
+//			outputFileStream.close();
+
 			Object[] argArray = new Object[] { messageProcessorClasseType.replace('/', '.'), enhancedBytes,
 					new Integer(0), new Integer(enhancedBytes.length) };
 			method.invoke(cl, argArray);

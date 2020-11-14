@@ -6,6 +6,7 @@ public class ARP {
 
 	public static void startMessageConsumer() {
 		messageConsumer = new MessageConsumer();
+		messageConsumer.start();
 	}
 
 	public static void registerMessageProcessor(String processDesc, MessageProcessor processor) {
