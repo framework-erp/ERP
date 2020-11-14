@@ -19,6 +19,7 @@ import jdk.internal.org.objectweb.asm.AnnotationVisitor;
 import jdk.internal.org.objectweb.asm.ClassReader;
 import jdk.internal.org.objectweb.asm.ClassVisitor;
 import jdk.internal.org.objectweb.asm.ClassWriter;
+import jdk.internal.org.objectweb.asm.FieldVisitor;
 import jdk.internal.org.objectweb.asm.Label;
 import jdk.internal.org.objectweb.asm.MethodVisitor;
 import jdk.internal.org.objectweb.asm.Opcodes;
@@ -40,49 +41,73 @@ public class ClassEnhancer {
 			}
 
 			if (!listnersList.isEmpty()) {
+				createMessageProcessorClasses(listnersList);
 				enhanceClassesForListners(enhancedClassBytes, listnersList);
 			}
 			loadClasses(enhancedClassBytes);
-
-			if (!listnersList.isEmpty()) {
-				injectAndLoadMessageProcessor(listnersList);
-				MessageProcessor.defineListener(idx, processDesc);
-			}
-
 		}
 	}
 
-	private static void injectAndLoadMessageProcessor(List<Map<String, Object>> listnersList) {
-		byte[] bytes = enhancedClassBytes.get(listenerProcessObjType);
-		// 所有构造器要注入
-		ClassReader cr = new ClassReader(bytes);
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		cr.accept(new ClassVisitor(Opcodes.ASM5, cw) {
+	private static void createMessageProcessorClasses(List<Map<String, Object>> listnersList) throws Exception {
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		Class cls = Class.forName("java.lang.ClassLoader");
+		java.lang.reflect.Method method = cls.getDeclaredMethod("defineClass",
+				new Class[] { String.class, byte[].class, int.class, int.class });
+		method.setAccessible(true);
+		for (Map<String, Object> listenerData : listnersList) {
+			Type processOutputType = (Type) listenerData.get("processOutputType");
+			String listenerProcessObjType = (String) listenerData.get("listenerProcessObjType");
+			String messageProcessorClasseType = listenerProcessObjType.replace('.', '/') + "/MessageProcessor_"
+					+ (String) listenerData.get("listenerMthName");
+			ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+			cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, messageProcessorClasseType, null,
+					Type.getType(Object.class).getInternalName(),
+					new String[] { Type.getType(MessageProcessor.class).getInternalName() });
+			FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE, "processor",
+					"L" + listenerProcessObjType.replace('.', '/') + ";", null, null);
+			fv.visitEnd();
 
-			@Override
-			public MethodVisitor visitMethod(int access, String name, String desc, String signature,
-					String[] exceptions) {
-				return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions),
-						access, name, desc) {
+			MethodVisitor cmv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>",
+					Type.getMethodDescriptor(Type.getType(void.class),
+							Type.getType("L" + listenerProcessObjType.replace('.', '/') + ";")),
+					null, null);
+			cmv.visitCode();
+			cmv.visitVarInsn(Opcodes.ALOAD, 0);
+			cmv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", "()V", false);
+			cmv.visitVarInsn(Opcodes.ALOAD, 0);
+			cmv.visitVarInsn(Opcodes.ALOAD, 1);
+			cmv.visitFieldInsn(Opcodes.PUTFIELD, messageProcessorClasseType, "processor",
+					"L" + listenerProcessObjType.replace('.', '/') + ";");
+			cmv.visitInsn(Opcodes.RETURN);
+			cmv.visitEnd();
 
-					protected void onMethodExit(int opcode) {
-						for (int i = 0; i < listnersCount; i++) {
-							visitLdcInsn(startIdx + i);
-							visitVarInsn(Opcodes.ALOAD, 0);
-							visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MessageProcessor.class),
-									"addListener", Type.getMethodDescriptor(Type.getType(void.class),
-											Type.getType(int.class), Type.getType(Object.class)),
-									false);
-						}
-						super.onMethodExit(opcode);
-					}
-
-				};
+			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PROTECTED, "process",
+					Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), null, null);
+			mv.visitCode();
+			mv.visitVarInsn(Opcodes.ALOAD, 0);
+			mv.visitFieldInsn(Opcodes.GETFIELD, messageProcessorClasseType, "processor",
+					"L" + listenerProcessObjType.replace('.', '/') + ";");
+			if (processOutputType != null) {
+				mv.visitVarInsn(Opcodes.ALOAD, 1);
+				mv.visitTypeInsn(Opcodes.CHECKCAST, processOutputType.getInternalName());
+				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, listenerProcessObjType.replace('.', '/'),
+						(String) listenerData.get("listenerMthName"), (String) listenerData.get("listenerMthDesc"),
+						false);
+			} else {
+				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, listenerProcessObjType.replace('.', '/'),
+						(String) listenerData.get("listenerMthName"), (String) listenerData.get("listenerMthDesc"),
+						false);
 			}
+			mv.visitInsn(Opcodes.RETURN);
+			mv.visitEnd();
 
-		}, ClassReader.EXPAND_FRAMES);
-		byte[] enhancedBytes = cw.toByteArray();
-		enhancedClassBytes.put(listenerProcessObjType, enhancedBytes);
+			byte[] enhancedBytes = cw.toByteArray();
+			Object[] argArray = new Object[] { messageProcessorClasseType.replace('/', '.'), enhancedBytes,
+					new Integer(0), new Integer(enhancedBytes.length) };
+			method.invoke(cl, argArray);
+
+		}
+		method.setAccessible(false);
 	}
 
 	private static void enhanceClassesForListners(Map<String, byte[]> enhancedClassBytes,
@@ -95,15 +120,19 @@ public class ClassEnhancer {
 			if (listenerData.get("listenerProcessObjType").equals(listenerProcessObjType)) {
 				listnersCount++;
 			} else {
-				enhanceProcessClassWithListners(enhancedClassBytes, listenerProcessObjType, startIdx, listnersCount);
+				enhanceProcessClassWithListners(enhancedClassBytes, listenerProcessObjType, startIdx, listnersCount,
+						listnersList);
 				startIdx = i;
+				listnersCount = 1;
 				listenerProcessObjType = (String) listenerData.get("listenerProcessObjType");
 			}
 		}
+		enhanceProcessClassWithListners(enhancedClassBytes, listenerProcessObjType, startIdx, listnersCount,
+				listnersList);
 	}
 
 	private static void enhanceProcessClassWithListners(Map<String, byte[]> enhancedClassBytes,
-			String listenerProcessObjType, int startIdx, int listnersCount) {
+			String listenerProcessObjType, int startIdx, int listnersCount, List<Map<String, Object>> listnersList) {
 		if (listnersCount == 0) {
 			return;
 		}
@@ -120,13 +149,27 @@ public class ClassEnhancer {
 						access, name, desc) {
 
 					protected void onMethodExit(int opcode) {
-						for (int i = 0; i < listnersCount; i++) {
-							visitLdcInsn(startIdx + i);
-							visitVarInsn(Opcodes.ALOAD, 0);
-							visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MessageProcessor.class),
-									"addListener", Type.getMethodDescriptor(Type.getType(void.class),
-											Type.getType(int.class), Type.getType(Object.class)),
-									false);
+						if (name.equals("<init>")) {
+							for (int i = 0; i < listnersCount; i++) {
+								Map<String, Object> listenerData = listnersList.get(startIdx + i);
+								String processDesc = (String) listenerData.get("processDesc");
+								String listenerProcessObjType = (String) listenerData.get("listenerProcessObjType");
+								String messageProcessorClasseType = listenerProcessObjType.replace('.', '/')
+										+ "/MessageProcessor_" + (String) listenerData.get("listenerMthName");
+
+								visitLdcInsn(processDesc);
+								visitTypeInsn(Opcodes.NEW, messageProcessorClasseType);
+								visitInsn(Opcodes.DUP);
+								visitVarInsn(Opcodes.ALOAD, 0);
+								visitMethodInsn(Opcodes.INVOKESPECIAL, messageProcessorClasseType, "<init>",
+										Type.getMethodDescriptor(Type.getType(void.class),
+												Type.getType("L" + listenerProcessObjType.replace('.', '/') + ";")),
+										false);
+								visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ARP.class),
+										"registerMessageProcessor", Type.getMethodDescriptor(Type.getType(void.class),
+												Type.getType(String.class), Type.getType(MessageProcessor.class)),
+										false);
+							}
 						}
 						super.onMethodExit(opcode);
 					}
@@ -169,10 +212,11 @@ public class ClassEnhancer {
 			}
 
 			@Override
-			public MethodVisitor visitMethod(int access, String name, String mthDesc, String signature,
+			public MethodVisitor visitMethod(int access, String mthName, String mthDesc, String signature,
 					String[] exceptions) {
-				return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(access, name, mthDesc, signature, exceptions),
-						access, name, mthDesc) {
+				Type[] argumentTypes = Type.getArgumentTypes(mthDesc);
+				return new AdviceAdapter(Opcodes.ASM5,
+						super.visitMethod(access, mthName, mthDesc, signature, exceptions), access, mthName, mthDesc) {
 
 					private boolean isListener;
 
@@ -185,7 +229,11 @@ public class ClassEnhancer {
 									if ("value".equals(name)) {
 										Map<String, Object> listenerData = new HashMap<>();
 										listenerData.put("processDesc", value);// 源过程描述
+										if (argumentTypes != null && argumentTypes.length > 0) {
+											listenerData.put("processOutputType", argumentTypes[0]);// 源过程输出类型
+										}
 										listenerData.put("listenerProcessObjType", clsInfoMap.get("name"));// listener所在的处理类类型
+										listenerData.put("listenerMthName", mthName);
 										listenerData.put("listenerMthDesc", mthDesc);
 										listnersList.add(listenerData);
 									}
