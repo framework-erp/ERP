@@ -1,5 +1,6 @@
 package arp.core;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,8 @@ public class MessageConsumer {
 
 	private Thread receiveThread;
 	private MessageReceiver receiver;
-	private Map<String, Set<MessageProcessor>> processors = new ConcurrentHashMap<>();
+	private Map<String, List<MessageProcessor>> processors = new ConcurrentHashMap<>();
+	private Set<String> messageProcessorTypes = new HashSet<>();
 	private ExecutorService executorService;
 
 	public MessageConsumer() {
@@ -20,12 +22,16 @@ public class MessageConsumer {
 	}
 
 	public void registerProcessor(String processDesc, MessageProcessor processor) {
-		Set<MessageProcessor> set = processors.get(processDesc);
-		if (set == null) {
-			set = new HashSet<>();
-			processors.put(processDesc, set);
+		if (messageProcessorTypes.contains(processor.getClass().getName())) {
+			return;
 		}
-		set.add(processor);
+		List<MessageProcessor> list = processors.get(processDesc);
+		if (list == null) {
+			list = new ArrayList<>();
+			processors.put(processDesc, list);
+		}
+		list.add(processor);
+		messageProcessorTypes.add(processor.getClass().getName());
 	}
 
 	public void start() {
@@ -33,11 +39,11 @@ public class MessageConsumer {
 			while (true) {
 				List<Message> msgList = receiver.receive();
 				for (Message msg : msgList) {
-					Set<MessageProcessor> set = processors.get(msg.getProcessDesc());
-					if (set == null) {
+					List<MessageProcessor> list = processors.get(msg.getProcessDesc());
+					if (list == null) {
 						continue;
 					}
-					for (MessageProcessor processor : set) {
+					for (MessageProcessor processor : list) {
 						executorService.submit(() -> {
 							processor.process(msg.getProcessOutput());
 						});

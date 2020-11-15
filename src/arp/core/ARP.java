@@ -4,6 +4,10 @@ public class ARP {
 
 	private static MessageConsumer messageConsumer;
 
+	public static void enhance(String... pkgs) throws Exception {
+		ClassEnhancer.enhance(pkgs);
+	}
+
 	public static void startMessageConsumer() {
 		messageConsumer = new MessageConsumer();
 		messageConsumer.start();
