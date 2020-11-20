@@ -12,7 +12,6 @@ import java.util.concurrent.Executors;
 public class MessageConsumer {
 
 	private Thread receiveThread;
-	private MessageReceiver receiver;
 	private Map<String, List<MessageProcessor>> processors = new ConcurrentHashMap<>();
 	private Set<String> messageProcessorTypes = new HashSet<>();
 	private ExecutorService executorService;
@@ -34,10 +33,13 @@ public class MessageConsumer {
 		messageProcessorTypes.add(processor.getClass().getName());
 	}
 
-	public void start() {
+	public void start(MessageReceiver receiver) {
 		receiveThread = new Thread(() -> {
 			while (true) {
 				List<Message> msgList = receiver.receive();
+				if (msgList == null) {
+					continue;
+				}
 				for (Message msg : msgList) {
 					List<MessageProcessor> list = processors.get(msg.getProcessDesc());
 					if (list == null) {

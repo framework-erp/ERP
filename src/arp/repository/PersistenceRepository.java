@@ -24,7 +24,9 @@ public abstract class PersistenceRepository<ID, T> extends Repository<ID, T> {
 	@Override
 	protected T findByIdForUpdateFromStore(ID id) {
 		T entity = findByIdForUpdateImpl(id);
-		originalEntities.put(id, EntityCopier.copy(entity));
+		if (entity != null) {
+			originalEntities.put(id, EntityCopier.copy(entity));
+		}
 		return entity;
 	}
 
@@ -40,7 +42,9 @@ public abstract class PersistenceRepository<ID, T> extends Repository<ID, T> {
 	@Override
 	protected T saveIfAbsentToStore(ID id, T entity) {
 		T entityTaken = saveIfAbsentImpl(id, entity);
-		originalEntities.put(id, EntityCopier.copy(entityTaken));
+		if (entity != null) {
+			originalEntities.put(id, EntityCopier.copy(entityTaken));
+		}
 		return entityTaken;
 	}
 
