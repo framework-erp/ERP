@@ -1,4 +1,4 @@
-package arp.core;
+package arp.process;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +8,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import arp.enhance.Unsafe;
+import arp.repository.Repository;
+import arp.repository.RepositoryProcessEntities;
 
 public class ProcessContext {
 
@@ -67,7 +71,7 @@ public class ProcessContext {
 				}
 			}
 			if (!idsToRemove.isEmpty()) {
-				repository.removeAllToStore(idsToRemove);
+				repository.deleteEntities(idsToRemove);
 			}
 			if (!entitiesToUpdate.isEmpty()) {
 				repository.updateEntities(entitiesToUpdate);

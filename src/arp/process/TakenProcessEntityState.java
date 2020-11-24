@@ -1,6 +1,6 @@
-package arp.core;
+package arp.process;
 
-public class RemovedProcessEntityState implements ProcessEntityState {
+public class TakenProcessEntityState implements ProcessEntityState {
 
 	@Override
 	public ProcessEntityState take() {
@@ -9,12 +9,12 @@ public class RemovedProcessEntityState implements ProcessEntityState {
 
 	@Override
 	public ProcessEntityState put() {
-		return new TakenProcessEntityState();
+		return this;
 	}
 
 	@Override
 	public ProcessEntityState remove() {
-		return this;
+		return new RemovedProcessEntityState();
 	}
 
 }

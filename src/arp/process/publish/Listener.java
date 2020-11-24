@@ -1,4 +1,4 @@
-package arp.core;
+package arp.process.publish;
 
 import static java.lang.annotation.ElementType.METHOD;
 

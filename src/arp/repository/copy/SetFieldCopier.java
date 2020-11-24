@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
-import arp.core.Unsafe;
+import arp.enhance.Unsafe;
 
 public class SetFieldCopier extends BaseFieldCopier {
 

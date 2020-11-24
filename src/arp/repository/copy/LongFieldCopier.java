@@ -2,7 +2,7 @@ package arp.repository.copy;
 
 import java.lang.reflect.Field;
 
-import arp.core.Unsafe;
+import arp.enhance.Unsafe;
 
 public class LongFieldCopier extends BaseFieldCopier {
 

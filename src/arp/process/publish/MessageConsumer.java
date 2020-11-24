@@ -1,4 +1,4 @@
-package arp.core;
+package arp.process.publish;
 
 import java.util.ArrayList;
 import java.util.HashSet;

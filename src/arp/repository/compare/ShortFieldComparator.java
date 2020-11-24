@@ -2,7 +2,7 @@ package arp.repository.compare;
 
 import java.lang.reflect.Field;
 
-import arp.core.Unsafe;
+import arp.enhance.Unsafe;
 
 public class ShortFieldComparator extends BaseFieldComparator {
 

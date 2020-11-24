@@ -1,11 +1,11 @@
 package arp;
 
-import arp.core.ClassEnhancer;
-import arp.core.MessageConsumer;
-import arp.core.MessageProcessor;
-import arp.core.MessageReceiver;
-import arp.core.MessageSender;
-import arp.core.ProcessPublisher;
+import arp.enhance.ClassEnhancer;
+import arp.process.publish.MessageConsumer;
+import arp.process.publish.MessageProcessor;
+import arp.process.publish.MessageReceiver;
+import arp.process.publish.MessageSender;
+import arp.process.publish.ProcessPublisher;
 
 public class ARP {
 

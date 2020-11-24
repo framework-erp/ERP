@@ -3,7 +3,7 @@ package arp.repository.copy;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
-import arp.core.Unsafe;
+import arp.enhance.Unsafe;
 
 public class HashMapFieldCopier extends BaseFieldCopier {
 

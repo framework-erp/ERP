@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import arp.core.ClassEnhancer;
+import arp.enhance.ClassEnhancer;
 
 class CoreTest {
 

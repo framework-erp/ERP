@@ -1,9 +1,17 @@
-package arp.core;
+package arp.repository;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import arp.process.CreatedProcessEntityState;
+import arp.process.ProcessContext;
+import arp.process.ProcessEntity;
+import arp.process.ProcessEntityState;
+import arp.process.TakenProcessEntityState;
+import arp.process.ThreadBoundProcessContextArray;
+import arp.process.TransientProcessEntityState;
 
 public abstract class Repository<ID, T> {
 
@@ -17,7 +25,7 @@ public abstract class Repository<ID, T> {
 
 	private boolean mock = false;
 
-	static Repository getRepository(int id) {
+	public static Repository getRepository(int id) {
 		return repositories[id];
 	}
 
@@ -149,7 +157,7 @@ public abstract class Repository<ID, T> {
 
 	}
 
-	void deleteEntities(Set<ID> ids) {
+	public void deleteEntities(Set<ID> ids) {
 
 		if (!mock) {
 			removeAllToStore(ids);
@@ -163,7 +171,7 @@ public abstract class Repository<ID, T> {
 
 	protected abstract void removeAllToStore(Set<ID> ids);
 
-	void updateEntities(Map<ID, T> entitiesToReturn) {
+	public void updateEntities(Map<ID, T> entitiesToReturn) {
 
 		if (!mock) {
 			updateAllToStore(entitiesToReturn);
@@ -174,7 +182,7 @@ public abstract class Repository<ID, T> {
 
 	protected abstract void updateAllToStore(Map<ID, T> entities);
 
-	void createEntities(Map<ID, T> entitiesToCreate) {
+	public void createEntities(Map<ID, T> entitiesToCreate) {
 
 		if (!mock) {
 			saveAllToStore(entitiesToCreate);
@@ -186,7 +194,7 @@ public abstract class Repository<ID, T> {
 
 	protected abstract void saveAllToStore(Map<ID, T> entities);
 
-	void returnEntities(Set<ID> ids) {
+	public void returnEntities(Set<ID> ids) {
 		if (!mock) {
 			unlockAllToStore(ids);
 		} else {

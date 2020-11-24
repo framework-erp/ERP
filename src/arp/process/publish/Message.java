@@ -1,4 +1,4 @@
-package arp.core;
+package arp.process.publish;
 
 public class Message {
 

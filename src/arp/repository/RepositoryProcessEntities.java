@@ -1,7 +1,12 @@
-package arp.core;
+package arp.repository;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import arp.process.CreatedProcessEntityState;
+import arp.process.ProcessEntity;
+import arp.process.RemovedProcessEntityState;
+import arp.process.TakenProcessEntityState;
 
 public class RepositoryProcessEntities<ID, T> {
 

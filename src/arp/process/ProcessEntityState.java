@@ -1,4 +1,4 @@
-package arp.core;
+package arp.process;
 
 public interface ProcessEntityState {
 	public ProcessEntityState take();

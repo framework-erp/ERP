@@ -1,6 +1,6 @@
 package test.arp.core;
 
-import arp.core.Process;
+import arp.process.Process;
 
 public class TestService {
 

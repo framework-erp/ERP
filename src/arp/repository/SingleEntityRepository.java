@@ -1,7 +1,10 @@
-package arp.core;
+package arp.repository;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
+
+import arp.process.ProcessContext;
+import arp.process.ThreadBoundProcessContextArray;
 
 /**
  * 保存的是一个不存在于某个集合当中的独立的实体。没有懒加载的场景，在系统启动时需要加载

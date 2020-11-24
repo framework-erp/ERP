@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import arp.core.ClassEnhancer;
+import arp.enhance.ClassEnhancer;
 
 public class PerformanceTest {
 

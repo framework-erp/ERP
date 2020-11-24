@@ -1,4 +1,4 @@
-package arp.core;
+package arp.process;
 
 public class ProcessEntity<T> {
 	private T entity;

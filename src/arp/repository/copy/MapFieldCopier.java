@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-import arp.core.Unsafe;
+import arp.enhance.Unsafe;
 
 public class MapFieldCopier extends BaseFieldCopier {
 

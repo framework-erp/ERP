@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
-import arp.core.Repository;
 import arp.repository.copy.EntityCopier;
 
 public abstract class MemRepository<ID, T> extends Repository<ID, T> {
