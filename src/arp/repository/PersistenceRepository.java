@@ -13,13 +13,6 @@ public abstract class PersistenceRepository<ID, T> extends Repository<ID, T> {
 
 	private Map<ID, T> originalEntities = new ConcurrentHashMap<>();
 
-	protected PersistenceRepository() {
-	}
-
-	protected PersistenceRepository(boolean mock) {
-		super(mock);
-	}
-
 	@Override
 	protected T findByIdForUpdateFromStore(ID id) {
 		T entity = findByIdForUpdateImpl(id);

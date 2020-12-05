@@ -34,12 +34,9 @@ public abstract class Repository<ID, T> {
 		repositories[id] = this;
 	}
 
-	protected Repository(boolean mock) {
-		this();
-		this.mock = mock;
-		if (mock) {
-			mockStore = new HashMap<>();
-		}
+	protected void initAsMock() {
+		this.mock = true;
+		mockStore = new HashMap<>();
 	}
 
 	protected abstract ID getId(T entity);
