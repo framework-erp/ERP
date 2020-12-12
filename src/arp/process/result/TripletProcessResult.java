@@ -6,6 +6,14 @@ public class TripletProcessResult<A, B, C> {
 	private B b;
 	private C c;
 
+	public static <A, B, C> TripletProcessResult<A, B, C> instance(A a, B b, C c) {
+		TripletProcessResult<A, B, C> rslt = new TripletProcessResult<>();
+		rslt.setA(a);
+		rslt.setB(b);
+		rslt.setC(c);
+		return rslt;
+	}
+
 	public A getA() {
 		return a;
 	}

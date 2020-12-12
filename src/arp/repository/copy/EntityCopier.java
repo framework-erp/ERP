@@ -11,7 +11,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import arp.enhance.Unsafe;
+import arp.util.Unsafe;
 
 public class EntityCopier {
 

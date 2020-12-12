@@ -37,25 +37,31 @@ public abstract class MemRepository<ID, T> extends Repository<ID, T> {
 			return;
 		}
 
-		int counter = 200;
+		int counter = 300;
 		do {
 			if (lock.compareAndSet(0, tid)) {
 				return;
 			}
 
-			if (counter > 100) {
+			if (counter > 200) {
 				--counter;
-			} else if (counter > 0) {
+			} else if (counter > 100) {
 				--counter;
 				Thread.yield();
-			} else {
+			} else if (counter > 0) {
+				--counter;
 				LockSupport.parkNanos(1L);
+			} else {
+				throw new CanNotAcquireLockException();
 			}
 		} while (true);
 	}
 
 	@Override
 	protected T findByIdForUpdateFromStore(ID id) {
+		if (data.get(id) == null) {
+			return null;
+		}
 		acquireLock(id);
 		return data.get(id);
 	}

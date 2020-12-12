@@ -3,7 +3,7 @@ package arp.repository.copy;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
 
-import arp.enhance.Unsafe;
+import arp.util.Unsafe;
 
 public class LinkedListFieldCopier extends BaseFieldCopier {
 	public LinkedListFieldCopier(Field field) {

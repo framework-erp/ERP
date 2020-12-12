@@ -5,6 +5,13 @@ public class PairProcessResult<A, B> {
 	private A a;
 	private B b;
 
+	public static <A, B> PairProcessResult<A, B> instance(A a, B b) {
+		PairProcessResult<A, B> rslt = new PairProcessResult<>();
+		rslt.setA(a);
+		rslt.setB(b);
+		return rslt;
+	}
+
 	public A getA() {
 		return a;
 	}
