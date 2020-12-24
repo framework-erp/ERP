@@ -304,6 +304,7 @@ public class ClassEnhancer {
 
 					private boolean isProcess;
 					private boolean publish;
+					private String processName = "";
 
 					private Label lTryBlockStart;
 					private Label lTryBlockEnd;
@@ -317,6 +318,8 @@ public class ClassEnhancer {
 								public void visit(String name, Object value) {
 									if ("publish".equals(name) && Boolean.TRUE.equals(value)) {
 										publish = true;
+									} else if ("name".equals(name)) {
+										processName = (String) value;
 									}
 									super.visit(name, value);
 								}
@@ -354,11 +357,15 @@ public class ClassEnhancer {
 
 					protected void onMethodExit(int opcode) {
 						if (isProcess) {
+
+							visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessWrapper.class),
+									"afterProcessFinish", "()V", false);
+
 							if (publish) {
 								if (Type.getDescriptor(void.class).equals(returnTypeDesc)) {
 									visitLdcInsn(clsInfoMap.get("name"));
 									visitLdcInsn(name);
-									visitLdcInsn(desc);
+									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
 											Type.getMethodDescriptor(Type.getType(void.class),
@@ -369,7 +376,7 @@ public class ClassEnhancer {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
 									visitLdcInsn(name);
-									visitLdcInsn(desc);
+									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
 											Type.getMethodDescriptor(Type.getType(void.class),
@@ -380,7 +387,7 @@ public class ClassEnhancer {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
 									visitLdcInsn(name);
-									visitLdcInsn(desc);
+									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
 											Type.getMethodDescriptor(Type.getType(void.class),
@@ -391,7 +398,7 @@ public class ClassEnhancer {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
 									visitLdcInsn(name);
-									visitLdcInsn(desc);
+									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
 											Type.getMethodDescriptor(Type.getType(void.class),
@@ -402,7 +409,7 @@ public class ClassEnhancer {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
 									visitLdcInsn(name);
-									visitLdcInsn(desc);
+									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
 											Type.getMethodDescriptor(Type.getType(void.class),
@@ -413,7 +420,7 @@ public class ClassEnhancer {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
 									visitLdcInsn(name);
-									visitLdcInsn(desc);
+									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
 											Type.getMethodDescriptor(Type.getType(void.class),
@@ -424,7 +431,7 @@ public class ClassEnhancer {
 									visitInsn(Opcodes.DUP2);
 									visitLdcInsn(clsInfoMap.get("name"));
 									visitLdcInsn(name);
-									visitLdcInsn(desc);
+									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
 											Type.getMethodDescriptor(Type.getType(void.class),
@@ -435,7 +442,7 @@ public class ClassEnhancer {
 									visitInsn(Opcodes.DUP2);
 									visitLdcInsn(clsInfoMap.get("name"));
 									visitLdcInsn(name);
-									visitLdcInsn(desc);
+									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
 											Type.getMethodDescriptor(Type.getType(void.class),
@@ -446,7 +453,7 @@ public class ClassEnhancer {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
 									visitLdcInsn(name);
-									visitLdcInsn(desc);
+									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
 											Type.getMethodDescriptor(Type.getType(void.class),
@@ -457,7 +464,7 @@ public class ClassEnhancer {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
 									visitLdcInsn(name);
-									visitLdcInsn(desc);
+									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
 											Type.getMethodDescriptor(Type.getType(void.class),
@@ -466,8 +473,7 @@ public class ClassEnhancer {
 											false);
 								}
 							}
-							visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessWrapper.class),
-									"afterProcessFinish", "()V", false);
+
 						}
 						super.onMethodExit(opcode);
 					}

@@ -10,8 +10,12 @@ public class TestService {
 	public TestEntity f1(int id) {
 		TestEntity entity = new TestEntity();
 		entity.setId(id);
-		entity = testEntityRepository.saveIfAbsent(entity);
-		return entity;
+		TestEntity existsEntity = testEntityRepository.saveIfAbsent(entity);
+		if (existsEntity != null) {
+			return existsEntity;
+		} else {
+			return entity;
+		}
 	}
 
 	@Process

@@ -13,8 +13,11 @@ public abstract class SimplePersistenceRepository<ID, T> extends PersistenceRepo
 
 	@Override
 	protected T saveIfAbsentImpl(ID id, T entity) {
-		saveImpl(id, entity);
-		return entity;
+		T existsEntity = findByIdImpl(id);
+		if (existsEntity == null) {
+			saveImpl(id, entity);
+		}
+		return existsEntity;
 	}
 
 	@Override

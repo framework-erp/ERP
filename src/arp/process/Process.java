@@ -9,4 +9,6 @@ public @interface Process {
 
 	boolean publish() default false;
 
+	String name() default "";
+
 }

@@ -75,11 +75,7 @@ public abstract class MemRepository<ID, T> extends Repository<ID, T> {
 	protected T saveIfAbsentToStore(ID id, T entity) {
 		acquireLock(id);
 		T existsEntity = data.putIfAbsent(id, entity);
-		if (existsEntity != null) {
-			return existsEntity;
-		} else {
-			return entity;
-		}
+		return existsEntity;
 	}
 
 	@Override

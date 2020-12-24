@@ -121,7 +121,11 @@ public abstract class Repository<ID, T> {
 		}
 
 		T entityFromStore = doSaveIfAbsent(id, entity);
-		processContext.takeEntityFromRepoAndPutInProcess(this.id, id, entityFromStore);
+		if (entityFromStore != null) {
+			processContext.takeEntityFromRepoAndPutInProcess(this.id, id, entityFromStore);
+		} else {
+			processContext.takeEntityFromRepoAndPutInProcess(this.id, id, entity);
+		}
 		return entityFromStore;
 	}
 
@@ -129,8 +133,7 @@ public abstract class Repository<ID, T> {
 		if (!mock) {
 			return saveIfAbsentToStore(id, entity);
 		} else {
-			T t = mockStore.putIfAbsent(id, entity);
-			return t == null ? entity : t;
+			return mockStore.putIfAbsent(id, entity);
 		}
 	}
 

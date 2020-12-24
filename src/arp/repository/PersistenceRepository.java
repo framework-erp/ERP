@@ -33,14 +33,14 @@ public abstract class PersistenceRepository<ID, T> extends Repository<ID, T> {
 
 	@Override
 	protected T saveIfAbsentToStore(ID id, T entity) {
-		T entityTaken = saveIfAbsentImpl(id, entity);
+		entity = saveIfAbsentImpl(id, entity);
 		if (entity != null) {
-			originalEntities.put(id, EntityCopier.copy(entityTaken));
+			originalEntities.put(id, EntityCopier.copy(entity));
 		}
-		return entityTaken;
+		return entity;
 	}
 
-	// 有返回，相当于随后findByIdForUpdate
+	// 存完要获得锁，相当于随后findByIdForUpdate
 	protected abstract T saveIfAbsentImpl(ID id, T entity);
 
 	@Override
