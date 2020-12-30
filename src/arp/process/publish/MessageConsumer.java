@@ -33,7 +33,8 @@ public class MessageConsumer {
 		messageProcessorTypes.add(processor.getClass().getName());
 	}
 
-	public void start(MessageReceiver receiver) {
+	public void start(List<String> processesToSubscribe, MessageReceiver receiver) {
+		receiver.subscribeProcesses(processesToSubscribe);
 		receiveThread = new Thread(() -> {
 			while (true) {
 				List<Message> msgList = receiver.receive();
@@ -47,7 +48,11 @@ public class MessageConsumer {
 					}
 					for (MessageProcessor processor : list) {
 						executorService.submit(() -> {
-							processor.process(msg.getProcessOutput());
+							try {
+								processor.process(msg.getProcessOutput());
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						});
 					}
 				}

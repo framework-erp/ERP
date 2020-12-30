@@ -6,4 +6,6 @@ public interface MessageReceiver {
 
 	List<Message> receive();
 
+	void subscribeProcesses(List<String> processesToSubscribe);
+
 }

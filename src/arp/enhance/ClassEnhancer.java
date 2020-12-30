@@ -18,7 +18,6 @@ import java.util.Map.Entry;
 import arp.ARP;
 import arp.process.Process;
 import arp.process.ProcessWrapper;
-import arp.process.publish.Listener;
 import arp.process.publish.MessageProcessor;
 import arp.process.publish.ProcessPublisher;
 import jdk.internal.org.objectweb.asm.AnnotationVisitor;
@@ -34,24 +33,25 @@ import jdk.internal.org.objectweb.asm.commons.AdviceAdapter;
 
 public class ClassEnhancer {
 
-	public static void enhance(String... pkgs) throws Exception {
+	public static ClassParseResult parseAndEnhance(String... pkgs) throws Exception {
 		if (pkgs != null) {
+			ClassParseResult result = new ClassParseResult();
 			Map<String, byte[]> enhancedClassBytes = new HashMap<>();
 			List<Map<String, Object>> listnersList = new ArrayList<>();
 			for (int i = 0; i < pkgs.length; i++) {
-				enhanceClassesForPackage(pkgs[i], enhancedClassBytes);
+				enhanceClassesForPackage(pkgs[i], enhancedClassBytes, listnersList);
 			}
 
-			for (byte[] bytes : enhancedClassBytes.values()) {
-				parseListeners(bytes, listnersList);
-			}
+			result.setListnersList(listnersList);
 
 			if (!listnersList.isEmpty()) {
 				createMessageProcessorClasses(listnersList);
 				enhanceClassesForListners(enhancedClassBytes, listnersList);
 			}
 			loadClasses(enhancedClassBytes);
+			return result;
 		}
+		return null;
 	}
 
 	private static void createMessageProcessorClasses(List<Map<String, Object>> listnersList) throws Exception {
@@ -88,7 +88,7 @@ public class ClassEnhancer {
 			cmv.visitInsn(Opcodes.RETURN);
 			cmv.visitEnd();
 
-			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PROTECTED, "process",
+			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "process",
 					Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), null, null);
 			mv.visitMaxs(2, 2);
 			mv.visitCode();
@@ -197,7 +197,8 @@ public class ClassEnhancer {
 		enhancedClassBytes.put(listenerProcessObjType, enhancedBytes);
 	}
 
-	private static void enhanceClassesForPackage(String pkg, Map<String, byte[]> enhancedClassBytes) throws Exception {
+	private static void enhanceClassesForPackage(String pkg, Map<String, byte[]> enhancedClassBytes,
+			List<Map<String, Object>> listnersList) throws Exception {
 		String pkgDir = pkg.replace('.', '/');
 		URL url = Thread.currentThread().getContextClassLoader().getResource(pkgDir);
 		Path path = Paths.get(new URI(url.toURI().toString()));
@@ -206,63 +207,12 @@ public class ClassEnhancer {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 				byte[] bytes = Files.readAllBytes(file);
-				enhanceProcess(bytes, enhancedClassBytes);
+				enhanceProcess(bytes, enhancedClassBytes, listnersList);
 				return FileVisitResult.CONTINUE;
 			}
 
 		});
 
-	}
-
-	private static void parseListeners(byte[] bytes, List<Map<String, Object>> listnersList) {
-		ClassReader cr = new ClassReader(bytes);
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		Map<String, Object> clsInfoMap = new HashMap<>();
-		cr.accept(new ClassVisitor(Opcodes.ASM5, cw) {
-
-			public void visit(int version, int access, String name, String signature, String superName,
-					String[] interfaces) {
-				clsInfoMap.put("name", name.replace('/', '.'));
-				super.visit(version, access, name, signature, superName, interfaces);
-			}
-
-			@Override
-			public MethodVisitor visitMethod(int access, String mthName, String mthDesc, String signature,
-					String[] exceptions) {
-				Type[] argumentTypes = Type.getArgumentTypes(mthDesc);
-				return new AdviceAdapter(Opcodes.ASM5,
-						super.visitMethod(access, mthName, mthDesc, signature, exceptions), access, mthName, mthDesc) {
-
-					private boolean isListener;
-
-					public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-						isListener = Type.getDescriptor(Listener.class).equals(desc);
-						if (isListener) {
-							return new AnnotationVisitor(Opcodes.ASM5, super.visitAnnotation(desc, visible)) {
-								@Override
-								public void visit(String name, Object value) {
-									if ("value".equals(name)) {
-										Map<String, Object> listenerData = new HashMap<>();
-										listenerData.put("processDesc", value);// 源过程描述
-										if (argumentTypes != null && argumentTypes.length > 0) {
-											listenerData.put("processOutputType", argumentTypes[0]);// 源过程输出类型
-										}
-										listenerData.put("listenerProcessObjType", clsInfoMap.get("name"));// listener所在的处理类类型
-										listenerData.put("listenerMthName", mthName);
-										listenerData.put("listenerMthDesc", mthDesc);
-										listnersList.add(listenerData);
-									}
-									super.visit(name, value);
-								}
-							};
-						}
-						return super.visitAnnotation(desc, visible);
-					}
-
-				};
-			}
-
-		}, ClassReader.EXPAND_FRAMES);
 	}
 
 	private static void loadClasses(Map<String, byte[]> enhancedClassBytes) throws Exception {
@@ -283,7 +233,8 @@ public class ClassEnhancer {
 
 	}
 
-	private static void enhanceProcess(byte[] bytes, Map<String, byte[]> enhancedClassBytes) {
+	private static void enhanceProcess(byte[] bytes, Map<String, byte[]> enhancedClassBytes,
+			List<Map<String, Object>> listnersList) {
 		ClassReader cr = new ClassReader(bytes);
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		Map<String, Object> clsInfoMap = new HashMap<>();
@@ -296,11 +247,12 @@ public class ClassEnhancer {
 			}
 
 			@Override
-			public MethodVisitor visitMethod(int access, String name, String desc, String signature,
+			public MethodVisitor visitMethod(int access, String mthName, String mthDesc, String signature,
 					String[] exceptions) {
-				String returnTypeDesc = desc.substring(desc.indexOf(")") + 1);
-				return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions),
-						access, name, desc) {
+				Type[] argumentTypes = Type.getArgumentTypes(mthDesc);
+				String returnTypeDesc = mthDesc.substring(mthDesc.indexOf(")") + 1);
+				return new AdviceAdapter(Opcodes.ASM5,
+						super.visitMethod(access, mthName, mthDesc, signature, exceptions), access, mthName, mthDesc) {
 
 					private boolean isProcess;
 					private boolean publish;
@@ -320,7 +272,18 @@ public class ClassEnhancer {
 										publish = true;
 									} else if ("name".equals(name)) {
 										processName = (String) value;
+									} else if ("listening".equals(name)) {
+										Map<String, Object> listenerData = new HashMap<>();
+										listenerData.put("processDesc", value);// 源过程描述
+										if (argumentTypes != null && argumentTypes.length > 0) {
+											listenerData.put("processOutputType", argumentTypes[0]);// 源过程输出类型
+										}
+										listenerData.put("listenerProcessObjType", clsInfoMap.get("name"));// listener所在的处理类类型
+										listenerData.put("listenerMthName", mthName);
+										listenerData.put("listenerMthDesc", mthDesc);
+										listnersList.add(listenerData);
 									}
+
 									super.visit(name, value);
 								}
 							};
@@ -364,7 +327,7 @@ public class ClassEnhancer {
 							if (publish) {
 								if (Type.getDescriptor(void.class).equals(returnTypeDesc)) {
 									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
+									visitLdcInsn(mthName);
 									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
@@ -375,7 +338,7 @@ public class ClassEnhancer {
 								} else if (Type.getDescriptor(byte.class).equals(returnTypeDesc)) {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
+									visitLdcInsn(mthName);
 									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
@@ -386,7 +349,7 @@ public class ClassEnhancer {
 								} else if (Type.getDescriptor(char.class).equals(returnTypeDesc)) {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
+									visitLdcInsn(mthName);
 									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
@@ -397,7 +360,7 @@ public class ClassEnhancer {
 								} else if (Type.getDescriptor(short.class).equals(returnTypeDesc)) {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
+									visitLdcInsn(mthName);
 									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
@@ -408,7 +371,7 @@ public class ClassEnhancer {
 								} else if (Type.getDescriptor(float.class).equals(returnTypeDesc)) {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
+									visitLdcInsn(mthName);
 									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
@@ -419,7 +382,7 @@ public class ClassEnhancer {
 								} else if (Type.getDescriptor(int.class).equals(returnTypeDesc)) {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
+									visitLdcInsn(mthName);
 									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
@@ -430,7 +393,7 @@ public class ClassEnhancer {
 								} else if (Type.getDescriptor(double.class).equals(returnTypeDesc)) {
 									visitInsn(Opcodes.DUP2);
 									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
+									visitLdcInsn(mthName);
 									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
@@ -441,7 +404,7 @@ public class ClassEnhancer {
 								} else if (Type.getDescriptor(long.class).equals(returnTypeDesc)) {
 									visitInsn(Opcodes.DUP2);
 									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
+									visitLdcInsn(mthName);
 									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
@@ -452,7 +415,7 @@ public class ClassEnhancer {
 								} else if (Type.getDescriptor(boolean.class).equals(returnTypeDesc)) {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
+									visitLdcInsn(mthName);
 									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",
@@ -463,7 +426,7 @@ public class ClassEnhancer {
 								} else {
 									visitInsn(Opcodes.DUP);
 									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(name);
+									visitLdcInsn(mthName);
 									visitLdcInsn(processName);
 									visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessPublisher.class),
 											"publish",

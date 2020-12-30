@@ -12,7 +12,7 @@ public class PerformanceTest {
 	public static void main(String[] args) {
 
 		try {
-			ClassEnhancer.enhance("test.arp.core");
+			ClassEnhancer.parseAndEnhance("test.arp.core");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

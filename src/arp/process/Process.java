@@ -11,4 +11,5 @@ public @interface Process {
 
 	String name() default "";
 
+	String listening() default "";
 }
