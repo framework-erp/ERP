@@ -54,7 +54,12 @@ public class ProcessPublisher {
 		Message msg = new Message();
 		msg.setProcessDesc(processDesc);
 		msg.setProcessOutput(mthRtn);
-		messageSender.send(msg);
+		try {
+			messageSender.send(msg);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

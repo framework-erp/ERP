@@ -37,7 +37,13 @@ public class MessageConsumer {
 		receiver.subscribeProcesses(processesToSubscribe);
 		receiveThread = new Thread(() -> {
 			while (true) {
-				List<Message> msgList = receiver.receive();
+				List<Message> msgList = null;
+				try {
+					msgList = receiver.receive();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				if (msgList == null) {
 					continue;
 				}
