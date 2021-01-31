@@ -9,6 +9,8 @@ public @interface Process {
 
 	boolean publish() default false;
 
+	// TODO publishWithNullResult
+
 	String name() default "";
 
 	String listening() default "";
