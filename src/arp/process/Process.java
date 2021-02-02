@@ -9,7 +9,7 @@ public @interface Process {
 
 	boolean publish() default false;
 
-	// TODO publishWithNullResult
+	boolean dontPublishWhenResultIsNull() default false;
 
 	String name() default "";
 

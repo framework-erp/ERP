@@ -1,5 +1,6 @@
 package arp.repository;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -107,6 +108,10 @@ public abstract class MemRepository<ID, T> extends Repository<ID, T> {
 		for (ID id : ids) {
 			unlock(id);
 		}
+	}
+
+	public Set<ID> idSet() {
+		return new HashSet<>(data.keySet());
 	}
 
 }
