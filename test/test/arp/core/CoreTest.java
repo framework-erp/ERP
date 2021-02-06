@@ -2,14 +2,16 @@ package test.arp.core;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.jupiter.api.Test;
+
+
+import org.junit.Test;
 
 import arp.enhance.ClassEnhancer;
 
-class CoreTest {
+public class CoreTest {
 
 	@Test
-	void test() {
+	public void test() {
 		try {
 			ClassEnhancer.parseAndEnhance("test.arp.core");
 		} catch (Exception e) {
