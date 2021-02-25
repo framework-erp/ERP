@@ -1,0 +1,6 @@
+.idea/
+/target/
+node_modules/
+*.iml
+package-lock.json
+disconf/
