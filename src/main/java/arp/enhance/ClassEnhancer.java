@@ -309,6 +309,11 @@ public class ClassEnhancer {
 			@Override
 			public MethodVisitor visitMethod(int access, String mthName,
 					String mthDesc, String signature, String[] exceptions) {
+				// 过滤构造器
+				if ("<init>".equals(mthName)) {
+					return super.visitMethod(access, mthName, mthDesc,
+							signature, exceptions);
+				}
 				Type[] argumentTypes = Type.getArgumentTypes(mthDesc);
 				String returnTypeDesc = mthDesc.substring(mthDesc.indexOf(")") + 1);
 				return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(

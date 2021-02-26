@@ -13,8 +13,9 @@ public class EntityFieldComparator extends BaseFieldComparator {
 	@Override
 	public <T> boolean equals(T one, T another) {
 		Object oneEntityField = Unsafe.getObjectFieldOfObject(one, fieldOffset);
-		Object anotherEntityField = Unsafe.getObjectFieldOfObject(another, fieldOffset);
-		return oneEntityField.equals(anotherEntityField);
+		Object anotherEntityField = Unsafe.getObjectFieldOfObject(another,
+				fieldOffset);
+		return EntityComparator.equals(oneEntityField, anotherEntityField);
 	}
 
 }
