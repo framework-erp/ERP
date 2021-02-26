@@ -15,16 +15,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import jdk.internal.org.objectweb.asm.AnnotationVisitor;
-import jdk.internal.org.objectweb.asm.ClassReader;
-import jdk.internal.org.objectweb.asm.ClassVisitor;
-import jdk.internal.org.objectweb.asm.ClassWriter;
-import jdk.internal.org.objectweb.asm.FieldVisitor;
-import jdk.internal.org.objectweb.asm.Label;
-import jdk.internal.org.objectweb.asm.MethodVisitor;
-import jdk.internal.org.objectweb.asm.Opcodes;
-import jdk.internal.org.objectweb.asm.Type;
-import jdk.internal.org.objectweb.asm.commons.AdviceAdapter;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.AdviceAdapter;
+
 import arp.ARP;
 import arp.process.Process;
 import arp.process.ProcessWrapper;
@@ -295,7 +296,7 @@ public class ClassEnhancer {
 			Map<String, byte[]> enhancedClassBytes,
 			List<Map<String, Object>> listnersList) {
 		ClassReader cr = new ClassReader(bytes);
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		Map<String, Object> clsInfoMap = new HashMap<>();
 		cr.accept(new ClassVisitor(Opcodes.ASM5, cw) {
 
