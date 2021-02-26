@@ -295,7 +295,7 @@ public class ClassEnhancer {
 			Map<String, byte[]> enhancedClassBytes,
 			List<Map<String, Object>> listnersList) {
 		ClassReader cr = new ClassReader(bytes);
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		Map<String, Object> clsInfoMap = new HashMap<>();
 		cr.accept(new ClassVisitor(Opcodes.ASM5, cw) {
 
@@ -383,8 +383,8 @@ public class ClassEnhancer {
 							lTryBlockEnd = new Label();
 
 							mark(lTryBlockStart);
-							super.onMethodEnter();
 						}
+						super.onMethodEnter();
 					}
 
 					public void visitMaxs(int maxStack, int maxLocals) {
@@ -398,8 +398,8 @@ public class ClassEnhancer {
 
 							throwException();
 
-							super.visitMaxs(maxStack, maxLocals);
 						}
+						super.visitMaxs(maxStack, maxLocals);
 					}
 
 					protected void onMethodExit(int opcode) {
@@ -640,8 +640,8 @@ public class ClassEnhancer {
 								}
 							}
 
-							super.onMethodExit(opcode);
 						}
+						super.onMethodExit(opcode);
 					}
 
 				};
