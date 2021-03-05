@@ -10,9 +10,9 @@ import java.util.concurrent.locks.LockSupport;
 
 import arp.repository.copy.EntityCopier;
 
-public abstract class MemRepository<ID, T> extends Repository<ID, T> {
+public abstract class MemRepository<E, ID> extends Repository<E, ID> {
 
-	private Map<ID, T> data = new ConcurrentHashMap<>();
+	private Map<ID, E> data = new ConcurrentHashMap<>();
 
 	private Map<ID, AtomicInteger> locks = new ConcurrentHashMap<>();
 
@@ -59,7 +59,7 @@ public abstract class MemRepository<ID, T> extends Repository<ID, T> {
 	}
 
 	@Override
-	protected T findByIdForUpdateFromStore(ID id) {
+	protected E findByIdForUpdateFromStore(ID id) {
 		if (data.get(id) == null) {
 			return null;
 		}
@@ -68,14 +68,14 @@ public abstract class MemRepository<ID, T> extends Repository<ID, T> {
 	}
 
 	@Override
-	protected T findByIdFromStore(ID id) {
+	protected E findByIdFromStore(ID id) {
 		return EntityCopier.copy(data.get(id));
 	}
 
 	@Override
-	protected T saveIfAbsentToStore(ID id, T entity) {
+	protected E saveIfAbsentToStore(ID id, E entity) {
 		acquireLock(id);
-		T existsEntity = data.putIfAbsent(id, entity);
+		E existsEntity = data.putIfAbsent(id, entity);
 		return existsEntity;
 	}
 
@@ -88,8 +88,8 @@ public abstract class MemRepository<ID, T> extends Repository<ID, T> {
 	}
 
 	@Override
-	protected void updateAllToStore(Map<ID, T> entities) {
-		for (Entry<ID, T> entry : entities.entrySet()) {
+	protected void updateAllToStore(Map<ID, E> entities) {
+		for (Entry<ID, E> entry : entities.entrySet()) {
 			ID id = entry.getKey();
 			data.put(id, EntityCopier.copy(entry.getValue()));
 			unlock(id);
@@ -97,8 +97,8 @@ public abstract class MemRepository<ID, T> extends Repository<ID, T> {
 	}
 
 	@Override
-	protected void saveAllToStore(Map<ID, T> entities) {
-		for (Entry<ID, T> entry : entities.entrySet()) {
+	protected void saveAllToStore(Map<ID, E> entities) {
+		for (Entry<ID, E> entry : entities.entrySet()) {
 			data.put(entry.getKey(), EntityCopier.copy(entry.getValue()));
 		}
 	}

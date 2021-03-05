@@ -13,7 +13,7 @@ import arp.process.TakenProcessEntityState;
 import arp.process.ThreadBoundProcessContextArray;
 import arp.process.TransientProcessEntityState;
 
-public abstract class Repository<ID, T> {
+public abstract class Repository<E, ID> {
 
 	private static AtomicInteger ids = new AtomicInteger();
 
@@ -21,7 +21,7 @@ public abstract class Repository<ID, T> {
 
 	private int id;
 
-	private Map<ID, T> mockStore;
+	private Map<ID, E> mockStore;
 
 	private boolean mock = false;
 
@@ -39,32 +39,37 @@ public abstract class Repository<ID, T> {
 		mockStore = new HashMap<>();
 	}
 
-	protected abstract ID getId(T entity);
+	protected abstract ID getId(E entity);
 
-	public T findByIdForUpdate(ID id) {
-		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
+	public E findByIdForUpdate(ID id) {
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
 		if (!processContext.isStarted()) {
-			throw new RuntimeException("can not use repository without a process");
+			throw new RuntimeException(
+					"can not use repository without a process");
 		}
 
-		ProcessEntity<T> processEntity = processContext.getEntityInProcessForTake(this.id, id);
+		ProcessEntity<E> processEntity = processContext
+				.getEntityInProcessForTake(this.id, id);
 		if (processEntity != null) {
 			ProcessEntityState entityState = processEntity.getState();
-			if (entityState instanceof CreatedProcessEntityState || entityState instanceof TakenProcessEntityState) {
+			if (entityState instanceof CreatedProcessEntityState
+					|| entityState instanceof TakenProcessEntityState) {
 				return processEntity.getEntity();
 			} else {
 				return null;
 			}
 		}
 
-		T entity = doFindByIdForUpdate(id);
+		E entity = doFindByIdForUpdate(id);
 		if (entity != null) {
-			processContext.takeEntityFromRepoAndPutInProcess(this.id, id, entity);
+			processContext.takeEntityFromRepoAndPutInProcess(this.id, id,
+					entity);
 		}
 		return entity;
 	}
 
-	private T doFindByIdForUpdate(ID id) {
+	private E doFindByIdForUpdate(ID id) {
 		if (!mock) {
 			return findByIdForUpdateFromStore(id);
 		} else {
@@ -72,17 +77,19 @@ public abstract class Repository<ID, T> {
 		}
 	}
 
-	protected abstract T findByIdForUpdateFromStore(ID id);
+	protected abstract E findByIdForUpdateFromStore(ID id);
 
-	public T findById(ID id) {
-		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
+	public E findById(ID id) {
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
 		if (!processContext.isStarted()) {
-			throw new RuntimeException("can not use repository without a process");
+			throw new RuntimeException(
+					"can not use repository without a process");
 		}
 		return doFindById(id);
 	}
 
-	private T doFindById(ID id) {
+	private E doFindById(ID id) {
 		if (!mock) {
 			return findByIdFromStore(id);
 		} else {
@@ -90,13 +97,15 @@ public abstract class Repository<ID, T> {
 		}
 	}
 
-	protected abstract T findByIdFromStore(ID id);
+	protected abstract E findByIdFromStore(ID id);
 
-	public void save(T entity) {
+	public void save(E entity) {
 
-		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
 		if (!processContext.isStarted()) {
-			throw new RuntimeException("can not use repository without a process");
+			throw new RuntimeException(
+					"can not use repository without a process");
 		}
 
 		ID id = getId(entity);
@@ -104,15 +113,18 @@ public abstract class Repository<ID, T> {
 
 	}
 
-	public T saveIfAbsent(T entity) {
-		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
+	public E saveIfAbsent(E entity) {
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
 		if (!processContext.isStarted()) {
-			throw new RuntimeException("can not use repository without a process");
+			throw new RuntimeException(
+					"can not use repository without a process");
 		}
 
 		ID id = getId(entity);
 
-		ProcessEntity<T> processEntity = processContext.putIfAbsentEntityInProcess(this.id, id, entity);
+		ProcessEntity<E> processEntity = processContext
+				.putIfAbsentEntityInProcess(this.id, id, entity);
 		if (processEntity != null) {
 			ProcessEntityState entityState = processEntity.getState();
 			if (!(entityState instanceof TransientProcessEntityState)) {
@@ -120,16 +132,18 @@ public abstract class Repository<ID, T> {
 			}
 		}
 
-		T entityFromStore = doSaveIfAbsent(id, entity);
+		E entityFromStore = doSaveIfAbsent(id, entity);
 		if (entityFromStore != null) {
-			processContext.takeEntityFromRepoAndPutInProcess(this.id, id, entityFromStore);
+			processContext.takeEntityFromRepoAndPutInProcess(this.id, id,
+					entityFromStore);
 		} else {
-			processContext.takeEntityFromRepoAndPutInProcess(this.id, id, entity);
+			processContext.takeEntityFromRepoAndPutInProcess(this.id, id,
+					entity);
 		}
 		return entityFromStore;
 	}
 
-	private T doSaveIfAbsent(ID id, T entity) {
+	private E doSaveIfAbsent(ID id, E entity) {
 		if (!mock) {
 			return saveIfAbsentToStore(id, entity);
 		} else {
@@ -137,21 +151,25 @@ public abstract class Repository<ID, T> {
 		}
 	}
 
-	protected abstract T saveIfAbsentToStore(ID id, T entity);
+	protected abstract E saveIfAbsentToStore(ID id, E entity);
 
-	public T remove(ID id) {
-		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
+	public E remove(ID id) {
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
 		if (!processContext.isStarted()) {
-			throw new RuntimeException("can not use repository without a process");
+			throw new RuntimeException(
+					"can not use repository without a process");
 		}
-		ProcessEntity<T> processEntity = processContext.removeEntityInProcess(this.id, id);
+		ProcessEntity<E> processEntity = processContext.removeEntityInProcess(
+				this.id, id);
 		if (processEntity != null) {
 			return processEntity.getEntity();
 		}
 
-		T entityFromStore = doFindByIdForUpdate(id);
+		E entityFromStore = doFindByIdForUpdate(id);
 		if (entityFromStore != null) {
-			processContext.takeEntityFromRepoAndPutInProcessAsRemoved(this.id, id, entityFromStore);
+			processContext.takeEntityFromRepoAndPutInProcessAsRemoved(this.id,
+					id, entityFromStore);
 		}
 		return entityFromStore;
 
@@ -171,7 +189,7 @@ public abstract class Repository<ID, T> {
 
 	protected abstract void removeAllToStore(Set<ID> ids);
 
-	public void updateEntities(Map<ID, T> entitiesToReturn) {
+	public void updateEntities(Map<ID, E> entitiesToReturn) {
 
 		if (!mock) {
 			updateAllToStore(entitiesToReturn);
@@ -180,9 +198,9 @@ public abstract class Repository<ID, T> {
 
 	}
 
-	protected abstract void updateAllToStore(Map<ID, T> entities);
+	protected abstract void updateAllToStore(Map<ID, E> entities);
 
-	public void createEntities(Map<ID, T> entitiesToCreate) {
+	public void createEntities(Map<ID, E> entitiesToCreate) {
 
 		if (!mock) {
 			saveAllToStore(entitiesToCreate);
@@ -192,7 +210,7 @@ public abstract class Repository<ID, T> {
 
 	}
 
-	protected abstract void saveAllToStore(Map<ID, T> entities);
+	protected abstract void saveAllToStore(Map<ID, E> entities);
 
 	public void returnEntities(Set<ID> ids) {
 		if (!mock) {

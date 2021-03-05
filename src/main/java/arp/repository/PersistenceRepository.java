@@ -9,30 +9,30 @@ import java.util.concurrent.ConcurrentHashMap;
 import arp.repository.compare.EntityComparator;
 import arp.repository.copy.EntityCopier;
 
-public abstract class PersistenceRepository<ID, T> extends Repository<ID, T> {
+public abstract class PersistenceRepository<E, ID> extends Repository<E, ID> {
 
-	private Map<ID, T> originalEntities = new ConcurrentHashMap<>();
+	private Map<ID, E> originalEntities = new ConcurrentHashMap<>();
 
 	@Override
-	protected T findByIdForUpdateFromStore(ID id) {
-		T entity = findByIdForUpdateImpl(id);
+	protected E findByIdForUpdateFromStore(ID id) {
+		E entity = findByIdForUpdateImpl(id);
 		if (entity != null) {
 			originalEntities.put(id, EntityCopier.copy(entity));
 		}
 		return entity;
 	}
 
-	protected abstract T findByIdForUpdateImpl(ID id);
+	protected abstract E findByIdForUpdateImpl(ID id);
 
 	@Override
-	protected T findByIdFromStore(ID id) {
+	protected E findByIdFromStore(ID id) {
 		return findByIdImpl(id);
 	}
 
-	protected abstract T findByIdImpl(ID id);
+	protected abstract E findByIdImpl(ID id);
 
 	@Override
-	protected T saveIfAbsentToStore(ID id, T entity) {
+	protected E saveIfAbsentToStore(ID id, E entity) {
 		entity = saveIfAbsentImpl(id, entity);
 		if (entity != null) {
 			originalEntities.put(id, EntityCopier.copy(entity));
@@ -41,7 +41,7 @@ public abstract class PersistenceRepository<ID, T> extends Repository<ID, T> {
 	}
 
 	// 存完要获得锁，相当于随后findByIdForUpdate
-	protected abstract T saveIfAbsentImpl(ID id, T entity);
+	protected abstract E saveIfAbsentImpl(ID id, E entity);
 
 	@Override
 	protected void removeAllToStore(Set<ID> ids) {
@@ -56,14 +56,14 @@ public abstract class PersistenceRepository<ID, T> extends Repository<ID, T> {
 	}
 
 	@Override
-	protected void updateAllToStore(Map<ID, T> entities) {
-		Map<ID, T> entitiesToUpdate = new HashMap<>();
+	protected void updateAllToStore(Map<ID, E> entities) {
+		Map<ID, E> entitiesToUpdate = new HashMap<>();
 		ID oneId = null;
-		T oneEntity = null;
-		for (Entry<ID, T> entry : entities.entrySet()) {
+		E oneEntity = null;
+		for (Entry<ID, E> entry : entities.entrySet()) {
 			ID id = entry.getKey();
 			oneId = id;
-			T entity = entry.getValue();
+			E entity = entry.getValue();
 			oneEntity = entity;
 			if (!EntityComparator.equals(entity, originalEntities.remove(id))) {
 				entitiesToUpdate.put(id, entity);
@@ -80,18 +80,18 @@ public abstract class PersistenceRepository<ID, T> extends Repository<ID, T> {
 		}
 	}
 
-	protected abstract void updateAndUnlockBatchImpl(Map<ID, T> entitiesToUpdate);
+	protected abstract void updateAndUnlockBatchImpl(Map<ID, E> entitiesToUpdate);
 
-	protected abstract void updateAndUnlockImpl(ID id, T entity);
+	protected abstract void updateAndUnlockImpl(ID id, E entity);
 
 	@Override
-	protected void saveAllToStore(Map<ID, T> entities) {
+	protected void saveAllToStore(Map<ID, E> entities) {
 		if (entities.isEmpty()) {
 			return;
 		}
 		if (entities.size() == 1) {
 			ID oneId = null;
-			T oneEntity = null;
+			E oneEntity = null;
 			for (ID id : entities.keySet()) {
 				oneId = id;
 				oneEntity = entities.get(id);
@@ -114,9 +114,9 @@ public abstract class PersistenceRepository<ID, T> extends Repository<ID, T> {
 		}
 	}
 
-	protected abstract void saveBatchImpl(Map<ID, T> entities);
+	protected abstract void saveBatchImpl(Map<ID, E> entities);
 
-	protected abstract void saveImpl(ID id, T entity);
+	protected abstract void saveImpl(ID id, E entity);
 
 	// 别忘了也要一并删除锁
 	protected abstract void removeBatchImpl(Set<ID> ids);

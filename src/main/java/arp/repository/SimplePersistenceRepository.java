@@ -4,16 +4,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public abstract class SimplePersistenceRepository<ID, T> extends PersistenceRepository<ID, T> {
+public abstract class SimplePersistenceRepository<E, ID> extends
+		PersistenceRepository<E, ID> {
 
 	@Override
-	protected T findByIdForUpdateImpl(ID id) {
+	protected E findByIdForUpdateImpl(ID id) {
 		return findByIdImpl(id);
 	}
 
 	@Override
-	protected T saveIfAbsentImpl(ID id, T entity) {
-		T existsEntity = findByIdImpl(id);
+	protected E saveIfAbsentImpl(ID id, E entity) {
+		E existsEntity = findByIdImpl(id);
 		if (existsEntity == null) {
 			saveImpl(id, entity);
 		}
@@ -21,22 +22,22 @@ public abstract class SimplePersistenceRepository<ID, T> extends PersistenceRepo
 	}
 
 	@Override
-	protected void updateAndUnlockBatchImpl(Map<ID, T> entitiesToUpdate) {
-		for (Entry<ID, T> entry : entitiesToUpdate.entrySet()) {
+	protected void updateAndUnlockBatchImpl(Map<ID, E> entitiesToUpdate) {
+		for (Entry<ID, E> entry : entitiesToUpdate.entrySet()) {
 			updateImpl(entry.getKey(), entry.getValue());
 		}
 	}
 
-	protected abstract void updateImpl(ID id, T entity);
+	protected abstract void updateImpl(ID id, E entity);
 
 	@Override
-	protected void updateAndUnlockImpl(ID id, T entity) {
+	protected void updateAndUnlockImpl(ID id, E entity) {
 		updateImpl(id, entity);
 	}
 
 	@Override
-	protected void saveBatchImpl(Map<ID, T> entities) {
-		for (Entry<ID, T> entry : entities.entrySet()) {
+	protected void saveBatchImpl(Map<ID, E> entities) {
+		for (Entry<ID, E> entry : entities.entrySet()) {
 			saveImpl(entry.getKey(), entry.getValue());
 		}
 	}
