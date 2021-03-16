@@ -10,20 +10,20 @@ import java.util.concurrent.locks.LockSupport;
 
 import arp.repository.copy.EntityCopier;
 
-public abstract class MemRepository<E, ID> extends Repository<E, ID> {
+public abstract class MemRepository<E, I> extends Repository<E, I> {
 
-	private Map<ID, E> data = new ConcurrentHashMap<>();
+	private Map<I, E> data = new ConcurrentHashMap<>();
 
-	private Map<ID, AtomicInteger> locks = new ConcurrentHashMap<>();
+	private Map<I, AtomicInteger> locks = new ConcurrentHashMap<>();
 
-	private void unlock(ID id) {
+	private void unlock(I id) {
 		AtomicInteger lock = locks.get(id);
 		if (lock != null) {
 			lock.set(0);
 		}
 	}
 
-	private void acquireLock(ID id) {
+	private void acquireLock(I id) {
 		AtomicInteger lock = locks.get(id);
 		if (lock == null) {
 			AtomicInteger newLock = new AtomicInteger();
@@ -59,7 +59,7 @@ public abstract class MemRepository<E, ID> extends Repository<E, ID> {
 	}
 
 	@Override
-	protected E findByIdForUpdateFromStore(ID id) {
+	protected E findByIdForUpdateFromStore(I id) {
 		if (data.get(id) == null) {
 			return null;
 		}
@@ -68,49 +68,49 @@ public abstract class MemRepository<E, ID> extends Repository<E, ID> {
 	}
 
 	@Override
-	protected E findByIdFromStore(ID id) {
+	protected E findByIdFromStore(I id) {
 		return EntityCopier.copy(data.get(id));
 	}
 
 	@Override
-	protected E saveIfAbsentToStore(ID id, E entity) {
+	protected E saveIfAbsentToStore(I id, E entity) {
 		acquireLock(id);
 		E existsEntity = data.putIfAbsent(id, entity);
 		return existsEntity;
 	}
 
 	@Override
-	protected void removeAllToStore(Set<ID> ids) {
-		for (ID id : ids) {
+	protected void removeAllToStore(Set<I> ids) {
+		for (I id : ids) {
 			data.remove(id);
 			locks.remove(id);
 		}
 	}
 
 	@Override
-	protected void updateAllToStore(Map<ID, E> entities) {
-		for (Entry<ID, E> entry : entities.entrySet()) {
-			ID id = entry.getKey();
+	protected void updateAllToStore(Map<I, E> entities) {
+		for (Entry<I, E> entry : entities.entrySet()) {
+			I id = entry.getKey();
 			data.put(id, EntityCopier.copy(entry.getValue()));
 			unlock(id);
 		}
 	}
 
 	@Override
-	protected void saveAllToStore(Map<ID, E> entities) {
-		for (Entry<ID, E> entry : entities.entrySet()) {
+	protected void saveAllToStore(Map<I, E> entities) {
+		for (Entry<I, E> entry : entities.entrySet()) {
 			data.put(entry.getKey(), EntityCopier.copy(entry.getValue()));
 		}
 	}
 
 	@Override
-	protected void unlockAllToStore(Set<ID> ids) {
-		for (ID id : ids) {
+	protected void unlockAllToStore(Set<I> ids) {
+		for (I id : ids) {
 			unlock(id);
 		}
 	}
 
-	public Set<ID> idSet() {
+	public Set<I> idSet() {
 		return new HashSet<>(data.keySet());
 	}
 
