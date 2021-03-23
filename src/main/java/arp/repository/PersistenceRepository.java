@@ -9,12 +9,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import arp.repository.compare.EntityComparator;
 import arp.repository.copy.EntityCopier;
 
-public abstract class PersistenceRepository<E, ID> extends Repository<E, ID> {
+public abstract class PersistenceRepository<E, I> extends Repository<E, I> {
 
-	private Map<ID, E> originalEntities = new ConcurrentHashMap<>();
+	private Map<I, E> originalEntities = new ConcurrentHashMap<>();
 
 	@Override
-	protected E findByIdForUpdateFromStore(ID id) {
+	protected E findByIdForUpdateFromStore(I id) {
 		E entity = findByIdForUpdateImpl(id);
 		if (entity != null) {
 			originalEntities.put(id, EntityCopier.copy(entity));
@@ -22,17 +22,17 @@ public abstract class PersistenceRepository<E, ID> extends Repository<E, ID> {
 		return entity;
 	}
 
-	protected abstract E findByIdForUpdateImpl(ID id);
+	protected abstract E findByIdForUpdateImpl(I id);
 
 	@Override
-	protected E findByIdFromStore(ID id) {
+	protected E findByIdFromStore(I id) {
 		return findByIdImpl(id);
 	}
 
-	protected abstract E findByIdImpl(ID id);
+	protected abstract E findByIdImpl(I id);
 
 	@Override
-	protected E saveIfAbsentToStore(ID id, E entity) {
+	protected E saveIfAbsentToStore(I id, E entity) {
 		entity = saveIfAbsentImpl(id, entity);
 		if (entity != null) {
 			originalEntities.put(id, EntityCopier.copy(entity));
@@ -41,10 +41,10 @@ public abstract class PersistenceRepository<E, ID> extends Repository<E, ID> {
 	}
 
 	// 存完要获得锁，相当于随后findByIdForUpdate
-	protected abstract E saveIfAbsentImpl(ID id, E entity);
+	protected abstract E saveIfAbsentImpl(I id, E entity);
 
 	@Override
-	protected void removeAllToStore(Set<ID> ids) {
+	protected void removeAllToStore(Set<I> ids) {
 		if (ids.isEmpty()) {
 			return;
 		}
@@ -56,12 +56,12 @@ public abstract class PersistenceRepository<E, ID> extends Repository<E, ID> {
 	}
 
 	@Override
-	protected void updateAllToStore(Map<ID, E> entities) {
-		Map<ID, E> entitiesToUpdate = new HashMap<>();
-		ID oneId = null;
+	protected void updateAllToStore(Map<I, E> entities) {
+		Map<I, E> entitiesToUpdate = new HashMap<>();
+		I oneId = null;
 		E oneEntity = null;
-		for (Entry<ID, E> entry : entities.entrySet()) {
-			ID id = entry.getKey();
+		for (Entry<I, E> entry : entities.entrySet()) {
+			I id = entry.getKey();
 			oneId = id;
 			E entity = entry.getValue();
 			oneEntity = entity;
@@ -80,19 +80,19 @@ public abstract class PersistenceRepository<E, ID> extends Repository<E, ID> {
 		}
 	}
 
-	protected abstract void updateAndUnlockBatchImpl(Map<ID, E> entitiesToUpdate);
+	protected abstract void updateAndUnlockBatchImpl(Map<I, E> entitiesToUpdate);
 
-	protected abstract void updateAndUnlockImpl(ID id, E entity);
+	protected abstract void updateAndUnlockImpl(I id, E entity);
 
 	@Override
-	protected void saveAllToStore(Map<ID, E> entities) {
+	protected void saveAllToStore(Map<I, E> entities) {
 		if (entities.isEmpty()) {
 			return;
 		}
 		if (entities.size() == 1) {
-			ID oneId = null;
+			I oneId = null;
 			E oneEntity = null;
-			for (ID id : entities.keySet()) {
+			for (I id : entities.keySet()) {
 				oneId = id;
 				oneEntity = entities.get(id);
 			}
@@ -103,7 +103,7 @@ public abstract class PersistenceRepository<E, ID> extends Repository<E, ID> {
 	}
 
 	@Override
-	protected void unlockAllToStore(Set<ID> ids) {
+	protected void unlockAllToStore(Set<I> ids) {
 		if (ids.isEmpty()) {
 			return;
 		}
@@ -114,18 +114,18 @@ public abstract class PersistenceRepository<E, ID> extends Repository<E, ID> {
 		}
 	}
 
-	protected abstract void saveBatchImpl(Map<ID, E> entities);
+	protected abstract void saveBatchImpl(Map<I, E> entities);
 
-	protected abstract void saveImpl(ID id, E entity);
-
-	// 别忘了也要一并删除锁
-	protected abstract void removeBatchImpl(Set<ID> ids);
+	protected abstract void saveImpl(I id, E entity);
 
 	// 别忘了也要一并删除锁
-	protected abstract void removeImpl(ID id);
+	protected abstract void removeBatchImpl(Set<I> ids);
 
-	protected abstract void unlockBatchImpl(Set<ID> ids);
+	// 别忘了也要一并删除锁
+	protected abstract void removeImpl(I id);
 
-	protected abstract void unlockImpl(ID id);
+	protected abstract void unlockBatchImpl(Set<I> ids);
+
+	protected abstract void unlockImpl(I id);
 
 }

@@ -13,7 +13,7 @@ import arp.process.TakenProcessEntityState;
 import arp.process.ThreadBoundProcessContextArray;
 import arp.process.TransientProcessEntityState;
 
-public abstract class Repository<E, ID> {
+public abstract class Repository<E, I> {
 
 	private static AtomicInteger ids = new AtomicInteger();
 
@@ -21,7 +21,7 @@ public abstract class Repository<E, ID> {
 
 	private int id;
 
-	private Map<ID, E> mockStore;
+	private Map<I, E> mockStore;
 
 	private boolean mock = false;
 
@@ -39,9 +39,9 @@ public abstract class Repository<E, ID> {
 		mockStore = new HashMap<>();
 	}
 
-	protected abstract ID getId(E entity);
+	protected abstract I getId(E entity);
 
-	public E findByIdForUpdate(ID id) {
+	public E findByIdForUpdate(I id) {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
 		if (!processContext.isStarted()) {
@@ -69,7 +69,7 @@ public abstract class Repository<E, ID> {
 		return entity;
 	}
 
-	private E doFindByIdForUpdate(ID id) {
+	private E doFindByIdForUpdate(I id) {
 		if (!mock) {
 			return findByIdForUpdateFromStore(id);
 		} else {
@@ -77,9 +77,9 @@ public abstract class Repository<E, ID> {
 		}
 	}
 
-	protected abstract E findByIdForUpdateFromStore(ID id);
+	protected abstract E findByIdForUpdateFromStore(I id);
 
-	public E findById(ID id) {
+	public E findById(I id) {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
 		if (!processContext.isStarted()) {
@@ -89,7 +89,7 @@ public abstract class Repository<E, ID> {
 		return doFindById(id);
 	}
 
-	private E doFindById(ID id) {
+	private E doFindById(I id) {
 		if (!mock) {
 			return findByIdFromStore(id);
 		} else {
@@ -97,7 +97,7 @@ public abstract class Repository<E, ID> {
 		}
 	}
 
-	protected abstract E findByIdFromStore(ID id);
+	protected abstract E findByIdFromStore(I id);
 
 	public void save(E entity) {
 
@@ -108,7 +108,7 @@ public abstract class Repository<E, ID> {
 					"can not use repository without a process");
 		}
 
-		ID id = getId(entity);
+		I id = getId(entity);
 		processContext.putEntityInProcess(this.id, id, entity);
 
 	}
@@ -121,7 +121,7 @@ public abstract class Repository<E, ID> {
 					"can not use repository without a process");
 		}
 
-		ID id = getId(entity);
+		I id = getId(entity);
 
 		ProcessEntity<E> processEntity = processContext
 				.putIfAbsentEntityInProcess(this.id, id, entity);
@@ -143,7 +143,7 @@ public abstract class Repository<E, ID> {
 		return entityFromStore;
 	}
 
-	private E doSaveIfAbsent(ID id, E entity) {
+	private E doSaveIfAbsent(I id, E entity) {
 		if (!mock) {
 			return saveIfAbsentToStore(id, entity);
 		} else {
@@ -151,9 +151,9 @@ public abstract class Repository<E, ID> {
 		}
 	}
 
-	protected abstract E saveIfAbsentToStore(ID id, E entity);
+	protected abstract E saveIfAbsentToStore(I id, E entity);
 
-	public E remove(ID id) {
+	public E remove(I id) {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
 		if (!processContext.isStarted()) {
@@ -175,21 +175,21 @@ public abstract class Repository<E, ID> {
 
 	}
 
-	public void deleteEntities(Set<ID> ids) {
+	public void deleteEntities(Set<I> ids) {
 
 		if (!mock) {
 			removeAllToStore(ids);
 		} else {
-			for (ID id : ids) {
+			for (I id : ids) {
 				mockStore.remove(id);
 			}
 		}
 
 	}
 
-	protected abstract void removeAllToStore(Set<ID> ids);
+	protected abstract void removeAllToStore(Set<I> ids);
 
-	public void updateEntities(Map<ID, E> entitiesToReturn) {
+	public void updateEntities(Map<I, E> entitiesToReturn) {
 
 		if (!mock) {
 			updateAllToStore(entitiesToReturn);
@@ -198,9 +198,9 @@ public abstract class Repository<E, ID> {
 
 	}
 
-	protected abstract void updateAllToStore(Map<ID, E> entities);
+	protected abstract void updateAllToStore(Map<I, E> entities);
 
-	public void createEntities(Map<ID, E> entitiesToCreate) {
+	public void createEntities(Map<I, E> entitiesToCreate) {
 
 		if (!mock) {
 			saveAllToStore(entitiesToCreate);
@@ -210,14 +210,14 @@ public abstract class Repository<E, ID> {
 
 	}
 
-	protected abstract void saveAllToStore(Map<ID, E> entities);
+	protected abstract void saveAllToStore(Map<I, E> entities);
 
-	public void returnEntities(Set<ID> ids) {
+	public void returnEntities(Set<I> ids) {
 		if (!mock) {
 			unlockAllToStore(ids);
 		} else {
 		}
 	}
 
-	protected abstract void unlockAllToStore(Set<ID> ids);
+	protected abstract void unlockAllToStore(Set<I> ids);
 }
