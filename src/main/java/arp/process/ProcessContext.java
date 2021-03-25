@@ -86,7 +86,7 @@ public class ProcessContext {
 		return started;
 	}
 
-	public <ID, T> ProcessEntity<T> getEntityInProcessForTake(int repositoryId, ID entityId) {
+	public <I, E> ProcessEntity<E> getEntityInProcessForTake(int repositoryId, I entityId) {
 		RepositoryProcessEntities entities = processEntities.get(repositoryId);
 		if (entities == null) {
 			return null;
@@ -94,7 +94,7 @@ public class ProcessContext {
 		return entities.takeEntity(entityId);
 	}
 
-	public <ID, T> void takeEntityFromRepoAndPutInProcess(int repositoryId, ID entityId, T entity) {
+	public <I, E> void takeEntityFromRepoAndPutInProcess(int repositoryId, I entityId, E entity) {
 		RepositoryProcessEntities entities = processEntities.get(repositoryId);
 		if (entities == null) {
 			entities = new RepositoryProcessEntities<>(repositoryId);
@@ -103,7 +103,7 @@ public class ProcessContext {
 		entities.takeEntityFromRepoAndPutInProcess(entityId, entity);
 	}
 
-	public <ID, T> void takeEntityFromRepoAndPutInProcessAsRemoved(int repositoryId, ID entityId, T entity) {
+	public <I, E> void takeEntityFromRepoAndPutInProcessAsRemoved(int repositoryId, I entityId, E entity) {
 		RepositoryProcessEntities entities = processEntities.get(repositoryId);
 		if (entities == null) {
 			entities = new RepositoryProcessEntities<>(repositoryId);
@@ -112,7 +112,7 @@ public class ProcessContext {
 		entities.takeEntityFromRepoAndPutInProcessAsRemoved(entityId, entity);
 	}
 
-	public <ID, T> void putEntityInProcess(int repositoryId, ID entityId, T entity) {
+	public <I, E> void putEntityInProcess(int repositoryId, I entityId, E entity) {
 		RepositoryProcessEntities entities = processEntities.get(repositoryId);
 		if (entities == null) {
 			entities = new RepositoryProcessEntities<>(repositoryId);
@@ -121,12 +121,12 @@ public class ProcessContext {
 		entities.putEntityInProcess(entityId, entity);
 	}
 
-	public <ID, T> ProcessEntity<T> putIfAbsentEntityInProcess(int repositoryId, ID entityId, T entity) {
+	public <I, E> ProcessEntity<E> putIfAbsentEntityInProcess(int repositoryId, I entityId, E entity) {
 		RepositoryProcessEntities entities = processEntities.get(repositoryId);
 		if (entities == null) {
 			return null;
 		}
-		ProcessEntity<T> processEntity = entities.findEntity(entityId);
+		ProcessEntity<E> processEntity = entities.findEntity(entityId);
 		if (processEntity == null) {
 			return null;
 		}
@@ -141,12 +141,12 @@ public class ProcessContext {
 		}
 	}
 
-	public <ID, T> ProcessEntity<T> removeEntityInProcess(int repositoryId, ID entityId) {
+	public <I, E> ProcessEntity<E> removeEntityInProcess(int repositoryId, I entityId) {
 		RepositoryProcessEntities entities = processEntities.get(repositoryId);
 		if (entities == null) {
 			return null;
 		}
-		ProcessEntity<T> processEntity = entities.findEntity(entityId);
+		ProcessEntity<E> processEntity = entities.findEntity(entityId);
 		if (processEntity == null) {
 			return null;
 		}
