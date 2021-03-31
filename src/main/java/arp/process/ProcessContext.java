@@ -23,7 +23,8 @@ public class ProcessContext {
 
 	public void startProcess() {
 		if (started) {
-			throw new RuntimeException("can not start a process in another started process");
+			throw new RuntimeException(
+					"can not start a process in another started process");
 		}
 		started = true;
 		Unsafe.loadFence();
@@ -52,7 +53,8 @@ public class ProcessContext {
 
 	private void flushProcessEntities() throws Exception {
 		for (RepositoryProcessEntities entities : processEntities.values()) {
-			Repository repository = Repository.getRepository(entities.getRepositoryId());
+			Repository repository = Repository.getRepository(entities
+					.getRepositoryId());
 			Map processEntities = entities.getEntities();
 			Map entitiesToCreate = new HashMap();
 			Map entitiesToUpdate = new HashMap();
@@ -86,16 +88,29 @@ public class ProcessContext {
 		return started;
 	}
 
-	public <I, E> ProcessEntity<E> getEntityInProcessForTake(int repositoryId, I entityId) {
-		RepositoryProcessEntities entities = processEntities.get(repositoryId);
+	public <I, E> ProcessEntity<E> getEntityInProcessForTake(int repositoryId,
+			I entityId) {
+		RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities
+				.get(repositoryId);
 		if (entities == null) {
 			return null;
 		}
 		return entities.takeEntity(entityId);
 	}
 
-	public <I, E> void takeEntityFromRepoAndPutInProcess(int repositoryId, I entityId, E entity) {
-		RepositoryProcessEntities entities = processEntities.get(repositoryId);
+	public <I, E> E copyEntityInProcess(int repositoryId, I entityId) {
+		RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities
+				.get(repositoryId);
+		if (entities == null) {
+			return null;
+		}
+		return entities.copyEntity(entityId);
+	}
+
+	public <I, E> void takeEntityFromRepoAndPutInProcess(int repositoryId,
+			I entityId, E entity) {
+		RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities
+				.get(repositoryId);
 		if (entities == null) {
 			entities = new RepositoryProcessEntities<>(repositoryId);
 			processEntities.put(repositoryId, entities);
@@ -103,8 +118,10 @@ public class ProcessContext {
 		entities.takeEntityFromRepoAndPutInProcess(entityId, entity);
 	}
 
-	public <I, E> void takeEntityFromRepoAndPutInProcessAsRemoved(int repositoryId, I entityId, E entity) {
-		RepositoryProcessEntities entities = processEntities.get(repositoryId);
+	public <I, E> void takeEntityFromRepoAndPutInProcessAsRemoved(
+			int repositoryId, I entityId, E entity) {
+		RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities
+				.get(repositoryId);
 		if (entities == null) {
 			entities = new RepositoryProcessEntities<>(repositoryId);
 			processEntities.put(repositoryId, entities);
@@ -113,7 +130,8 @@ public class ProcessContext {
 	}
 
 	public <I, E> void putEntityInProcess(int repositoryId, I entityId, E entity) {
-		RepositoryProcessEntities entities = processEntities.get(repositoryId);
+		RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities
+				.get(repositoryId);
 		if (entities == null) {
 			entities = new RepositoryProcessEntities<>(repositoryId);
 			processEntities.put(repositoryId, entities);
@@ -121,8 +139,10 @@ public class ProcessContext {
 		entities.putEntityInProcess(entityId, entity);
 	}
 
-	public <I, E> ProcessEntity<E> putIfAbsentEntityInProcess(int repositoryId, I entityId, E entity) {
-		RepositoryProcessEntities entities = processEntities.get(repositoryId);
+	public <I, E> ProcessEntity<E> putIfAbsentEntityInProcess(int repositoryId,
+			I entityId, E entity) {
+		RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities
+				.get(repositoryId);
 		if (entities == null) {
 			return null;
 		}
@@ -141,8 +161,10 @@ public class ProcessContext {
 		}
 	}
 
-	public <I, E> ProcessEntity<E> removeEntityInProcess(int repositoryId, I entityId) {
-		RepositoryProcessEntities entities = processEntities.get(repositoryId);
+	public <I, E> ProcessEntity<E> removeEntityInProcess(int repositoryId,
+			I entityId) {
+		RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities
+				.get(repositoryId);
 		if (entities == null) {
 			return null;
 		}
@@ -172,7 +194,8 @@ public class ProcessContext {
 
 	private void releaseAcquiredLocks() throws Exception {
 		for (RepositoryProcessEntities entities : processEntities.values()) {
-			Repository repository = Repository.getRepository(entities.getRepositoryId());
+			Repository repository = Repository.getRepository(entities
+					.getRepositoryId());
 
 			Map processEntities = entities.getEntities();
 			Set idsToUnlock = new HashSet();

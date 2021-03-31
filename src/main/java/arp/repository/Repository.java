@@ -86,6 +86,10 @@ public abstract class Repository<E, I> {
 			throw new RuntimeException(
 					"can not use repository without a process");
 		}
+		E entity = processContext.copyEntityInProcess(this.id, id);
+		if (entity != null) {
+			return entity;
+		}
 		return doFindById(id);
 	}
 

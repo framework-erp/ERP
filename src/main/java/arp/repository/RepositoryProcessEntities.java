@@ -7,33 +7,34 @@ import arp.process.CreatedProcessEntityState;
 import arp.process.ProcessEntity;
 import arp.process.RemovedProcessEntityState;
 import arp.process.TakenProcessEntityState;
+import arp.repository.copy.EntityCopier;
 
-public class RepositoryProcessEntities<ID, T> {
+public class RepositoryProcessEntities<I, E> {
 
 	private int repositoryId;
 
-	private Map<ID, ProcessEntity<T>> entities = new HashMap<>();
+	private Map<I, ProcessEntity<E>> entities = new HashMap<>();
 
 	public RepositoryProcessEntities(int repositoryId) {
 		this.repositoryId = repositoryId;
 	}
 
-	public void takeEntityFromRepoAndPutInProcess(ID entityId, T entity) {
-		ProcessEntity<T> processEntity = new ProcessEntity<>();
+	public void takeEntityFromRepoAndPutInProcess(I entityId, E entity) {
+		ProcessEntity<E> processEntity = new ProcessEntity<>();
 		processEntity.setEntity(entity);
 		processEntity.setState(new TakenProcessEntityState());
 		entities.put(entityId, processEntity);
 	}
 
-	public void takeEntityFromRepoAndPutInProcessAsRemoved(ID entityId, T entity) {
-		ProcessEntity<T> processEntity = new ProcessEntity<>();
+	public void takeEntityFromRepoAndPutInProcessAsRemoved(I entityId, E entity) {
+		ProcessEntity<E> processEntity = new ProcessEntity<>();
 		processEntity.setEntity(entity);
 		processEntity.setState(new RemovedProcessEntityState());
 		entities.put(entityId, processEntity);
 	}
 
-	public ProcessEntity<T> takeEntity(ID entityId) {
-		ProcessEntity<T> processEntity = entities.get(entityId);
+	public ProcessEntity<E> takeEntity(I entityId) {
+		ProcessEntity<E> processEntity = entities.get(entityId);
 		if (processEntity == null) {
 			return null;
 		}
@@ -41,12 +42,20 @@ public class RepositoryProcessEntities<ID, T> {
 		return processEntity;
 	}
 
-	public ProcessEntity<T> findEntity(ID entityId) {
+	public E copyEntity(I entityId) {
+		ProcessEntity<E> processEntity = entities.get(entityId);
+		if (processEntity == null) {
+			return null;
+		}
+		return EntityCopier.copy(processEntity.getEntity());
+	}
+
+	public ProcessEntity<E> findEntity(I entityId) {
 		return entities.get(entityId);
 	}
 
-	public void putEntityInProcess(ID entityId, T entity) {
-		ProcessEntity<T> processEntity = entities.get(entityId);
+	public void putEntityInProcess(I entityId, E entity) {
+		ProcessEntity<E> processEntity = entities.get(entityId);
 		if (processEntity == null) {
 			processEntity = new ProcessEntity<>();
 			processEntity.setEntity(entity);
@@ -61,7 +70,7 @@ public class RepositoryProcessEntities<ID, T> {
 		return repositoryId;
 	}
 
-	public Map<ID, ProcessEntity<T>> getEntities() {
+	public Map<I, ProcessEntity<E>> getEntities() {
 		return entities;
 	}
 
