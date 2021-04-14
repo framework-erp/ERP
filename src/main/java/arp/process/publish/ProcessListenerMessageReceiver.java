@@ -2,7 +2,7 @@ package arp.process.publish;
 
 import java.util.List;
 
-public interface MessageReceiver {
+public interface ProcessListenerMessageReceiver {
 
 	List<Message> receive() throws Exception;
 

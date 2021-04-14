@@ -29,7 +29,7 @@ import org.objectweb.asm.commons.AdviceAdapter;
 import arp.ARP;
 import arp.process.Process;
 import arp.process.ProcessWrapper;
-import arp.process.publish.MessageProcessor;
+import arp.process.publish.ProcessListenerMessageProcessor;
 import arp.process.publish.ProcessPublisher;
 
 public class ClassEnhancer {
@@ -78,7 +78,7 @@ public class ClassEnhancer {
 			cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC,
 					messageProcessorClasseType, null, Type
 							.getType(Object.class).getInternalName(),
-					new String[] { Type.getType(MessageProcessor.class)
+					new String[] { Type.getType(ProcessListenerMessageProcessor.class)
 							.getInternalName() });
 			FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE, "processor",
 					"L" + listenerProcessObjType.replace('.', '/') + ";", null,
@@ -235,7 +235,7 @@ public class ClassEnhancer {
 										Type.getMethodDescriptor(
 												Type.getType(void.class),
 												Type.getType(String.class),
-												Type.getType(MessageProcessor.class)),
+												Type.getType(ProcessListenerMessageProcessor.class)),
 										false);
 							}
 						}

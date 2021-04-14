@@ -6,15 +6,15 @@ import java.util.Map;
 
 import arp.enhance.ClassEnhancer;
 import arp.enhance.ClassParseResult;
-import arp.process.publish.MessageConsumer;
-import arp.process.publish.MessageProcessor;
-import arp.process.publish.MessageReceiver;
+import arp.process.publish.ProcessListenerMessageConsumer;
+import arp.process.publish.ProcessListenerMessageProcessor;
+import arp.process.publish.ProcessListenerMessageReceiver;
 import arp.process.publish.MessageSender;
 import arp.process.publish.ProcessPublisher;
 
 public class ARP {
 
-	private static MessageConsumer messageConsumer;
+	private static ProcessListenerMessageConsumer messageConsumer;
 
 	public static void start(String... pkgs) throws Exception {
 		ClassEnhancer.parseAndEnhance(pkgs);
@@ -25,10 +25,10 @@ public class ARP {
 		ProcessPublisher.messageSender = messageSender;
 	}
 
-	public static void start(MessageReceiver messageReceiver, String... pkgs) throws Exception {
+	public static void start(ProcessListenerMessageReceiver messageReceiver, String... pkgs) throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
 		List<String> processesToSubscribe = getProcessesToSubscribe(parseResult);
-		messageConsumer = new MessageConsumer();
+		messageConsumer = new ProcessListenerMessageConsumer();
 		messageConsumer.start(processesToSubscribe, messageReceiver);
 	}
 
@@ -45,16 +45,16 @@ public class ARP {
 		return processesToSubscribe;
 	}
 
-	public static void start(MessageSender messageSender, MessageReceiver messageReceiver, String... pkgs)
+	public static void start(MessageSender messageSender, ProcessListenerMessageReceiver messageReceiver, String... pkgs)
 			throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
 		List<String> processesToSubscribe = getProcessesToSubscribe(parseResult);
 		ProcessPublisher.messageSender = messageSender;
-		messageConsumer = new MessageConsumer();
+		messageConsumer = new ProcessListenerMessageConsumer();
 		messageConsumer.start(processesToSubscribe, messageReceiver);
 	}
 
-	public static void registerMessageProcessor(String processDesc, MessageProcessor processor) {
+	public static void registerMessageProcessor(String processDesc, ProcessListenerMessageProcessor processor) {
 		messageConsumer.registerProcessor(processDesc, processor);
 	}
 

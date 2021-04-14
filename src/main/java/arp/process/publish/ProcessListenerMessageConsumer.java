@@ -9,22 +9,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MessageConsumer {
+public class ProcessListenerMessageConsumer {
 
 	private Thread receiveThread;
-	private Map<String, List<MessageProcessor>> processors = new ConcurrentHashMap<>();
+	private Map<String, List<ProcessListenerMessageProcessor>> processors = new ConcurrentHashMap<>();
 	private Set<String> messageProcessorTypes = new HashSet<>();
 	private ExecutorService executorService;
 
-	public MessageConsumer() {
+	public ProcessListenerMessageConsumer() {
 		executorService = Executors.newCachedThreadPool();
 	}
 
-	public void registerProcessor(String processDesc, MessageProcessor processor) {
+	public void registerProcessor(String processDesc, ProcessListenerMessageProcessor processor) {
 		if (messageProcessorTypes.contains(processor.getClass().getName())) {
 			return;
 		}
-		List<MessageProcessor> list = processors.get(processDesc);
+		List<ProcessListenerMessageProcessor> list = processors.get(processDesc);
 		if (list == null) {
 			list = new ArrayList<>();
 			processors.put(processDesc, list);
@@ -33,7 +33,7 @@ public class MessageConsumer {
 		messageProcessorTypes.add(processor.getClass().getName());
 	}
 
-	public void start(List<String> processesToSubscribe, MessageReceiver receiver) {
+	public void start(List<String> processesToSubscribe, ProcessListenerMessageReceiver receiver) {
 		receiver.subscribeProcesses(processesToSubscribe);
 		receiveThread = new Thread(() -> {
 			while (true) {
@@ -48,11 +48,11 @@ public class MessageConsumer {
 					continue;
 				}
 				for (Message msg : msgList) {
-					List<MessageProcessor> list = processors.get(msg.getProcessDesc());
+					List<ProcessListenerMessageProcessor> list = processors.get(msg.getProcessDesc());
 					if (list == null) {
 						continue;
 					}
-					for (MessageProcessor processor : list) {
+					for (ProcessListenerMessageProcessor processor : list) {
 						executorService.submit(() -> {
 							try {
 								processor.process(msg.getProcessOutput());
