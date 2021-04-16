@@ -5,9 +5,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public abstract class ProcessesMonitor {
-	private Thread receiveThread;
 	private ExecutorService executorService;
 	private ProcessesMonitorMessageProcessor processor;
+	private Runnable subscribeProcessesTask;
 
 	public ProcessesMonitor() {
 		executorService = Executors.newCachedThreadPool();
@@ -19,7 +19,9 @@ public abstract class ProcessesMonitor {
 
 	public void updateAllProcessesToSubscribe() {
 		List<String> processesToSubscribe = queryAllProcessesToSubscribe();
-		subscribeProcesses(processesToSubscribe);
+		subscribeProcessesTask = () -> {
+			subscribeProcesses(processesToSubscribe);
+		};
 	}
 
 	protected abstract void subscribeProcesses(List<String> processesToSubscribe);
@@ -30,32 +32,44 @@ public abstract class ProcessesMonitor {
 
 	public void start() {
 		updateAllProcessesToSubscribe();
-		receiveThread = new Thread(() -> {
+		new Thread(() -> {
 			while (true) {
+				if (subscribeProcessesTask != null) {
+					try {
+						subscribeProcessesTask.run();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					subscribeProcessesTask = null;
+				}
 				List<Message> msgList = null;
 				try {
 					msgList = receive();
 				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			if (msgList == null) {
-				continue;
-			}
-			for (Message msg : msgList) {
-				if (processor == null) {
-					continue;
+					e1.printStackTrace();
 				}
-				executorService.submit(() -> {
+				if (msgList == null || msgList.isEmpty()) {
 					try {
-						processor.process(msg);
+						Thread.sleep(100);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				});
+					continue;
+				}
+				for (Message msg : msgList) {
+					if (processor == null) {
+						continue;
+					}
+					executorService.submit(() -> {
+						try {
+							processor.process(msg);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					});
+				}
 			}
-		}
-	}	);
-		receiveThread.start();
+		}).start();
 	}
+
 }
