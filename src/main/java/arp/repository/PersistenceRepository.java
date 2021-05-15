@@ -74,15 +74,15 @@ public abstract class PersistenceRepository<E, I> extends Repository<E, I> {
 			return;
 		}
 		if (entitiesToUpdate.size() == 1) {
-			updateAndUnlockImpl(oneId, oneEntity);
+			updateImpl(oneId, oneEntity);
 		} else {
-			updateAndUnlockBatchImpl(entitiesToUpdate);
+			updateBatchImpl(entitiesToUpdate);
 		}
 	}
 
-	protected abstract void updateAndUnlockBatchImpl(Map<I, E> entitiesToUpdate);
+	protected abstract void updateBatchImpl(Map<I, E> entitiesToUpdate);
 
-	protected abstract void updateAndUnlockImpl(I id, E entity);
+	protected abstract void updateImpl(I id, E entity);
 
 	@Override
 	protected void saveAllToStore(Map<I, E> entities) {

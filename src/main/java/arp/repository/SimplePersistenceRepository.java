@@ -22,17 +22,10 @@ public abstract class SimplePersistenceRepository<E, ID> extends
 	}
 
 	@Override
-	protected void updateAndUnlockBatchImpl(Map<ID, E> entitiesToUpdate) {
+	protected void updateBatchImpl(Map<ID, E> entitiesToUpdate) {
 		for (Entry<ID, E> entry : entitiesToUpdate.entrySet()) {
 			updateImpl(entry.getKey(), entry.getValue());
 		}
-	}
-
-	protected abstract void updateImpl(ID id, E entity);
-
-	@Override
-	protected void updateAndUnlockImpl(ID id, E entity) {
-		updateImpl(id, entity);
 	}
 
 	@Override
