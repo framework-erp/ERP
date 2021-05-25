@@ -75,10 +75,14 @@ public class ClassEnhancer {
 					+ "/MessageProcessor_"
 					+ (String) listenerData.get("listenerMthName");
 			ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-			cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC,
-					messageProcessorClasseType, null, Type
-							.getType(Object.class).getInternalName(),
-					new String[] { Type.getType(ProcessListenerMessageProcessor.class)
+			cw.visit(
+					Opcodes.V1_8,
+					Opcodes.ACC_PUBLIC,
+					messageProcessorClasseType,
+					null,
+					Type.getType(Object.class).getInternalName(),
+					new String[] { Type.getType(
+							ProcessListenerMessageProcessor.class)
 							.getInternalName() });
 			FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE, "processor",
 					"L" + listenerProcessObjType.replace('.', '/') + ";", null,
@@ -449,10 +453,10 @@ public class ClassEnhancer {
 											"publish",
 											Type.getMethodDescriptor(
 													Type.getType(void.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
 													Type.getType(byte.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
 													Type.getType(boolean.class)),
 											false);
 								} else if (Type.getDescriptor(char.class)
@@ -472,10 +476,10 @@ public class ClassEnhancer {
 											"publish",
 											Type.getMethodDescriptor(
 													Type.getType(void.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
 													Type.getType(char.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
 													Type.getType(boolean.class)),
 											false);
 								} else if (Type.getDescriptor(short.class)
@@ -495,10 +499,10 @@ public class ClassEnhancer {
 											"publish",
 											Type.getMethodDescriptor(
 													Type.getType(void.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
 													Type.getType(short.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
 													Type.getType(boolean.class)),
 											false);
 								} else if (Type.getDescriptor(float.class)
@@ -518,10 +522,10 @@ public class ClassEnhancer {
 											"publish",
 											Type.getMethodDescriptor(
 													Type.getType(void.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
 													Type.getType(float.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
 													Type.getType(boolean.class)),
 											false);
 								} else if (Type.getDescriptor(int.class)
@@ -541,10 +545,10 @@ public class ClassEnhancer {
 											"publish",
 											Type.getMethodDescriptor(
 													Type.getType(void.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
 													Type.getType(int.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
 													Type.getType(boolean.class)),
 											false);
 								} else if (Type.getDescriptor(double.class)
@@ -564,10 +568,10 @@ public class ClassEnhancer {
 											"publish",
 											Type.getMethodDescriptor(
 													Type.getType(void.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
 													Type.getType(double.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
 													Type.getType(boolean.class)),
 											false);
 								} else if (Type.getDescriptor(long.class)
@@ -587,10 +591,10 @@ public class ClassEnhancer {
 											"publish",
 											Type.getMethodDescriptor(
 													Type.getType(void.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
 													Type.getType(long.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
 													Type.getType(boolean.class)),
 											false);
 								} else if (Type.getDescriptor(boolean.class)
@@ -610,10 +614,10 @@ public class ClassEnhancer {
 											"publish",
 											Type.getMethodDescriptor(
 													Type.getType(void.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
 													Type.getType(boolean.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
 													Type.getType(boolean.class)),
 											false);
 								} else {
