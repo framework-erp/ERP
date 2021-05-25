@@ -380,6 +380,37 @@ public class ClassEnhancer {
 
 					protected void onMethodEnter() {
 						if (isProcess) {
+							if (publish) {
+								visitLdcInsn(clsInfoMap.get("name"));
+								visitLdcInsn(mthName);
+								visitLdcInsn(processName);
+								visitMethodInsn(Opcodes.INVOKESTATIC, Type
+										.getInternalName(ProcessWrapper.class),
+										"recordProcessDesc",
+										Type.getMethodDescriptor(
+												Type.getType(void.class),
+												Type.getType(String.class),
+												Type.getType(String.class),
+												Type.getType(String.class)),
+										false);
+
+								if (dontPublishWhenResultIsNull) {
+									visitInsn(Opcodes.ICONST_1);
+								} else {
+									visitInsn(Opcodes.ICONST_0);
+								}
+								visitMethodInsn(Opcodes.INVOKESTATIC, Type
+										.getInternalName(ProcessWrapper.class),
+										"setDontPublishWhenResultIsNull",
+										Type.getMethodDescriptor(
+												Type.getType(void.class),
+												Type.getType(boolean.class)),
+										false);
+
+								// TODO 记录入参快照
+
+							}
+
 							visitMethodInsn(Opcodes.INVOKESTATIC,
 									Type.getInternalName(ProcessWrapper.class),
 									"beforeProcessStart", "()V", false);
@@ -415,6 +446,7 @@ public class ClassEnhancer {
 									"afterProcessFinish", "()V", false);
 
 							if (publish) {
+								// TODO 用ProcessWrapper记录过程结果
 								if (Type.getDescriptor(void.class).equals(
 										returnTypeDesc)) {
 									visitLdcInsn(clsInfoMap.get("name"));
