@@ -25,6 +25,10 @@ public class ProcessWrapper {
 		// TODO
 	}
 
+	public static void recordProcessResult(Object result) {
+		// TODO
+	}
+
 	public static void setDontPublishWhenResultIsNull(
 			boolean dontPublishWhenResultIsNull) {
 		// TODO

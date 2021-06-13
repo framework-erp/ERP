@@ -446,7 +446,13 @@ public class ClassEnhancer {
 									"afterProcessFinish", "()V", false);
 
 							if (publish) {
-								// TODO 用ProcessWrapper记录过程结果
+								if (!Type.getDescriptor(void.class).equals(
+										returnTypeDesc)) {
+									stackTopToObject(returnTypeDesc, this);
+									// TODO
+									// 用ProcessWrapper.recordProcessResult记录过程结果
+									// 代替下面一连串的调用ProcessPublisher.publish
+								}
 								if (Type.getDescriptor(void.class).equals(
 										returnTypeDesc)) {
 									visitLdcInsn(clsInfoMap.get("name"));
@@ -691,4 +697,74 @@ public class ClassEnhancer {
 					enhancedBytes);
 		}
 	}
+
+	private static void stackTopToObject(String stackTopTypeDesc,
+			AdviceAdapter adviceAdapter) {
+		if (Type.getDescriptor(byte.class).equals(stackTopTypeDesc)) {
+			adviceAdapter.visitInsn(Opcodes.DUP);
+			adviceAdapter.visitMethodInsn(
+					Opcodes.INVOKESTATIC,
+					Type.getInternalName(Byte.class),
+					"valueOf",
+					Type.getMethodDescriptor(Type.getType(Byte.class),
+							Type.getType(byte.class)), false);
+		} else if (Type.getDescriptor(char.class).equals(stackTopTypeDesc)) {
+			adviceAdapter.visitInsn(Opcodes.DUP);
+			adviceAdapter.visitMethodInsn(Opcodes.INVOKESTATIC, Type
+					.getInternalName(Character.class), "valueOf", Type
+					.getMethodDescriptor(Type.getType(Character.class),
+							Type.getType(char.class)), false);
+		} else if (Type.getDescriptor(short.class).equals(stackTopTypeDesc)) {
+			adviceAdapter.visitInsn(Opcodes.DUP);
+			adviceAdapter.visitMethodInsn(
+					Opcodes.INVOKESTATIC,
+					Type.getInternalName(Short.class),
+					"valueOf",
+					Type.getMethodDescriptor(Type.getType(Short.class),
+							Type.getType(short.class)), false);
+		} else if (Type.getDescriptor(float.class).equals(stackTopTypeDesc)) {
+			adviceAdapter.visitInsn(Opcodes.DUP);
+			adviceAdapter.visitMethodInsn(
+					Opcodes.INVOKESTATIC,
+					Type.getInternalName(Float.class),
+					"valueOf",
+					Type.getMethodDescriptor(Type.getType(Float.class),
+							Type.getType(float.class)), false);
+		} else if (Type.getDescriptor(int.class).equals(stackTopTypeDesc)) {
+			adviceAdapter.visitInsn(Opcodes.DUP);
+			adviceAdapter.visitMethodInsn(
+					Opcodes.INVOKESTATIC,
+					Type.getInternalName(Integer.class),
+					"valueOf",
+					Type.getMethodDescriptor(Type.getType(Integer.class),
+							Type.getType(int.class)), false);
+		} else if (Type.getDescriptor(double.class).equals(stackTopTypeDesc)) {
+			adviceAdapter.visitInsn(Opcodes.DUP2);
+			adviceAdapter.visitMethodInsn(
+					Opcodes.INVOKESTATIC,
+					Type.getInternalName(Double.class),
+					"valueOf",
+					Type.getMethodDescriptor(Type.getType(Double.class),
+							Type.getType(double.class)), false);
+		} else if (Type.getDescriptor(long.class).equals(stackTopTypeDesc)) {
+			adviceAdapter.visitInsn(Opcodes.DUP2);
+			adviceAdapter.visitMethodInsn(
+					Opcodes.INVOKESTATIC,
+					Type.getInternalName(Long.class),
+					"valueOf",
+					Type.getMethodDescriptor(Type.getType(Long.class),
+							Type.getType(long.class)), false);
+		} else if (Type.getDescriptor(boolean.class).equals(stackTopTypeDesc)) {
+			adviceAdapter.visitInsn(Opcodes.DUP);
+			adviceAdapter.visitMethodInsn(
+					Opcodes.INVOKESTATIC,
+					Type.getInternalName(Boolean.class),
+					"valueOf",
+					Type.getMethodDescriptor(Type.getType(Boolean.class),
+							Type.getType(boolean.class)), false);
+		} else {
+			adviceAdapter.visitInsn(Opcodes.DUP);
+		}
+	}
+
 }
