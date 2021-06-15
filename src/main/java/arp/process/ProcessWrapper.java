@@ -1,5 +1,7 @@
 package arp.process;
 
+import arp.process.publish.ProcessPublisher;
+
 public class ProcessWrapper {
 
 	public static void beforeProcessStart() {
@@ -12,6 +14,11 @@ public class ProcessWrapper {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
 		processContext.finishProcess();
+		if (processContext.isPublish()) {
+			ProcessPublisher.publish(processContext.getResult(),
+					processContext.getProcessDesc(),
+					processContext.isDontPublishWhenResultIsNull());
+		}
 	}
 
 	public static void afterProcessFaild() {
@@ -20,18 +27,31 @@ public class ProcessWrapper {
 		processContext.processFaild();
 	}
 
+	public static void setPublish(boolean publish) {
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
+		processContext.setPublish(publish);
+	}
+
 	public static void recordProcessDesc(String clsName, String mthName,
 			String processName) {
-		// TODO
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
+		processContext.recordProcessDesc(clsName, mthName, processName);
 	}
 
 	public static void recordProcessResult(Object result) {
-		// TODO
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
+		processContext.recordProcessResult(result);
 	}
 
 	public static void setDontPublishWhenResultIsNull(
 			boolean dontPublishWhenResultIsNull) {
-		// TODO
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
+		processContext
+				.setDontPublishWhenResultIsNull(dontPublishWhenResultIsNull);
 	}
 
 }

@@ -30,7 +30,6 @@ import arp.ARP;
 import arp.process.Process;
 import arp.process.ProcessWrapper;
 import arp.process.publish.ProcessListenerMessageProcessor;
-import arp.process.publish.ProcessPublisher;
 
 public class ClassEnhancer {
 
@@ -380,6 +379,20 @@ public class ClassEnhancer {
 
 					protected void onMethodEnter() {
 						if (isProcess) {
+
+							if (publish) {
+								visitInsn(Opcodes.ICONST_1);
+							} else {
+								visitInsn(Opcodes.ICONST_0);
+							}
+							visitMethodInsn(
+									Opcodes.INVOKESTATIC,
+									Type.getInternalName(ProcessWrapper.class),
+									"setPublish",
+									Type.getMethodDescriptor(
+											Type.getType(void.class),
+											Type.getType(boolean.class)), false);
+
 							if (publish) {
 								visitLdcInsn(clsInfoMap.get("name"));
 								visitLdcInsn(mthName);
@@ -449,237 +462,15 @@ public class ClassEnhancer {
 								if (!Type.getDescriptor(void.class).equals(
 										returnTypeDesc)) {
 									stackTopToObject(returnTypeDesc, this);
-									// TODO
-									// 用ProcessWrapper.recordProcessResult记录过程结果
-									// 代替下面一连串的调用ProcessPublisher.publish
-								}
-								if (Type.getDescriptor(void.class).equals(
-										returnTypeDesc)) {
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(mthName);
-									visitLdcInsn(processName);
-									if (dontPublishWhenResultIsNull) {
-										visitInsn(Opcodes.ICONST_1);
-									} else {
-										visitInsn(Opcodes.ICONST_0);
-									}
 									visitMethodInsn(
 											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessPublisher.class),
-											"publish",
+											Type.getInternalName(ProcessWrapper.class),
+											"recordProcessResult",
 											Type.getMethodDescriptor(
 													Type.getType(void.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(boolean.class)),
+													Type.getType(Object.class)),
 											false);
-								} else if (Type.getDescriptor(byte.class)
-										.equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(mthName);
-									visitLdcInsn(processName);
-									if (dontPublishWhenResultIsNull) {
-										visitInsn(Opcodes.ICONST_1);
-									} else {
-										visitInsn(Opcodes.ICONST_0);
-									}
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(byte.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(boolean.class)),
-											false);
-								} else if (Type.getDescriptor(char.class)
-										.equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(mthName);
-									visitLdcInsn(processName);
-									if (dontPublishWhenResultIsNull) {
-										visitInsn(Opcodes.ICONST_1);
-									} else {
-										visitInsn(Opcodes.ICONST_0);
-									}
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(char.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(boolean.class)),
-											false);
-								} else if (Type.getDescriptor(short.class)
-										.equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(mthName);
-									visitLdcInsn(processName);
-									if (dontPublishWhenResultIsNull) {
-										visitInsn(Opcodes.ICONST_1);
-									} else {
-										visitInsn(Opcodes.ICONST_0);
-									}
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(short.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(boolean.class)),
-											false);
-								} else if (Type.getDescriptor(float.class)
-										.equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(mthName);
-									visitLdcInsn(processName);
-									if (dontPublishWhenResultIsNull) {
-										visitInsn(Opcodes.ICONST_1);
-									} else {
-										visitInsn(Opcodes.ICONST_0);
-									}
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(float.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(boolean.class)),
-											false);
-								} else if (Type.getDescriptor(int.class)
-										.equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(mthName);
-									visitLdcInsn(processName);
-									if (dontPublishWhenResultIsNull) {
-										visitInsn(Opcodes.ICONST_1);
-									} else {
-										visitInsn(Opcodes.ICONST_0);
-									}
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(int.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(boolean.class)),
-											false);
-								} else if (Type.getDescriptor(double.class)
-										.equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP2);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(mthName);
-									visitLdcInsn(processName);
-									if (dontPublishWhenResultIsNull) {
-										visitInsn(Opcodes.ICONST_1);
-									} else {
-										visitInsn(Opcodes.ICONST_0);
-									}
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(double.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(boolean.class)),
-											false);
-								} else if (Type.getDescriptor(long.class)
-										.equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP2);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(mthName);
-									visitLdcInsn(processName);
-									if (dontPublishWhenResultIsNull) {
-										visitInsn(Opcodes.ICONST_1);
-									} else {
-										visitInsn(Opcodes.ICONST_0);
-									}
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(long.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(boolean.class)),
-											false);
-								} else if (Type.getDescriptor(boolean.class)
-										.equals(returnTypeDesc)) {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(mthName);
-									visitLdcInsn(processName);
-									if (dontPublishWhenResultIsNull) {
-										visitInsn(Opcodes.ICONST_1);
-									} else {
-										visitInsn(Opcodes.ICONST_0);
-									}
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(boolean.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(boolean.class)),
-											false);
-								} else {
-									visitInsn(Opcodes.DUP);
-									visitLdcInsn(clsInfoMap.get("name"));
-									visitLdcInsn(mthName);
-									visitLdcInsn(processName);
-									if (dontPublishWhenResultIsNull) {
-										visitInsn(Opcodes.ICONST_1);
-									} else {
-										visitInsn(Opcodes.ICONST_0);
-									}
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessPublisher.class),
-											"publish",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(Object.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(boolean.class)),
-											false);
+
 								}
 							}
 

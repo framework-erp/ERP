@@ -21,6 +21,14 @@ public class ProcessContext {
 
 	private List<AtomicInteger> singleEntityAcquiredLocks = new ArrayList<>();
 
+	private Object result;
+
+	private boolean dontPublishWhenResultIsNull;
+
+	private String processDesc;
+
+	private boolean publish;
+
 	public void startProcess() {
 		if (started) {
 			throw new RuntimeException(
@@ -190,6 +198,7 @@ public class ProcessContext {
 
 	private void clear() {
 		processEntities.clear();
+		result = null;
 	}
 
 	private void releaseAcquiredLocks() throws Exception {
@@ -221,6 +230,44 @@ public class ProcessContext {
 
 	public void addSingleEntityAcquiredLock(AtomicInteger lock) {
 		singleEntityAcquiredLocks.add(lock);
+	}
+
+	public void recordProcessResult(Object result) {
+		this.result = result;
+	}
+
+	public void setDontPublishWhenResultIsNull(
+			boolean dontPublishWhenResultIsNull) {
+		this.dontPublishWhenResultIsNull = dontPublishWhenResultIsNull;
+	}
+
+	public void recordProcessDesc(String clsName, String mthName,
+			String processName) {
+		if (!processName.trim().isEmpty()) {
+			processDesc = processName;
+		} else {
+			processDesc = clsName + "." + mthName;
+		}
+	}
+
+	public Object getResult() {
+		return result;
+	}
+
+	public boolean isDontPublishWhenResultIsNull() {
+		return dontPublishWhenResultIsNull;
+	}
+
+	public String getProcessDesc() {
+		return processDesc;
+	}
+
+	public boolean isPublish() {
+		return publish;
+	}
+
+	public void setPublish(boolean publish) {
+		this.publish = publish;
 	}
 
 }
