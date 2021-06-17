@@ -420,7 +420,21 @@ public class ClassEnhancer {
 												Type.getType(boolean.class)),
 										false);
 
-								// TODO 记录入参快照
+								if (argumentTypes != null) {
+									for (int argIdx = 0; argIdx < argumentTypes.length; argIdx++) {
+										Type argType = argumentTypes[argIdx];
+										loadLocalAndToObject(argIdx + 1,
+												argType.getDescriptor(), this);
+										visitMethodInsn(
+												Opcodes.INVOKESTATIC,
+												Type.getInternalName(ProcessWrapper.class),
+												"recordProcessArgument",
+												Type.getMethodDescriptor(
+														Type.getType(void.class),
+														Type.getType(Object.class)),
+												false);
+									}
+								}
 
 							}
 
@@ -461,7 +475,7 @@ public class ClassEnhancer {
 							if (publish) {
 								if (!Type.getDescriptor(void.class).equals(
 										returnTypeDesc)) {
-									stackTopToObject(returnTypeDesc, this);
+									dupStackTopAndToObject(returnTypeDesc, this);
 									visitMethodInsn(
 											Opcodes.INVOKESTATIC,
 											Type.getInternalName(ProcessWrapper.class),
@@ -489,10 +503,44 @@ public class ClassEnhancer {
 		}
 	}
 
+	private static void dupStackTopAndToObject(String stackTopTypeDesc,
+			AdviceAdapter adviceAdapter) {
+		dupStackTop(stackTopTypeDesc, adviceAdapter);
+		stackTopToObject(stackTopTypeDesc, adviceAdapter);
+	}
+
+	private static void loadLocalAndToObject(int localNum,
+			String localTypeDesc, AdviceAdapter adviceAdapter) {
+		loadLocal(localNum, localTypeDesc, adviceAdapter);
+		stackTopToObject(localTypeDesc, adviceAdapter);
+	}
+
+	private static void loadLocal(int localNum, String localTypeDesc,
+			AdviceAdapter adviceAdapter) {
+		if (Type.getDescriptor(byte.class).equals(localTypeDesc)) {
+			adviceAdapter.visitVarInsn(Opcodes.ILOAD, localNum);
+		} else if (Type.getDescriptor(char.class).equals(localTypeDesc)) {
+			adviceAdapter.visitVarInsn(Opcodes.ILOAD, localNum);
+		} else if (Type.getDescriptor(short.class).equals(localTypeDesc)) {
+			adviceAdapter.visitVarInsn(Opcodes.ILOAD, localNum);
+		} else if (Type.getDescriptor(float.class).equals(localTypeDesc)) {
+			adviceAdapter.visitVarInsn(Opcodes.FLOAD, localNum);
+		} else if (Type.getDescriptor(int.class).equals(localTypeDesc)) {
+			adviceAdapter.visitVarInsn(Opcodes.ILOAD, localNum);
+		} else if (Type.getDescriptor(double.class).equals(localTypeDesc)) {
+			adviceAdapter.visitVarInsn(Opcodes.DLOAD, localNum);
+		} else if (Type.getDescriptor(long.class).equals(localTypeDesc)) {
+			adviceAdapter.visitVarInsn(Opcodes.LLOAD, localNum);
+		} else if (Type.getDescriptor(boolean.class).equals(localTypeDesc)) {
+			adviceAdapter.visitVarInsn(Opcodes.ILOAD, localNum);
+		} else {
+			adviceAdapter.visitVarInsn(Opcodes.ALOAD, localNum);
+		}
+	}
+
 	private static void stackTopToObject(String stackTopTypeDesc,
 			AdviceAdapter adviceAdapter) {
 		if (Type.getDescriptor(byte.class).equals(stackTopTypeDesc)) {
-			adviceAdapter.visitInsn(Opcodes.DUP);
 			adviceAdapter.visitMethodInsn(
 					Opcodes.INVOKESTATIC,
 					Type.getInternalName(Byte.class),
@@ -500,13 +548,11 @@ public class ClassEnhancer {
 					Type.getMethodDescriptor(Type.getType(Byte.class),
 							Type.getType(byte.class)), false);
 		} else if (Type.getDescriptor(char.class).equals(stackTopTypeDesc)) {
-			adviceAdapter.visitInsn(Opcodes.DUP);
 			adviceAdapter.visitMethodInsn(Opcodes.INVOKESTATIC, Type
 					.getInternalName(Character.class), "valueOf", Type
 					.getMethodDescriptor(Type.getType(Character.class),
 							Type.getType(char.class)), false);
 		} else if (Type.getDescriptor(short.class).equals(stackTopTypeDesc)) {
-			adviceAdapter.visitInsn(Opcodes.DUP);
 			adviceAdapter.visitMethodInsn(
 					Opcodes.INVOKESTATIC,
 					Type.getInternalName(Short.class),
@@ -514,7 +560,6 @@ public class ClassEnhancer {
 					Type.getMethodDescriptor(Type.getType(Short.class),
 							Type.getType(short.class)), false);
 		} else if (Type.getDescriptor(float.class).equals(stackTopTypeDesc)) {
-			adviceAdapter.visitInsn(Opcodes.DUP);
 			adviceAdapter.visitMethodInsn(
 					Opcodes.INVOKESTATIC,
 					Type.getInternalName(Float.class),
@@ -522,7 +567,6 @@ public class ClassEnhancer {
 					Type.getMethodDescriptor(Type.getType(Float.class),
 							Type.getType(float.class)), false);
 		} else if (Type.getDescriptor(int.class).equals(stackTopTypeDesc)) {
-			adviceAdapter.visitInsn(Opcodes.DUP);
 			adviceAdapter.visitMethodInsn(
 					Opcodes.INVOKESTATIC,
 					Type.getInternalName(Integer.class),
@@ -530,7 +574,6 @@ public class ClassEnhancer {
 					Type.getMethodDescriptor(Type.getType(Integer.class),
 							Type.getType(int.class)), false);
 		} else if (Type.getDescriptor(double.class).equals(stackTopTypeDesc)) {
-			adviceAdapter.visitInsn(Opcodes.DUP2);
 			adviceAdapter.visitMethodInsn(
 					Opcodes.INVOKESTATIC,
 					Type.getInternalName(Double.class),
@@ -538,7 +581,6 @@ public class ClassEnhancer {
 					Type.getMethodDescriptor(Type.getType(Double.class),
 							Type.getType(double.class)), false);
 		} else if (Type.getDescriptor(long.class).equals(stackTopTypeDesc)) {
-			adviceAdapter.visitInsn(Opcodes.DUP2);
 			adviceAdapter.visitMethodInsn(
 					Opcodes.INVOKESTATIC,
 					Type.getInternalName(Long.class),
@@ -546,13 +588,21 @@ public class ClassEnhancer {
 					Type.getMethodDescriptor(Type.getType(Long.class),
 							Type.getType(long.class)), false);
 		} else if (Type.getDescriptor(boolean.class).equals(stackTopTypeDesc)) {
-			adviceAdapter.visitInsn(Opcodes.DUP);
 			adviceAdapter.visitMethodInsn(
 					Opcodes.INVOKESTATIC,
 					Type.getInternalName(Boolean.class),
 					"valueOf",
 					Type.getMethodDescriptor(Type.getType(Boolean.class),
 							Type.getType(boolean.class)), false);
+		} else {
+		}
+	}
+
+	private static void dupStackTop(String stackTopTypeDesc,
+			AdviceAdapter adviceAdapter) {
+		if (Type.getDescriptor(long.class).equals(stackTopTypeDesc)
+				|| Type.getDescriptor(double.class).equals(stackTopTypeDesc)) {
+			adviceAdapter.visitInsn(Opcodes.DUP2);
 		} else {
 			adviceAdapter.visitInsn(Opcodes.DUP);
 		}

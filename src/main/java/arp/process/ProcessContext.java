@@ -21,6 +21,8 @@ public class ProcessContext {
 
 	private List<AtomicInteger> singleEntityAcquiredLocks = new ArrayList<>();
 
+	private List<Object> arguments = new ArrayList<>();
+
 	private Object result;
 
 	private boolean dontPublishWhenResultIsNull;
@@ -198,6 +200,7 @@ public class ProcessContext {
 
 	private void clear() {
 		processEntities.clear();
+		arguments.clear();
 		result = null;
 	}
 
@@ -268,6 +271,10 @@ public class ProcessContext {
 
 	public void setPublish(boolean publish) {
 		this.publish = publish;
+	}
+
+	public void recordProcessArgument(Object argument) {
+		arguments.add(argument);
 	}
 
 }

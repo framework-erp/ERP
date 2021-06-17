@@ -54,4 +54,10 @@ public class ProcessWrapper {
 				.setDontPublishWhenResultIsNull(dontPublishWhenResultIsNull);
 	}
 
+	public static void recordProcessArgument(Object argument) {
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
+		processContext.recordProcessArgument(argument);
+	}
+
 }

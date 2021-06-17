@@ -2,9 +2,11 @@ package arp.process.publish;
 
 public class Message {
 
-	// TODO processInput
 	private String processDesc;
+	// TODO processInput
 	private Object processOutput;
+
+	// TODO aggrs changed
 
 	public String getProcessDesc() {
 		return processDesc;
