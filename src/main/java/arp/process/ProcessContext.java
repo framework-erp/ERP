@@ -277,4 +277,8 @@ public class ProcessContext {
 		arguments.add(argument);
 	}
 
+	public List<Object> getArguments() {
+		return arguments;
+	}
+
 }
