@@ -21,6 +21,7 @@ public class RepositoryProcessEntities<I, E> {
 
 	public void takeEntityFromRepoAndPutInProcess(I entityId, E entity) {
 		ProcessEntity<E> processEntity = new ProcessEntity<>();
+		processEntity.setInitialEntitySnapshot(EntityCopier.copy(entity));
 		processEntity.setEntity(entity);
 		processEntity.setState(new TakenProcessEntityState());
 		entities.put(entityId, processEntity);
@@ -28,6 +29,7 @@ public class RepositoryProcessEntities<I, E> {
 
 	public void takeEntityFromRepoAndPutInProcessAsRemoved(I entityId, E entity) {
 		ProcessEntity<E> processEntity = new ProcessEntity<>();
+		processEntity.setInitialEntitySnapshot(EntityCopier.copy(entity));
 		processEntity.setEntity(entity);
 		processEntity.setState(new RemovedProcessEntityState());
 		entities.put(entityId, processEntity);

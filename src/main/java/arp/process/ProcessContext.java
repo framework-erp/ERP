@@ -77,7 +77,9 @@ public class ProcessContext {
 				if (processEntity.getState() instanceof CreatedProcessEntityState) {
 					entitiesToCreate.put(id, processEntity.getEntity());
 				} else if (processEntity.getState() instanceof TakenProcessEntityState) {
-					entitiesToUpdate.put(id, processEntity.getEntity());
+					if (processEntity.changed()) {
+						entitiesToUpdate.put(id, processEntity.getEntity());
+					}
 				} else if (processEntity.getState() instanceof RemovedProcessEntityState) {
 					idsToRemove.add(id);
 				}

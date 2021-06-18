@@ -1,24 +1,14 @@
 package arp.repository;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import arp.repository.compare.EntityComparator;
-import arp.repository.copy.EntityCopier;
 
 public abstract class PersistenceRepository<E, I> extends Repository<E, I> {
-
-	private Map<I, E> originalEntities = new ConcurrentHashMap<>();
 
 	@Override
 	protected E findByIdForUpdateFromStore(I id) {
 		E entity = findByIdForUpdateImpl(id);
-		if (entity != null) {
-			originalEntities.put(id, EntityCopier.copy(entity));
-		}
 		return entity;
 	}
 
@@ -34,9 +24,6 @@ public abstract class PersistenceRepository<E, I> extends Repository<E, I> {
 	@Override
 	protected E saveIfAbsentToStore(I id, E entity) {
 		entity = saveIfAbsentImpl(id, entity);
-		if (entity != null) {
-			originalEntities.put(id, EntityCopier.copy(entity));
-		}
 		return entity;
 	}
 
@@ -57,7 +44,6 @@ public abstract class PersistenceRepository<E, I> extends Repository<E, I> {
 
 	@Override
 	protected void updateAllToStore(Map<I, E> entities) {
-		Map<I, E> entitiesToUpdate = new HashMap<>();
 		I oneId = null;
 		E oneEntity = null;
 		for (Entry<I, E> entry : entities.entrySet()) {
@@ -65,18 +51,15 @@ public abstract class PersistenceRepository<E, I> extends Repository<E, I> {
 			oneId = id;
 			E entity = entry.getValue();
 			oneEntity = entity;
-			if (!EntityComparator.equals(entity, originalEntities.remove(id))) {
-				entitiesToUpdate.put(id, entity);
-			}
 		}
 
-		if (entitiesToUpdate.isEmpty()) {
+		if (entities.isEmpty()) {
 			return;
 		}
-		if (entitiesToUpdate.size() == 1) {
+		if (entities.size() == 1) {
 			updateImpl(oneId, oneEntity);
 		} else {
-			updateBatchImpl(entitiesToUpdate);
+			updateBatchImpl(entities);
 		}
 	}
 
