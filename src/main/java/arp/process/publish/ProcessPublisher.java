@@ -6,15 +6,17 @@ public class ProcessPublisher {
 
 	public static MessageSender messageSender;
 
-	public static void publish(List<Object> arguments, Object processResult,
+	public static void publish(List<Object> processArguments,
+			Object processResult, List<Object[]> processUpdatedAggrs,
 			String processDesc, boolean dontPublishWhenResultIsNull) {
 		if (dontPublishWhenResultIsNull && processResult == null) {
 			return;
 		}
 		Message msg = new Message();
 		msg.setProcessDesc(processDesc);
-		msg.setProcessInput(arguments);
+		msg.setProcessInput(processArguments);
 		msg.setProcessOutput(processResult);
+		msg.setProcessUpdatedAggrs(processUpdatedAggrs);
 		try {
 			messageSender.send(msg);
 		} catch (Exception e) {

@@ -25,6 +25,8 @@ public class ProcessContext {
 
 	private Object result;
 
+	private List<Object[]> updatedAggrs = new ArrayList<>();
+
 	private boolean dontPublishWhenResultIsNull;
 
 	private String processDesc;
@@ -79,6 +81,9 @@ public class ProcessContext {
 				} else if (processEntity.getState() instanceof TakenProcessEntityState) {
 					if (processEntity.changed()) {
 						entitiesToUpdate.put(id, processEntity.getEntity());
+						updatedAggrs.add(new Object[] {
+								processEntity.getInitialEntitySnapshot(),
+								processEntity.getEntity() });
 					}
 				} else if (processEntity.getState() instanceof RemovedProcessEntityState) {
 					idsToRemove.add(id);
@@ -203,6 +208,7 @@ public class ProcessContext {
 	private void clear() {
 		processEntities.clear();
 		arguments.clear();
+		updatedAggrs.clear();
 		result = null;
 	}
 
@@ -281,6 +287,10 @@ public class ProcessContext {
 
 	public List<Object> getArguments() {
 		return arguments;
+	}
+
+	public List<Object[]> getUpdatedAggrs() {
+		return updatedAggrs;
 	}
 
 }

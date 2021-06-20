@@ -7,8 +7,7 @@ public class Message {
 	private String processDesc;
 	private List<Object> processInput;
 	private Object processOutput;
-
-	// TODO aggrs changed
+	private List<Object[]> processUpdatedAggrs;
 
 	public String getProcessDesc() {
 		return processDesc;
@@ -32,6 +31,14 @@ public class Message {
 
 	public void setProcessOutput(Object processOutput) {
 		this.processOutput = processOutput;
+	}
+
+	public List<Object[]> getProcessUpdatedAggrs() {
+		return processUpdatedAggrs;
+	}
+
+	public void setProcessUpdatedAggrs(List<Object[]> processUpdatedAggrs) {
+		this.processUpdatedAggrs = processUpdatedAggrs;
 	}
 
 }
