@@ -468,10 +468,6 @@ public class ClassEnhancer {
 					protected void onMethodExit(int opcode) {
 						if (isProcess) {
 
-							visitMethodInsn(Opcodes.INVOKESTATIC,
-									Type.getInternalName(ProcessWrapper.class),
-									"afterProcessFinish", "()V", false);
-
 							if (publish) {
 								if (!Type.getDescriptor(void.class).equals(
 										returnTypeDesc)) {
@@ -487,6 +483,10 @@ public class ClassEnhancer {
 
 								}
 							}
+
+							visitMethodInsn(Opcodes.INVOKESTATIC,
+									Type.getInternalName(ProcessWrapper.class),
+									"afterProcessFinish", "()V", false);
 
 						}
 						super.onMethodExit(opcode);

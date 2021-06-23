@@ -59,7 +59,6 @@ public class ProcessContext {
 			releaseAcquiredLocks();
 		} catch (Exception e) {
 		}
-		clear();
 		started = false;
 	}
 
@@ -205,11 +204,14 @@ public class ProcessContext {
 		started = false;
 	}
 
-	private void clear() {
+	public void clear() {
 		processEntities.clear();
 		arguments.clear();
 		updatedAggrs.clear();
 		result = null;
+		dontPublishWhenResultIsNull = false;
+		processDesc = null;
+		publish = false;
 	}
 
 	private void releaseAcquiredLocks() throws Exception {

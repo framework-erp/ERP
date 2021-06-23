@@ -21,6 +21,7 @@ public class ProcessWrapper {
 					processContext.getProcessDesc(),
 					processContext.isDontPublishWhenResultIsNull());
 		}
+		processContext.clear();
 	}
 
 	public static void afterProcessFaild() {
