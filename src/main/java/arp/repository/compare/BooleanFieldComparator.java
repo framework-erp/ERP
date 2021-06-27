@@ -12,7 +12,7 @@ public class BooleanFieldComparator extends BaseFieldComparator {
 
 	@Override
 	public <T> boolean equals(T one, T another) {
-		return Unsafe.compareBooleanFieldOfObject(one, another, fieldOffset) < 0;
+		return Unsafe.compareBooleanFieldOfObject(one, another, fieldOffset) == 0;
 	}
 
 }

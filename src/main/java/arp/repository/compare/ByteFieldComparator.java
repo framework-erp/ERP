@@ -12,7 +12,7 @@ public class ByteFieldComparator extends BaseFieldComparator {
 
 	@Override
 	public <T> boolean equals(T one, T another) {
-		return Unsafe.compareByteFieldOfObject(one, another, fieldOffset) < 0;
+		return Unsafe.compareByteFieldOfObject(one, another, fieldOffset) == 0;
 	}
 
 }

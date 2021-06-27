@@ -12,7 +12,7 @@ public class CharFieldComparator extends BaseFieldComparator {
 
 	@Override
 	public <T> boolean equals(T one, T another) {
-		return Unsafe.compareCharFieldOfObject(one, another, fieldOffset) < 0;
+		return Unsafe.compareCharFieldOfObject(one, another, fieldOffset) == 0;
 	}
 
 }

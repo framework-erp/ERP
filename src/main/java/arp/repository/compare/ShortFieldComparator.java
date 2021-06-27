@@ -12,7 +12,7 @@ public class ShortFieldComparator extends BaseFieldComparator {
 
 	@Override
 	public <T> boolean equals(T one, T another) {
-		return Unsafe.compareShortFieldOfObject(one, another, fieldOffset) < 0;
+		return Unsafe.compareShortFieldOfObject(one, another, fieldOffset) == 0;
 	}
 
 }

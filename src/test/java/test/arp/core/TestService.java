@@ -42,4 +42,8 @@ public class TestService {
 		return new F4Result(entity1, entity2);
 	}
 
+	@Process(publish = true)
+	public void f5(long l1, int l2) {
+	}
+
 }

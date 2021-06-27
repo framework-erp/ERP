@@ -12,7 +12,7 @@ public class LongFieldComparator extends BaseFieldComparator {
 
 	@Override
 	public <T> boolean equals(T one, T another) {
-		return Unsafe.compareLongFieldOfObject(one, another, fieldOffset) < 0;
+		return Unsafe.compareLongFieldOfObject(one, another, fieldOffset) == 0;
 	}
 
 }

@@ -421,9 +421,11 @@ public class ClassEnhancer {
 										false);
 
 								if (argumentTypes != null) {
+									int localNum = 1;
 									for (int argIdx = 0; argIdx < argumentTypes.length; argIdx++) {
 										Type argType = argumentTypes[argIdx];
-										loadLocalAndToObject(argIdx + 1,
+										localNum = loadLocalAndToObject(
+												localNum,
 												argType.getDescriptor(), this);
 										visitMethodInsn(
 												Opcodes.INVOKESTATIC,
@@ -509,32 +511,42 @@ public class ClassEnhancer {
 		stackTopToObject(stackTopTypeDesc, adviceAdapter);
 	}
 
-	private static void loadLocalAndToObject(int localNum,
-			String localTypeDesc, AdviceAdapter adviceAdapter) {
-		loadLocal(localNum, localTypeDesc, adviceAdapter);
+	private static int loadLocalAndToObject(int localNum, String localTypeDesc,
+			AdviceAdapter adviceAdapter) {
+		int newLocalNum = loadLocal(localNum, localTypeDesc, adviceAdapter);
 		stackTopToObject(localTypeDesc, adviceAdapter);
+		return newLocalNum;
 	}
 
-	private static void loadLocal(int localNum, String localTypeDesc,
+	private static int loadLocal(int localNum, String localTypeDesc,
 			AdviceAdapter adviceAdapter) {
 		if (Type.getDescriptor(byte.class).equals(localTypeDesc)) {
 			adviceAdapter.visitVarInsn(Opcodes.ILOAD, localNum);
+			return localNum + 1;
 		} else if (Type.getDescriptor(char.class).equals(localTypeDesc)) {
 			adviceAdapter.visitVarInsn(Opcodes.ILOAD, localNum);
+			return localNum + 1;
 		} else if (Type.getDescriptor(short.class).equals(localTypeDesc)) {
 			adviceAdapter.visitVarInsn(Opcodes.ILOAD, localNum);
+			return localNum + 1;
 		} else if (Type.getDescriptor(float.class).equals(localTypeDesc)) {
 			adviceAdapter.visitVarInsn(Opcodes.FLOAD, localNum);
+			return localNum + 1;
 		} else if (Type.getDescriptor(int.class).equals(localTypeDesc)) {
 			adviceAdapter.visitVarInsn(Opcodes.ILOAD, localNum);
+			return localNum + 1;
 		} else if (Type.getDescriptor(double.class).equals(localTypeDesc)) {
 			adviceAdapter.visitVarInsn(Opcodes.DLOAD, localNum);
+			return localNum + 2;
 		} else if (Type.getDescriptor(long.class).equals(localTypeDesc)) {
 			adviceAdapter.visitVarInsn(Opcodes.LLOAD, localNum);
+			return localNum + 2;
 		} else if (Type.getDescriptor(boolean.class).equals(localTypeDesc)) {
 			adviceAdapter.visitVarInsn(Opcodes.ILOAD, localNum);
+			return localNum + 1;
 		} else {
 			adviceAdapter.visitVarInsn(Opcodes.ALOAD, localNum);
+			return localNum + 1;
 		}
 	}
 
