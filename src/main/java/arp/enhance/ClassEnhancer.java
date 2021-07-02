@@ -38,17 +38,17 @@ public class ClassEnhancer {
 		if (pkgs != null) {
 			ClassParseResult result = new ClassParseResult();
 			Map<String, byte[]> enhancedClassBytes = new HashMap<>();
-			List<Map<String, Object>> listnersList = new ArrayList<>();
+			List<ProcessInfo> processInfoList = new ArrayList<>();
 			for (int i = 0; i < pkgs.length; i++) {
 				enhanceClassesForPackage(pkgs[i], enhancedClassBytes,
-						listnersList);
+						processInfoList);
 			}
 
-			result.setListnersList(listnersList);
+			result.setProcessInfoList(processInfoList);
 
-			if (!listnersList.isEmpty()) {
-				createMessageProcessorClasses(listnersList);
-				enhanceClassesForListners(enhancedClassBytes, listnersList);
+			if (!processInfoList.isEmpty()) {
+				createMessageProcessorClasses(processInfoList);
+				enhanceClassesForListners(enhancedClassBytes, processInfoList);
 			}
 			loadClasses(enhancedClassBytes);
 			return result;
@@ -57,22 +57,25 @@ public class ClassEnhancer {
 	}
 
 	private static void createMessageProcessorClasses(
-			List<Map<String, Object>> listnersList) throws Exception {
+			List<ProcessInfo> processInfoList) throws Exception {
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		Class cls = Class.forName("java.lang.ClassLoader");
 		java.lang.reflect.Method method = cls
 				.getDeclaredMethod("defineClass", new Class[] { String.class,
 						byte[].class, int.class, int.class });
 		method.setAccessible(true);
-		for (Map<String, Object> listenerData : listnersList) {
-			Type processOutputType = (Type) listenerData
-					.get("processOutputType");
-			String listenerProcessObjType = (String) listenerData
-					.get("listenerProcessObjType");
+		for (ProcessInfo processInfo : processInfoList) {
+			ListenerInfo listenerInfo = processInfo.getListenerInfo();
+			if (listenerInfo == null) {
+				continue;
+			}
+			Type processOutputType = listenerInfo.getProcessOutputType();
+			String listenerProcessObjType = listenerInfo
+					.getListenerProcessObjType();
 			String messageProcessorClasseType = listenerProcessObjType.replace(
 					'.', '/')
 					+ "/MessageProcessor_"
-					+ (String) listenerData.get("listenerMthName");
+					+ listenerInfo.getListenerMthName();
 			ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 			cw.visit(
 					Opcodes.V1_8,
@@ -126,13 +129,13 @@ public class ClassEnhancer {
 						processOutputType.getInternalName());
 				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
 						listenerProcessObjType.replace('.', '/'),
-						(String) listenerData.get("listenerMthName"),
-						(String) listenerData.get("listenerMthDesc"), false);
+						listenerInfo.getListenerMthName(),
+						listenerInfo.getListenerMthDesc(), false);
 			} else {
 				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
 						listenerProcessObjType.replace('.', '/'),
-						(String) listenerData.get("listenerMthName"),
-						(String) listenerData.get("listenerMthDesc"), false);
+						listenerInfo.getListenerMthName(),
+						listenerInfo.getListenerMthDesc(), false);
 			}
 			mv.visitInsn(Opcodes.RETURN);
 			mv.visitEnd();
@@ -157,33 +160,38 @@ public class ClassEnhancer {
 
 	private static void enhanceClassesForListners(
 			Map<String, byte[]> enhancedClassBytes,
-			List<Map<String, Object>> listnersList) {
+			List<ProcessInfo> processInfoList) {
 		int startIdx = 0;
 		int listnersCount = 0;
 		String listenerProcessObjType = null;
-		for (int i = 0; i < listnersList.size(); i++) {
-			Map<String, Object> listenerData = listnersList.get(i);
-			if (listenerData.get("listenerProcessObjType").equals(
+		for (int i = 0; i < processInfoList.size(); i++) {
+			ProcessInfo processInfo = processInfoList.get(i);
+			ListenerInfo listenerInfo = processInfo.getListenerInfo();
+			if (listenerInfo == null) {
+				continue;
+			}
+			if (listenerInfo.getListenerProcessObjType().equals(
 					listenerProcessObjType)) {
 				listnersCount++;
 			} else {
 				enhanceProcessClassWithListners(enhancedClassBytes,
 						listenerProcessObjType, startIdx, listnersCount,
-						listnersList);
+						processInfoList);
 				startIdx = i;
 				listnersCount = 1;
-				listenerProcessObjType = (String) listenerData
-						.get("listenerProcessObjType");
+				listenerProcessObjType = listenerInfo
+						.getListenerProcessObjType();
 			}
 		}
 		enhanceProcessClassWithListners(enhancedClassBytes,
-				listenerProcessObjType, startIdx, listnersCount, listnersList);
+				listenerProcessObjType, startIdx, listnersCount,
+				processInfoList);
 	}
 
 	private static void enhanceProcessClassWithListners(
 			Map<String, byte[]> enhancedClassBytes,
 			String listenerProcessObjType, int startIdx, int listnersCount,
-			List<Map<String, Object>> listnersList) {
+			List<ProcessInfo> processInfoList) {
 		if (listnersCount == 0) {
 			return;
 		}
@@ -203,17 +211,21 @@ public class ClassEnhancer {
 					protected void onMethodExit(int opcode) {
 						if (name.equals("<init>")) {
 							for (int i = 0; i < listnersCount; i++) {
-								Map<String, Object> listenerData = listnersList
+								ProcessInfo processInfo = processInfoList
 										.get(startIdx + i);
-								String processDesc = (String) listenerData
-										.get("processDesc");
-								String listenerProcessObjType = (String) listenerData
-										.get("listenerProcessObjType");
+								ListenerInfo listenerInfo = processInfo
+										.getListenerInfo();
+								if (listenerInfo == null) {
+									continue;
+								}
+								String processDesc = listenerInfo
+										.getProcessDesc();
+								String listenerProcessObjType = listenerInfo
+										.getListenerProcessObjType();
 								String messageProcessorClasseType = listenerProcessObjType
 										.replace('.', '/')
 										+ "/MessageProcessor_"
-										+ (String) listenerData
-												.get("listenerMthName");
+										+ listenerInfo.getListenerMthName();
 
 								visitLdcInsn(processDesc);
 								visitTypeInsn(Opcodes.NEW,
@@ -255,7 +267,7 @@ public class ClassEnhancer {
 
 	private static void enhanceClassesForPackage(String pkg,
 			Map<String, byte[]> enhancedClassBytes,
-			List<Map<String, Object>> listnersList) throws Exception {
+			List<ProcessInfo> processInfoList) throws Exception {
 		String pkgDir = pkg.replace('.', '/');
 		URL url = Thread.currentThread().getContextClassLoader()
 				.getResource(pkgDir);
@@ -266,7 +278,7 @@ public class ClassEnhancer {
 			public FileVisitResult visitFile(Path file,
 					BasicFileAttributes attrs) throws IOException {
 				byte[] bytes = Files.readAllBytes(file);
-				enhanceProcess(bytes, enhancedClassBytes, listnersList);
+				enhanceProcess(bytes, enhancedClassBytes, processInfoList);
 				return FileVisitResult.CONTINUE;
 			}
 
@@ -297,7 +309,7 @@ public class ClassEnhancer {
 
 	private static void enhanceProcess(byte[] bytes,
 			Map<String, byte[]> enhancedClassBytes,
-			List<Map<String, Object>> listnersList) {
+			List<ProcessInfo> processInfoList) {
 		ClassReader cr = new ClassReader(bytes);
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		Map<String, Object> clsInfoMap = new HashMap<>();
@@ -342,6 +354,7 @@ public class ClassEnhancer {
 									.visitAnnotation(desc, visible)) {
 								@Override
 								public void visit(String name, Object value) {
+									ListenerInfo listenerInfo = null;
 									if ("publish".equals(name)
 											&& Boolean.TRUE.equals(value)) {
 										publish = true;
@@ -352,24 +365,21 @@ public class ClassEnhancer {
 									} else if ("name".equals(name)) {
 										processName = (String) value;
 									} else if ("listening".equals(name)) {
-										Map<String, Object> listenerData = new HashMap<>();
-										listenerData.put("processDesc", value);// 源过程描述
+										Type processOutputType = null;
 										if (argumentTypes != null
 												&& argumentTypes.length > 0) {
-											listenerData.put(
-													"processOutputType",
-													argumentTypes[0]);// 源过程输出类型
+											processOutputType = argumentTypes[0];
 										}
-										listenerData.put(
-												"listenerProcessObjType",
-												clsInfoMap.get("name"));// listener所在的处理类类型
-										listenerData.put("listenerMthName",
-												mthName);
-										listenerData.put("listenerMthDesc",
-												mthDesc);
-										listnersList.add(listenerData);
+										listenerInfo = new ListenerInfo(
+												(String) value,
+												processOutputType,
+												(String) clsInfoMap.get("name"),
+												mthName, mthDesc);
 									}
-
+									processInfoList.add(new ProcessInfo(
+											(String) clsInfoMap.get("name"),
+											mthName, processName, listenerInfo,
+											publish));
 									super.visit(name, value);
 								}
 							};
