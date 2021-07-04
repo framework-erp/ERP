@@ -6,6 +6,7 @@ public class MonitorMessage {
 	private String processInputs;
 	private String processOutput;
 	private String processUpdatedAggrs;
+	private long processFinishTime;
 
 	public String getProcessDesc() {
 		return processDesc;
@@ -37,6 +38,14 @@ public class MonitorMessage {
 
 	public void setProcessUpdatedAggrs(String processUpdatedAggrs) {
 		this.processUpdatedAggrs = processUpdatedAggrs;
+	}
+
+	public long getProcessFinishTime() {
+		return processFinishTime;
+	}
+
+	public void setProcessFinishTime(long processFinishTime) {
+		this.processFinishTime = processFinishTime;
 	}
 
 }

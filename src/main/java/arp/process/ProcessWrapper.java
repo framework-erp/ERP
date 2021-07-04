@@ -19,7 +19,8 @@ public class ProcessWrapper {
 					processContext.getResult(),
 					processContext.getUpdatedAggrs(),
 					processContext.getProcessDesc(),
-					processContext.isDontPublishWhenResultIsNull());
+					processContext.isDontPublishWhenResultIsNull(),
+					System.currentTimeMillis());
 		}
 		processContext.clear();
 	}

@@ -8,7 +8,8 @@ public class ProcessPublisher {
 
 	public static void publish(List<Object> processArguments,
 			Object processResult, List<Object[]> processUpdatedAggrs,
-			String processDesc, boolean dontPublishWhenResultIsNull) {
+			String processDesc, boolean dontPublishWhenResultIsNull,
+			long processFinishTime) {
 		if (dontPublishWhenResultIsNull && processResult == null) {
 			return;
 		}
@@ -17,6 +18,7 @@ public class ProcessPublisher {
 		msg.setProcessInput(processArguments);
 		msg.setProcessOutput(processResult);
 		msg.setProcessUpdatedAggrs(processUpdatedAggrs);
+		msg.setProcessFinishTime(processFinishTime);
 		try {
 			messageSender.send(msg);
 		} catch (Exception e) {

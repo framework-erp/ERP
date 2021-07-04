@@ -8,6 +8,7 @@ public class Message {
 	private List<Object> processInput;
 	private Object processOutput;
 	private List<Object[]> processUpdatedAggrs;
+	private long processFinishTime;
 
 	public String getProcessDesc() {
 		return processDesc;
@@ -39,6 +40,14 @@ public class Message {
 
 	public void setProcessUpdatedAggrs(List<Object[]> processUpdatedAggrs) {
 		this.processUpdatedAggrs = processUpdatedAggrs;
+	}
+
+	public long getProcessFinishTime() {
+		return processFinishTime;
+	}
+
+	public void setProcessFinishTime(long processFinishTime) {
+		this.processFinishTime = processFinishTime;
 	}
 
 }
