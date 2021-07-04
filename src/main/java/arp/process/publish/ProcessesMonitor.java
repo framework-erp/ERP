@@ -28,7 +28,7 @@ public abstract class ProcessesMonitor {
 
 	protected abstract List<String> queryAllProcessesToSubscribe();
 
-	protected abstract List<Message> receive() throws Exception;
+	protected abstract List<MonitorMessage> receive() throws Exception;
 
 	public void start() {
 		updateAllProcessesToSubscribe();
@@ -42,7 +42,7 @@ public abstract class ProcessesMonitor {
 					}
 					subscribeProcessesTask = null;
 				}
-				List<Message> msgList = null;
+				List<MonitorMessage> msgList = null;
 				try {
 					msgList = receive();
 				} catch (Exception e1) {
@@ -56,7 +56,7 @@ public abstract class ProcessesMonitor {
 					}
 					continue;
 				}
-				for (Message msg : msgList) {
+				for (MonitorMessage msg : msgList) {
 					if (processor == null) {
 						continue;
 					}

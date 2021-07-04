@@ -8,6 +8,7 @@ import arp.enhance.ClassParseResult;
 import arp.enhance.ListenerInfo;
 import arp.enhance.ProcessInfo;
 import arp.process.publish.MessageSender;
+import arp.process.publish.MonitorMessageConvertor;
 import arp.process.publish.ProcessListenerMessageConsumer;
 import arp.process.publish.ProcessListenerMessageProcessor;
 import arp.process.publish.ProcessListenerMessageReceiver;
@@ -89,6 +90,13 @@ public class ARP {
 	public static void registerMessageProcessor(String processDesc,
 			ProcessListenerMessageProcessor processor) {
 		messageConsumer.registerProcessor(processDesc, processor);
+	}
+
+	public static void startJoinMonitor(
+			MonitorMessageConvertor monitorMessageConvertor) throws Exception {
+		ClassParseResult parseResult = ClassEnhancer.parseResult;
+		List<String> processesToPublish = getProcessesToSend(parseResult);
+		monitorMessageConvertor.start(processesToPublish);
 	}
 
 }

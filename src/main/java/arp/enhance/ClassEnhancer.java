@@ -33,6 +33,8 @@ import arp.process.publish.ProcessListenerMessageProcessor;
 
 public class ClassEnhancer {
 
+	public static ClassParseResult parseResult;
+
 	public static ClassParseResult parseAndEnhance(String... pkgs)
 			throws Exception {
 		if (pkgs != null) {
@@ -51,6 +53,7 @@ public class ClassEnhancer {
 				enhanceClassesForListners(enhancedClassBytes, processInfoList);
 			}
 			loadClasses(enhancedClassBytes);
+			ClassEnhancer.parseResult = result;
 			return result;
 		}
 		return null;

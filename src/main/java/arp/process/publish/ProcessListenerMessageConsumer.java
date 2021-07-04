@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 
 public class ProcessListenerMessageConsumer {
 
-	private Thread receiveThread;
 	private Map<String, List<ProcessListenerMessageProcessor>> processors = new ConcurrentHashMap<>();
 	private Set<String> messageProcessorTypes = new HashSet<>();
 	private ExecutorService executorService;
@@ -20,11 +19,13 @@ public class ProcessListenerMessageConsumer {
 		executorService = Executors.newCachedThreadPool();
 	}
 
-	public void registerProcessor(String processDesc, ProcessListenerMessageProcessor processor) {
+	public void registerProcessor(String processDesc,
+			ProcessListenerMessageProcessor processor) {
 		if (messageProcessorTypes.contains(processor.getClass().getName())) {
 			return;
 		}
-		List<ProcessListenerMessageProcessor> list = processors.get(processDesc);
+		List<ProcessListenerMessageProcessor> list = processors
+				.get(processDesc);
 		if (list == null) {
 			list = new ArrayList<>();
 			processors.put(processDesc, list);
@@ -33,38 +34,39 @@ public class ProcessListenerMessageConsumer {
 		messageProcessorTypes.add(processor.getClass().getName());
 	}
 
-	public void start(List<String> processesToSubscribe, ProcessListenerMessageReceiver receiver) {
+	public void start(List<String> processesToSubscribe,
+			ProcessListenerMessageReceiver receiver) {
 		receiver.subscribeProcesses(processesToSubscribe);
-		receiveThread = new Thread(() -> {
+		new Thread(() -> {
 			while (true) {
 				List<Message> msgList = null;
 				try {
 					msgList = receiver.receive();
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				if (msgList == null) {
+				e1.printStackTrace();
+			}
+			if (msgList == null) {
+				continue;
+			}
+			for (Message msg : msgList) {
+				List<ProcessListenerMessageProcessor> list = processors.get(msg
+						.getProcessDesc());
+				if (list == null) {
 					continue;
 				}
-				for (Message msg : msgList) {
-					List<ProcessListenerMessageProcessor> list = processors.get(msg.getProcessDesc());
-					if (list == null) {
-						continue;
-					}
-					for (ProcessListenerMessageProcessor processor : list) {
-						executorService.submit(() -> {
-							try {
-								processor.process(msg.getProcessOutput());
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-						});
-					}
+				for (ProcessListenerMessageProcessor processor : list) {
+					executorService.submit(() -> {
+						try {
+							processor.process(msg.getProcessOutput());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					});
 				}
 			}
-		});
-		receiveThread.start();
+		}
+	}	).start();
 	}
 
 }
