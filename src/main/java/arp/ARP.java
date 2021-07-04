@@ -23,8 +23,10 @@ public class ARP {
 
 	public static void start(MessageSender messageSender, String... pkgs)
 			throws Exception {
-		ClassEnhancer.parseAndEnhance(pkgs);
+		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
+		List<String> processesToPublish = getProcessesToSend(parseResult);
 		ProcessPublisher.messageSender = messageSender;
+		ProcessPublisher.defineProcessesToPublish(processesToPublish);
 	}
 
 	public static void start(ProcessListenerMessageReceiver messageReceiver,
@@ -58,9 +60,30 @@ public class ARP {
 			throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
 		List<String> processesToSubscribe = getProcessesToSubscribe(parseResult);
+		List<String> processesToPublish = getProcessesToSend(parseResult);
 		ProcessPublisher.messageSender = messageSender;
+		ProcessPublisher.defineProcessesToPublish(processesToPublish);
 		messageConsumer = new ProcessListenerMessageConsumer();
 		messageConsumer.start(processesToSubscribe, messageReceiver);
+	}
+
+	private static List<String> getProcessesToSend(ClassParseResult parseResult) {
+		if (parseResult == null) {
+			return null;
+		}
+		List<ProcessInfo> processInfoList = parseResult.getProcessInfoList();
+		List<String> processesToSend = new ArrayList<>();
+		for (ProcessInfo processInfo : processInfoList) {
+			String processDesc;
+			if (!processInfo.getProcessName().trim().isEmpty()) {
+				processDesc = processInfo.getProcessName();
+			} else {
+				processDesc = processInfo.getClsName() + "."
+						+ processInfo.getMthName();
+			}
+			processesToSend.add(processDesc);
+		}
+		return processesToSend;
 	}
 
 	public static void registerMessageProcessor(String processDesc,

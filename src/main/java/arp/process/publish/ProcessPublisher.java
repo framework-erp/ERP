@@ -25,4 +25,8 @@ public class ProcessPublisher {
 		}
 	}
 
+	public static void defineProcessesToPublish(List<String> processesToPublish) {
+		messageSender.defineProcessesToSend(processesToPublish);
+	}
+
 }
