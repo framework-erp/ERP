@@ -88,6 +88,7 @@ public class ProcessContext {
 					idsToRemove.add(id);
 				}
 			}
+			// TODO remove的和create的entities也要记录
 			if (!idsToRemove.isEmpty()) {
 				repository.deleteEntities(idsToRemove);
 			}
