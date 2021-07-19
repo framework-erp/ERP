@@ -25,6 +25,8 @@ public class ProcessContext {
 
 	private Object result;
 
+	private List<Object> createdAggrs = new ArrayList<>();
+	private List<Object> deletedAggrs = new ArrayList<>();
 	private List<Object[]> updatedAggrs = new ArrayList<>();
 
 	private boolean dontPublishWhenResultIsNull;
@@ -77,6 +79,7 @@ public class ProcessContext {
 				ProcessEntity processEntity = (ProcessEntity) entry.getValue();
 				if (processEntity.getState() instanceof CreatedProcessEntityState) {
 					entitiesToCreate.put(id, processEntity.getEntity());
+					createdAggrs.add(processEntity.getEntity());
 				} else if (processEntity.getState() instanceof TakenProcessEntityState) {
 					if (processEntity.changed()) {
 						entitiesToUpdate.put(id, processEntity.getEntity());
@@ -86,9 +89,9 @@ public class ProcessContext {
 					}
 				} else if (processEntity.getState() instanceof RemovedProcessEntityState) {
 					idsToRemove.add(id);
+					deletedAggrs.add(processEntity.getEntity());
 				}
 			}
-			// TODO remove的和create的entities也要记录
 			if (!idsToRemove.isEmpty()) {
 				repository.deleteEntities(idsToRemove);
 			}
@@ -208,6 +211,8 @@ public class ProcessContext {
 	public void clear() {
 		processEntities.clear();
 		arguments.clear();
+		createdAggrs.clear();
+		deletedAggrs.clear();
 		updatedAggrs.clear();
 		result = null;
 		dontPublishWhenResultIsNull = false;
@@ -294,6 +299,14 @@ public class ProcessContext {
 
 	public List<Object[]> getUpdatedAggrs() {
 		return updatedAggrs;
+	}
+
+	public List<Object> getCreatedAggrs() {
+		return createdAggrs;
+	}
+
+	public List<Object> getDeletedAggrs() {
+		return deletedAggrs;
 	}
 
 }

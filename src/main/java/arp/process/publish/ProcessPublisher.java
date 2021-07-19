@@ -7,9 +7,10 @@ public class ProcessPublisher {
 	public static MessageSender messageSender;
 
 	public static void publish(List<Object> processArguments,
-			Object processResult, List<Object[]> processUpdatedAggrs,
-			String processDesc, boolean dontPublishWhenResultIsNull,
-			long processFinishTime) {
+			Object processResult, List<Object> processCreatedAggrs,
+			List<Object> processDeletedAggrs,
+			List<Object[]> processUpdatedAggrs, String processDesc,
+			boolean dontPublishWhenResultIsNull, long processFinishTime) {
 		if (dontPublishWhenResultIsNull && processResult == null) {
 			return;
 		}
@@ -17,6 +18,8 @@ public class ProcessPublisher {
 		msg.setProcessDesc(processDesc);
 		msg.setProcessInput(processArguments);
 		msg.setProcessOutput(processResult);
+		msg.setProcessCreatedAggrs(processCreatedAggrs);
+		msg.setProcessDeletedAggrs(processDeletedAggrs);
 		msg.setProcessUpdatedAggrs(processUpdatedAggrs);
 		msg.setProcessFinishTime(processFinishTime);
 		try {

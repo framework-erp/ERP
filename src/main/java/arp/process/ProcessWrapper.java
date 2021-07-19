@@ -17,6 +17,8 @@ public class ProcessWrapper {
 		if (processContext.isPublish()) {
 			ProcessPublisher.publish(processContext.getArguments(),
 					processContext.getResult(),
+					processContext.getCreatedAggrs(),
+					processContext.getDeletedAggrs(),
 					processContext.getUpdatedAggrs(),
 					processContext.getProcessDesc(),
 					processContext.isDontPublishWhenResultIsNull(),

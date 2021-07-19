@@ -7,6 +7,8 @@ public class Message {
 	private String processDesc;
 	private List<Object> processInput;
 	private Object processOutput;
+	private List<Object> processCreatedAggrs;
+	private List<Object> processDeletedAggrs;
 	private List<Object[]> processUpdatedAggrs;
 	private long processFinishTime;
 
@@ -32,6 +34,22 @@ public class Message {
 
 	public void setProcessOutput(Object processOutput) {
 		this.processOutput = processOutput;
+	}
+
+	public List<Object> getProcessCreatedAggrs() {
+		return processCreatedAggrs;
+	}
+
+	public void setProcessCreatedAggrs(List<Object> processCreatedAggrs) {
+		this.processCreatedAggrs = processCreatedAggrs;
+	}
+
+	public List<Object> getProcessDeletedAggrs() {
+		return processDeletedAggrs;
+	}
+
+	public void setProcessDeletedAggrs(List<Object> processDeletedAggrs) {
+		this.processDeletedAggrs = processDeletedAggrs;
 	}
 
 	public List<Object[]> getProcessUpdatedAggrs() {

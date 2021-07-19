@@ -5,6 +5,8 @@ public class MonitorMessage {
 	private String processDesc;
 	private String processInputs;
 	private String processOutput;
+	private String processCreatedAggrs;
+	private String processDeletedAggrs;
 	private String processUpdatedAggrs;
 	private long processFinishTime;
 
@@ -30,6 +32,22 @@ public class MonitorMessage {
 
 	public void setProcessOutput(String processOutput) {
 		this.processOutput = processOutput;
+	}
+
+	public String getProcessCreatedAggrs() {
+		return processCreatedAggrs;
+	}
+
+	public void setProcessCreatedAggrs(String processCreatedAggrs) {
+		this.processCreatedAggrs = processCreatedAggrs;
+	}
+
+	public String getProcessDeletedAggrs() {
+		return processDeletedAggrs;
+	}
+
+	public void setProcessDeletedAggrs(String processDeletedAggrs) {
+		this.processDeletedAggrs = processDeletedAggrs;
 	}
 
 	public String getProcessUpdatedAggrs() {
