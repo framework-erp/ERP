@@ -269,6 +269,10 @@ public class ProcessContext {
 		}
 	}
 
+	public void addCreatedAggr(Object createdAggr) {
+		createdAggrs.add(createdAggr);
+	}
+
 	public Object getResult() {
 		return result;
 	}

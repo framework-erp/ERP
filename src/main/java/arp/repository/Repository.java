@@ -141,6 +141,7 @@ public abstract class Repository<E, I> {
 			processContext.takeEntityFromRepoAndPutInProcess(this.id, id,
 					entityFromStore);
 		} else {
+			processContext.addCreatedAggr(entity);
 			processContext.takeEntityFromRepoAndPutInProcess(this.id, id,
 					entity);
 		}
