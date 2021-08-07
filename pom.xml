@@ -36,6 +36,28 @@
 			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
+
+	<name>ARP</name>
+	<description>a java development framework with aggregation, repository and process</description>
+	<url>https://gitee.com/zhengchengdong/ARP</url>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>zhengchengdong</name>
+			<email>13758242402@163.com</email>
+		</developer>
+	</developers>
+	<scm>
+		<connection>https://gitee.com/zhengchengdong/ARP.git</connection>
+		<developerConnection>https://gitee.com/zhengchengdong/ARP.git</developerConnection>
+		<url>https://gitee.com/zhengchengdong/ARP.git</url>
+	</scm>
+
 	<profiles>
 		<profile>
 			<id>release</id>
@@ -95,9 +117,6 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<configuration>
-							<skip>true</skip>
-						</configuration>
 						<version>1.5</version>
 						<executions>
 							<execution>
