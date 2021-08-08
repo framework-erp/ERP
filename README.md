@@ -22,7 +22,11 @@
 需要说明的是，这里的订单仓库 “orderRepository” 也不需要花费多少心思去开发，ARP有一个内置的内存仓库 “arp.repository.CommonMemRepository”，另外也提供了一个仓库的mongodb实现，在这个工程：[https://gitee.com/zhengchengdong/arp-repository-spring-data-mongodb](https://gitee.com/zhengchengdong/arp-repository-spring-data-mongodb)
 
 
-### HelloWorld
+
+
+
+
+### HelloWorld：
 
 1. maven 依赖
 
