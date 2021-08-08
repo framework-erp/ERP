@@ -6,9 +6,9 @@
 
 	@Process
 	public Order completeOrder(String orderId) {
-		Order order = orderRepository.findByIdForUpdate(orderId);
-		order.setState("compleated");
-		return order;
+		Order order = orderRepository.findByIdForUpdate(orderId);//从仓库取出order
+		order.setState("compleated");//改变他的状态
+		return order;//返回改变后的order
 	}
 
 
