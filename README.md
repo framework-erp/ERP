@@ -4,4 +4,11 @@
 
 ### 一个简单的例子：
 
+	@Process
+	public Order completeOrder(String orderId) {
+		Order order = orderRepository.findByIdForUpdate(orderId);
+		order.setState("compleated");
+		return order;
+	}
+
 
