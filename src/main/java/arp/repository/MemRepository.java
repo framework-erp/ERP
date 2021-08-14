@@ -1,6 +1,8 @@
 package arp.repository;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -112,6 +114,10 @@ public abstract class MemRepository<E, I> extends Repository<E, I> {
 
 	public Set<I> idSet() {
 		return new HashSet<>(data.keySet());
+	}
+
+	public List<E> findAll() {
+		return new ArrayList<>(data.values());
 	}
 
 }

@@ -12,16 +12,25 @@ import arp.process.ThreadBoundProcessContextArray;
  * @author neo
  *
  */
-public abstract class SingleEntityRepository<T> {
+public class SingleEntityRepository<T> {
+
+	public SingleEntityRepository() {
+	}
+
+	public SingleEntityRepository(T entity) {
+		this.entity = entity;
+	}
 
 	private AtomicInteger lock = new AtomicInteger();
 
 	private T entity;
 
 	public T getForUpdate() {
-		ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
 		if (!processContext.isStarted()) {
-			throw new RuntimeException("can not use repository without a process");
+			throw new RuntimeException(
+					"can not use repository without a process");
 		}
 		acquireLock(processContext);
 		return entity;
