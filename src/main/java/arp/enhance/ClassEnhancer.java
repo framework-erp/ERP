@@ -2,7 +2,8 @@ package arp.enhance;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -272,9 +273,17 @@ public class ClassEnhancer {
 			Map<String, byte[]> enhancedClassBytes,
 			List<ProcessInfo> processInfoList) throws Exception {
 		String pkgDir = pkg.replace('.', '/');
-		URL url = Thread.currentThread().getContextClassLoader()
-				.getResource(pkgDir);
-		Path path = Paths.get(new URI(url.toURI().toString()));
+		URI uri = Thread.currentThread().getContextClassLoader()
+				.getResource(pkgDir).toURI();
+
+		try {
+			Map<String, String> env = new HashMap<>();
+			env.put("create", "true");
+			FileSystem zipfs = FileSystems.newFileSystem(uri, env);
+		} catch (Exception e) {
+		}
+
+		Path path = Paths.get(uri);
 		Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 
 			@Override
