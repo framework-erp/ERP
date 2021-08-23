@@ -276,15 +276,26 @@ public class ClassEnhancer {
 		URI uri = Thread.currentThread().getContextClassLoader()
 				.getResource(pkgDir).toURI();
 
-		try {
-			Map<String, String> env = new HashMap<>();
-			env.put("create", "true");
-			FileSystem zipfs = FileSystems.newFileSystem(uri, env);
-		} catch (Exception e) {
+		Path rootPath = null;
+		String uriStr = uri.toString();
+		if (uriStr.contains("jar:file:")) {// jar
+			int idx = uriStr.indexOf(".jar");
+			String zipFilePath = uriStr.substring(0, idx) + ".jar";
+			String pathInFile = uriStr.substring(idx + ".jar".length())
+					.replaceAll("!", "");
+			try {
+				URI zipFile = URI.create(zipFilePath);
+				Map<String, String> env = new HashMap<>();
+				env.put("create", "true");
+				FileSystem zipfs = FileSystems.newFileSystem(zipFile, env);
+				rootPath = zipfs.getPath(pathInFile);
+			} catch (Exception e) {
+			}
+		} else {
+			rootPath = Paths.get(uri);
 		}
 
-		Path path = Paths.get(uri);
-		Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+		Files.walkFileTree(rootPath, new SimpleFileVisitor<Path>() {
 
 			@Override
 			public FileVisitResult visitFile(Path file,
