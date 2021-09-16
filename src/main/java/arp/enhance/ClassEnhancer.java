@@ -12,9 +12,11 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -165,38 +167,35 @@ public class ClassEnhancer {
 	private static void enhanceClassesForListners(
 			Map<String, byte[]> enhancedClassBytes,
 			List<ProcessInfo> processInfoList) {
-		int startIdx = 0;
-		int listnersCount = 0;
-		String listenerProcessObjType = null;
+		Map<String, Set<Integer>> listenerProcessObjTypeProcessInfoIdxs = new HashMap<>();
 		for (int i = 0; i < processInfoList.size(); i++) {
 			ProcessInfo processInfo = processInfoList.get(i);
 			ListenerInfo listenerInfo = processInfo.getListenerInfo();
 			if (listenerInfo == null) {
 				continue;
 			}
-			if (listenerInfo.getListenerProcessObjType().equals(
-					listenerProcessObjType)) {
-				listnersCount++;
-			} else {
-				enhanceProcessClassWithListners(enhancedClassBytes,
-						listenerProcessObjType, startIdx, listnersCount,
-						processInfoList);
-				startIdx = i;
-				listnersCount = 1;
-				listenerProcessObjType = listenerInfo
-						.getListenerProcessObjType();
+			Set<Integer> idxs = listenerProcessObjTypeProcessInfoIdxs
+					.get(listenerInfo.getListenerProcessObjType());
+			if (idxs == null) {
+				idxs = new HashSet<>();
+				listenerProcessObjTypeProcessInfoIdxs.put(
+						listenerInfo.getListenerProcessObjType(), idxs);
 			}
+			idxs.add(i);
 		}
-		enhanceProcessClassWithListners(enhancedClassBytes,
-				listenerProcessObjType, startIdx, listnersCount,
-				processInfoList);
+		for (Entry<String, Set<Integer>> entry : listenerProcessObjTypeProcessInfoIdxs
+				.entrySet()) {
+			enhanceProcessClassWithListners(enhancedClassBytes, entry.getKey(),
+					entry.getValue(), processInfoList);
+
+		}
 	}
 
 	private static void enhanceProcessClassWithListners(
 			Map<String, byte[]> enhancedClassBytes,
-			String listenerProcessObjType, int startIdx, int listnersCount,
+			String listenerProcessObjType, Set<Integer> idxs,
 			List<ProcessInfo> processInfoList) {
-		if (listnersCount == 0) {
+		if (idxs == null || idxs.isEmpty()) {
 			return;
 		}
 		byte[] bytes = enhancedClassBytes.get(listenerProcessObjType);
@@ -214,9 +213,9 @@ public class ClassEnhancer {
 
 					protected void onMethodExit(int opcode) {
 						if (name.equals("<init>")) {
-							for (int i = 0; i < listnersCount; i++) {
+							for (int i : idxs) {
 								ProcessInfo processInfo = processInfoList
-										.get(startIdx + i);
+										.get(i);
 								ListenerInfo listenerInfo = processInfo
 										.getListenerInfo();
 								if (listenerInfo == null) {
@@ -364,6 +363,8 @@ public class ClassEnhancer {
 					private boolean dontPublishWhenResultIsNull;
 					private String processName = "";
 
+					private ProcessInfo processInfo = null;
+
 					private Label lTryBlockStart;
 					private Label lTryBlockEnd;
 
@@ -373,6 +374,9 @@ public class ClassEnhancer {
 								desc);
 						if (isProcess) {
 							clsInfoMap.put("hasProcess", true);
+							processInfo = new ProcessInfo((String) clsInfoMap
+									.get("name"), mthName, processName, null,
+									publish);
 							return new AnnotationVisitor(Opcodes.ASM5, super
 									.visitAnnotation(desc, visible)) {
 								@Override
@@ -381,12 +385,14 @@ public class ClassEnhancer {
 									if ("publish".equals(name)
 											&& Boolean.TRUE.equals(value)) {
 										publish = true;
+										processInfo.setPublish(publish);
 									} else if ("dontPublishWhenResultIsNull"
 											.equals(name)
 											&& Boolean.TRUE.equals(value)) {
 										dontPublishWhenResultIsNull = true;
 									} else if ("name".equals(name)) {
 										processName = (String) value;
+										processInfo.setProcessName(processName);
 									} else if ("listening".equals(name)) {
 										Type processOutputType = null;
 										if (argumentTypes != null
@@ -398,11 +404,9 @@ public class ClassEnhancer {
 												processOutputType,
 												(String) clsInfoMap.get("name"),
 												mthName, mthDesc);
+										processInfo
+												.setListenerInfo(listenerInfo);
 									}
-									processInfoList.add(new ProcessInfo(
-											(String) clsInfoMap.get("name"),
-											mthName, processName, listenerInfo,
-											publish));
 									super.visit(name, value);
 								}
 							};
@@ -412,7 +416,7 @@ public class ClassEnhancer {
 
 					protected void onMethodEnter() {
 						if (isProcess) {
-
+							processInfoList.add(processInfo);
 							if (publish) {
 								visitInsn(Opcodes.ICONST_1);
 							} else {
