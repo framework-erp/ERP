@@ -1,11 +1,13 @@
 package arp.enhance;
 
 public class ProcessInfo {
+	private int id;
 	private String clsName;
 	private String mthName;
 	private String processName;
 	private ListenerInfo listenerInfo;
 	private boolean publish;
+	private boolean dontPublishWhenResultIsNull;
 
 	public ProcessInfo() {
 	}
@@ -17,6 +19,14 @@ public class ProcessInfo {
 		this.processName = processName;
 		this.listenerInfo = listenerInfo;
 		this.publish = publish;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 
 	public String getClsName() {
@@ -57,6 +67,15 @@ public class ProcessInfo {
 
 	public void setPublish(boolean publish) {
 		this.publish = publish;
+	}
+
+	public boolean isDontPublishWhenResultIsNull() {
+		return dontPublishWhenResultIsNull;
+	}
+
+	public void setDontPublishWhenResultIsNull(
+			boolean dontPublishWhenResultIsNull) {
+		this.dontPublishWhenResultIsNull = dontPublishWhenResultIsNull;
 	}
 
 }
