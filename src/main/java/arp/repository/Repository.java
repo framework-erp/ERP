@@ -1,9 +1,11 @@
 package arp.repository;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import arp.process.CreatedProcessEntityState;
 import arp.process.ProcessContext;
@@ -12,6 +14,7 @@ import arp.process.ProcessEntityState;
 import arp.process.TakenProcessEntityState;
 import arp.process.ThreadBoundProcessContextArray;
 import arp.process.TransientProcessEntityState;
+import arp.util.Unsafe;
 
 public abstract class Repository<E, I> {
 
@@ -20,6 +23,8 @@ public abstract class Repository<E, I> {
 	private static Repository[] repositories = new Repository[1024];
 
 	private int id;
+
+	private Function<Object[], Object> setIdFunction = null;
 
 	private Map<I, E> mockStore;
 
@@ -225,4 +230,129 @@ public abstract class Repository<E, I> {
 	}
 
 	protected abstract void unlockAllToStore(Set<I> ids);
+
+	public E findByIdForUpdateOrCreateAndLock(I id, E newEntity) {
+		E entity = findByIdForUpdate(id);
+		if (entity == null) {
+			if (setIdFunction == null) {
+				try {
+					createSetIdFunction(newEntity);
+				} catch (Exception e) {
+				}
+			}
+			setIdFunction.apply(new Object[] { newEntity, id });
+			E existsEntity = saveIfAbsent(newEntity);
+			if (existsEntity != null) {
+				return existsEntity;
+			}
+			return newEntity;
+		}
+		return entity;
+	}
+
+	private void createSetIdFunction(E newEntity) throws Exception {
+		Field idField = newEntity.getClass().getDeclaredField("id");
+		long idFieldOffset = Unsafe.getFieldOffset(idField);
+		Class<?> idFieldType = idField.getType();
+		if (idFieldType.equals(byte.class)) {
+			setIdFunction = new Function<Object[], Object>() {
+
+				@Override
+				public Object apply(Object[] t) {
+					Unsafe.setByteFieldOfObject(t[0], idFieldOffset,
+							((Byte) t[1]).byteValue());
+					return null;
+				}
+
+			};
+		} else if (idFieldType.equals(short.class)) {
+			setIdFunction = new Function<Object[], Object>() {
+
+				@Override
+				public Object apply(Object[] t) {
+					Unsafe.setShortFieldOfObject(t[0], idFieldOffset,
+							((Short) t[1]).shortValue());
+					return null;
+				}
+
+			};
+		} else if (idFieldType.equals(char.class)) {
+			setIdFunction = new Function<Object[], Object>() {
+
+				@Override
+				public Object apply(Object[] t) {
+					Unsafe.setCharFieldOfObject(t[0], idFieldOffset,
+							((Character) t[1]).charValue());
+					return null;
+				}
+
+			};
+		} else if (idFieldType.equals(int.class)) {
+			setIdFunction = new Function<Object[], Object>() {
+
+				@Override
+				public Object apply(Object[] t) {
+					Unsafe.setIntFieldOfObject(t[0], idFieldOffset,
+							((Integer) t[1]).intValue());
+					return null;
+				}
+
+			};
+		} else if (idFieldType.equals(float.class)) {
+			setIdFunction = new Function<Object[], Object>() {
+
+				@Override
+				public Object apply(Object[] t) {
+					Unsafe.setFloatFieldOfObject(t[0], idFieldOffset,
+							((Float) t[1]).floatValue());
+					return null;
+				}
+
+			};
+		} else if (idFieldType.equals(long.class)) {
+			setIdFunction = new Function<Object[], Object>() {
+
+				@Override
+				public Object apply(Object[] t) {
+					Unsafe.setLongFieldOfObject(t[0], idFieldOffset,
+							((Long) t[1]).longValue());
+					return null;
+				}
+
+			};
+		} else if (idFieldType.equals(double.class)) {
+			setIdFunction = new Function<Object[], Object>() {
+
+				@Override
+				public Object apply(Object[] t) {
+					Unsafe.setDoubleFieldOfObject(t[0], idFieldOffset,
+							((Double) t[1]).doubleValue());
+					return null;
+				}
+
+			};
+		} else if (idFieldType.equals(boolean.class)) {
+			setIdFunction = new Function<Object[], Object>() {
+
+				@Override
+				public Object apply(Object[] t) {
+					Unsafe.setBooleanFieldOfObject(t[0], idFieldOffset,
+							((Boolean) t[1]).booleanValue());
+					return null;
+				}
+
+			};
+		} else {
+			setIdFunction = new Function<Object[], Object>() {
+
+				@Override
+				public Object apply(Object[] t) {
+					Unsafe.setObjectFieldOfObject(t[0], idFieldOffset, t[1]);
+					return null;
+				}
+
+			};
+		}
+
+	}
 }
