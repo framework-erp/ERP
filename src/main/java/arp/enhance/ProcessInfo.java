@@ -4,6 +4,7 @@ public class ProcessInfo {
 	private int id;
 	private String clsName;
 	private String mthName;
+	private String mthDesc;
 	private String processName;
 	private ListenerInfo listenerInfo;
 	private boolean publish;
@@ -12,10 +13,11 @@ public class ProcessInfo {
 	public ProcessInfo() {
 	}
 
-	public ProcessInfo(String clsName, String mthName, String processName,
-			ListenerInfo listenerInfo, boolean publish) {
+	public ProcessInfo(String clsName, String mthName, String mthDesc,
+			String processName, ListenerInfo listenerInfo, boolean publish) {
 		this.clsName = clsName;
 		this.mthName = mthName;
+		this.mthDesc = mthDesc;
 		this.processName = processName;
 		this.listenerInfo = listenerInfo;
 		this.publish = publish;
@@ -43,6 +45,14 @@ public class ProcessInfo {
 
 	public void setMthName(String mthName) {
 		this.mthName = mthName;
+	}
+
+	public String getMthDesc() {
+		return mthDesc;
+	}
+
+	public void setMthDesc(String mthDesc) {
+		this.mthDesc = mthDesc;
 	}
 
 	public String getProcessName() {
