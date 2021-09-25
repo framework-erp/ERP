@@ -5,14 +5,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import arp.enhance.ClassEnhancer;
+import arp.ARP;
 
 public class PerformanceTest {
 
 	public static void main(String[] args) {
 
 		try {
-			ClassEnhancer.parseAndEnhance("test.arp.core");
+			ARP.start("test.arp.core");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
