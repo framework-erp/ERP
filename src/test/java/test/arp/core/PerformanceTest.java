@@ -46,22 +46,26 @@ public class PerformanceTest {
 			transferAccountIdsArray[i] = new int[] { a1, a2 };
 			transferAmountArray[i] = am;
 		}
-		doTransfer(service, threadCount, transferCount, transferAccountIdsArray, transferAmountArray);
+		doTransfer(service, threadCount, transferCount,
+				transferAccountIdsArray, transferAmountArray);
 	}
 
-	private static void doTransfer(TestService service, int threadCount, int transferCount,
-			int[][] transferAccountIdsArray, int[] transferAmountArray) {
-//		System.out.println("total:" + bank.getTotalBalance());
+	private static void doTransfer(TestService service, int threadCount,
+			int transferCount, int[][] transferAccountIdsArray,
+			int[] transferAmountArray) {
+		// System.out.println("total:" + bank.getTotalBalance());
 		long startTime = System.currentTimeMillis() + 1000;
 		int transferCountForThread = transferCount / threadCount;
 		Thread[] threadArray = new Thread[threadCount];
 		long[][] threadTimeArray = new long[1024][];
 		for (int i = 0; i < threadCount; i++) {
 			int[][] accountIdsArray = new int[transferCountForThread][2];
-			System.arraycopy(transferAccountIdsArray, i * transferCountForThread, accountIdsArray, 0,
+			System.arraycopy(transferAccountIdsArray, i
+					* transferCountForThread, accountIdsArray, 0,
 					transferCountForThread);
 			int[] amountArray = new int[transferCountForThread];
-			System.arraycopy(transferAmountArray, i * transferCountForThread, amountArray, 0, transferCountForThread);
+			System.arraycopy(transferAmountArray, i * transferCountForThread,
+					amountArray, 0, transferCountForThread);
 			threadArray[i] = new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -69,7 +73,8 @@ public class PerformanceTest {
 					int timeArrayIdx = 0;
 
 					// 热身
-					service.f4(accountIdsArray[0][0], accountIdsArray[0][1], amountArray[0]);
+					service.f4(accountIdsArray[0][0], accountIdsArray[0][1],
+							amountArray[0]);
 
 					while (System.currentTimeMillis() < startTime) {
 					}
@@ -106,16 +111,18 @@ public class PerformanceTest {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-//		System.out.println("total:" + bank.getTotalBalance());
+		// System.out.println("total:" + bank.getTotalBalance());
 
 		List<ThreadBoundaryTime> threadBoundaryTimeList = new ArrayList<>();
 		for (int i = 0; i < threadTimeArray.length; i++) {
 			long[] timeArray = threadTimeArray[i];
 			if (timeArray != null) {
-				threadBoundaryTimeList.add(new ThreadBoundaryTime(timeArray[0], 0));
-				threadBoundaryTimeList.add(new ThreadBoundaryTime(timeArray[timeArray.length - 2], 1));
-				System.out.println(
-						"t" + i + "第一个过程开始于 " + timeArray[0] + " ,最后一个过程开始于 " + timeArray[timeArray.length - 2]);
+				threadBoundaryTimeList.add(new ThreadBoundaryTime(timeArray[0],
+						0));
+				threadBoundaryTimeList.add(new ThreadBoundaryTime(
+						timeArray[timeArray.length - 2], 1));
+				System.out.println("t" + i + "第一个过程开始于 " + timeArray[0]
+						+ " ,最后一个过程开始于 " + timeArray[timeArray.length - 2]);
 			}
 		}
 		Collections.sort(threadBoundaryTimeList);
@@ -124,19 +131,23 @@ public class PerformanceTest {
 		int concurrency = 0;
 		List<ConcurrencyPeriod> concurrencyPeriodList = new ArrayList<>();
 		while (true) {
-			ThreadBoundaryTime threadBoundaryTime = threadBoundaryTimeList.get(threadBoundaryTimeListIdx);
+			ThreadBoundaryTime threadBoundaryTime = threadBoundaryTimeList
+					.get(threadBoundaryTimeListIdx);
 			if (threadBoundaryTimeListIdx == 0) {
 				lastThreadBoundaryTime = threadBoundaryTime;
 			} else {
 				// 如果是最后一个，那就必须要处理
 				if (threadBoundaryTimeListIdx == (threadBoundaryTimeList.size() - 1)) {
-					concurrencyPeriodList
-							.add(new ConcurrencyPeriod(lastThreadBoundaryTime, threadBoundaryTime, concurrency));
+					concurrencyPeriodList.add(new ConcurrencyPeriod(
+							lastThreadBoundaryTime, threadBoundaryTime,
+							concurrency));
 					break;
 				} else {
-					if (threadBoundaryTime.getTime() != lastThreadBoundaryTime.getTime()) {
-						concurrencyPeriodList
-								.add(new ConcurrencyPeriod(lastThreadBoundaryTime, threadBoundaryTime, concurrency));
+					if (threadBoundaryTime.getTime() != lastThreadBoundaryTime
+							.getTime()) {
+						concurrencyPeriodList.add(new ConcurrencyPeriod(
+								lastThreadBoundaryTime, threadBoundaryTime,
+								concurrency));
 					}
 					lastThreadBoundaryTime = threadBoundaryTime;
 				}
@@ -152,7 +163,8 @@ public class PerformanceTest {
 			long[] timeArray = threadTimeArray[i];
 			if (timeArray != null) {
 				for (int j = 0; j < (timeArray.length / 2); j++) {
-					ProcessPeriod processPeriod = new ProcessPeriod(i, timeArray[j * 2], timeArray[j * 2 + 1]);
+					ProcessPeriod processPeriod = new ProcessPeriod(i,
+							timeArray[j * 2], timeArray[j * 2 + 1]);
 					for (ConcurrencyPeriod concurrencyPeriod : concurrencyPeriodList) {
 						if (concurrencyPeriod.accept(processPeriod)) {
 							break;
@@ -164,8 +176,10 @@ public class PerformanceTest {
 
 		System.out.println();
 		concurrencyPeriodList.forEach((concurrencyPeriod) -> {
-			System.out.println(concurrencyPeriod.getConcurrency() + "并发时段, 持续:" + concurrencyPeriod.getPeriod()
-					+ ", 完成过程:" + concurrencyPeriod.countProcesses() + ", 吞吐量:" + concurrencyPeriod.getThroughput());
+			System.out.println(concurrencyPeriod.getConcurrency() + "并发时段, 持续:"
+					+ concurrencyPeriod.getPeriod() + ", 完成过程:"
+					+ concurrencyPeriod.countProcesses() + ", 吞吐量:"
+					+ concurrencyPeriod.getThroughput());
 		});
 		System.out.println("done");
 

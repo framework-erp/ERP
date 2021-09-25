@@ -7,28 +7,31 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 
+import arp.enhance.ProcessInfo;
+import arp.process.ProcessContext;
+import arp.process.ThreadBoundProcessContextArray;
 import arp.repository.copy.EntityCopier;
 
 public abstract class MemRepository<E, I> extends Repository<E, I> {
 
 	private Map<I, E> data = new ConcurrentHashMap<>();
 
-	private Map<I, AtomicInteger> locks = new ConcurrentHashMap<>();
+	private Map<I, AtomicLong> locks = new ConcurrentHashMap<>();
 
 	private void unlock(I id) {
-		AtomicInteger lock = locks.get(id);
+		AtomicLong lock = locks.get(id);
 		if (lock != null) {
 			lock.set(0);
 		}
 	}
 
 	private void acquireLock(I id) {
-		AtomicInteger lock = locks.get(id);
+		AtomicLong lock = locks.get(id);
 		if (lock == null) {
-			AtomicInteger newLock = new AtomicInteger();
+			AtomicLong newLock = new AtomicLong();
 			lock = locks.putIfAbsent(id, newLock);
 			if (lock == null) {
 				lock = newLock;
@@ -36,13 +39,17 @@ public abstract class MemRepository<E, I> extends Repository<E, I> {
 		}
 
 		int tid = (int) Thread.currentThread().getId();
-		if (lock.get() == tid) {
+		if ((lock.get() >>> 32) == ((long) tid)) {
 			return;
 		}
 
 		int counter = 300;
 		do {
-			if (lock.compareAndSet(0, tid)) {
+			ProcessContext processContext = ThreadBoundProcessContextArray
+					.getProcessContext();
+			long lockCode = processContext.getProcessInfoId();
+			lockCode = lockCode | (((long) tid) << 32);
+			if (lock.compareAndSet(0, lockCode)) {
 				return;
 			}
 
@@ -55,7 +62,17 @@ public abstract class MemRepository<E, I> extends Repository<E, I> {
 				--counter;
 				LockSupport.parkNanos(1L);
 			} else {
-				throw new CanNotAcquireLockException();
+				int piid = (int) ((lock.get() << 32) >>> 32);
+				ProcessInfo processInfoGotLock = ProcessContext
+						.getProcessInfo(piid);
+				String processDesc;
+				if (!processInfoGotLock.getProcessName().trim().isEmpty()) {
+					processDesc = processInfoGotLock.getProcessName();
+				} else {
+					processDesc = processInfoGotLock.getClsName() + "."
+							+ processInfoGotLock.getMthName();
+				}
+				throw new CanNotAcquireLockException(processDesc);
 			}
 		} while (true);
 	}
