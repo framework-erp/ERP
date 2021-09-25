@@ -9,11 +9,25 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import arp.enhance.ProcessInfo;
 import arp.repository.Repository;
 import arp.repository.RepositoryProcessEntities;
 import arp.util.Unsafe;
 
 public class ProcessContext {
+
+	private static ProcessInfo[] processInfos;
+
+	public static void setProcessInfos(List<ProcessInfo> processInfoList) {
+		processInfos = new ProcessInfo[processInfoList.size()];
+		for (ProcessInfo processInfo : processInfoList) {
+			processInfos[processInfo.getId()] = processInfo;
+		}
+	}
+
+	public static ProcessInfo getProcessInfo(int processInfoId) {
+		return processInfos[processInfoId];
+	}
 
 	private boolean started;
 
@@ -35,11 +49,14 @@ public class ProcessContext {
 
 	private boolean publish;
 
-	public void startProcess() {
+	private int processInfoId;
+
+	public void startProcess(int processInfoId) {
 		if (started) {
 			throw new RuntimeException(
 					"can not start a process in another started process");
 		}
+		this.processInfoId = processInfoId;
 		started = true;
 		Unsafe.loadFence();
 	}
@@ -311,6 +328,14 @@ public class ProcessContext {
 
 	public List<Object> getDeletedAggrs() {
 		return deletedAggrs;
+	}
+
+	public int getProcessInfoId() {
+		return processInfoId;
+	}
+
+	public ProcessInfo getProcessInfo() {
+		return processInfos[processInfoId];
 	}
 
 }

@@ -4,10 +4,10 @@ import arp.process.publish.ProcessPublisher;
 
 public class ProcessWrapper {
 
-	public static void beforeProcessStart() {
+	public static void beforeProcessStart(int processInfoId) {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
-		processContext.startProcess();
+		processContext.startProcess(processInfoId);
 	}
 
 	public static void afterProcessFinish() {

@@ -11,6 +11,8 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,14 +50,16 @@ public class ClassEnhancer {
 				parseClassesForPackage(pkgs[i], processInfos);
 			}
 
-			for (int i = 0; i < pkgs.length; i++) {
-				enhanceClassesForPackage(pkgs[i], enhancedClassBytes,
-						processInfos);
-			}
-
 			List<ProcessInfo> processInfoList = new ArrayList<>();
 			for (Map<String, ProcessInfo> map : processInfos.values()) {
 				processInfoList.addAll(map.values());
+			}
+
+			generateProcessInfoId(processInfoList);
+
+			for (int i = 0; i < pkgs.length; i++) {
+				enhanceClassesForPackage(pkgs[i], enhancedClassBytes,
+						processInfos);
 			}
 
 			result.setProcessInfoList(processInfoList);
@@ -69,6 +73,21 @@ public class ClassEnhancer {
 			return result;
 		}
 		return null;
+	}
+
+	private static void generateProcessInfoId(List<ProcessInfo> processInfoList) {
+		Collections.sort(processInfoList, new Comparator<ProcessInfo>() {
+
+			@Override
+			public int compare(ProcessInfo o1, ProcessInfo o2) {
+				return (o1.getMthName() + "@" + o1.getMthDesc()).compareTo((o2
+						.getMthName() + "@" + o2.getMthDesc()));
+			}
+
+		});
+		for (int i = 0; i < processInfoList.size(); i++) {
+			processInfoList.get(i).setId(i);
+		}
 	}
 
 	private static void createMessageProcessorClasses(
@@ -458,10 +477,13 @@ public class ClassEnhancer {
 									}
 
 								}
-
+								push(processInfo.getId());
 								visitMethodInsn(Opcodes.INVOKESTATIC, Type
 										.getInternalName(ProcessWrapper.class),
-										"beforeProcessStart", "()V", false);
+										"beforeProcessStart",
+										Type.getMethodDescriptor(
+												Type.getType(void.class),
+												Type.getType(int.class)), false);
 
 								lTryBlockStart = new Label();
 								lTryBlockEnd = new Label();

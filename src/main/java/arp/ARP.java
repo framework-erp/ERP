@@ -7,6 +7,7 @@ import arp.enhance.ClassEnhancer;
 import arp.enhance.ClassParseResult;
 import arp.enhance.ListenerInfo;
 import arp.enhance.ProcessInfo;
+import arp.process.ProcessContext;
 import arp.process.publish.MessageSender;
 import arp.process.publish.MonitorMessageConvertor;
 import arp.process.publish.ProcessListenerMessageConsumer;
@@ -19,12 +20,14 @@ public class ARP {
 	private static ProcessListenerMessageConsumer messageConsumer;
 
 	public static void start(String... pkgs) throws Exception {
-		ClassEnhancer.parseAndEnhance(pkgs);
+		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
+		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 	}
 
 	public static void start(MessageSender messageSender, String... pkgs)
 			throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
+		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 		List<String> processesToPublish = getProcessesToSend(parseResult);
 		ProcessPublisher.messageSender = messageSender;
 		ProcessPublisher.defineProcessesToPublish(processesToPublish);
@@ -33,6 +36,7 @@ public class ARP {
 	public static void start(ProcessListenerMessageReceiver messageReceiver,
 			String... pkgs) throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
+		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 		List<String> processesToSubscribe = getProcessesToSubscribe(parseResult);
 		messageConsumer = new ProcessListenerMessageConsumer();
 		messageConsumer.start(processesToSubscribe, messageReceiver);
@@ -60,6 +64,7 @@ public class ARP {
 			ProcessListenerMessageReceiver messageReceiver, String... pkgs)
 			throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
+		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 		List<String> processesToSubscribe = getProcessesToSubscribe(parseResult);
 		List<String> processesToPublish = getProcessesToSend(parseResult);
 		ProcessPublisher.messageSender = messageSender;
