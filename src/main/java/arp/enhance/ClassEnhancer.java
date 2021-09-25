@@ -45,8 +45,7 @@ public class ClassEnhancer {
 			Map<String, byte[]> enhancedClassBytes = new HashMap<>();
 			Map<String, Map<String, ProcessInfo>> processInfos = new HashMap<>();
 			for (int i = 0; i < pkgs.length; i++) {
-				parseClassesForPackage(pkgs[i], enhancedClassBytes,
-						processInfos);
+				parseClassesForPackage(pkgs[i], processInfos);
 			}
 
 			for (int i = 0; i < pkgs.length; i++) {
@@ -279,7 +278,6 @@ public class ClassEnhancer {
 	}
 
 	private static void parseClassesForPackage(String pkg,
-			Map<String, byte[]> enhancedClassBytes,
 			Map<String, Map<String, ProcessInfo>> processInfos)
 			throws Exception {
 		String pkgDir = pkg.replace('.', '/');
@@ -311,7 +309,7 @@ public class ClassEnhancer {
 			public FileVisitResult visitFile(Path file,
 					BasicFileAttributes attrs) throws IOException {
 				byte[] bytes = Files.readAllBytes(file);
-				parseProcess(bytes, enhancedClassBytes, processInfos);
+				parseProcess(bytes, processInfos);
 				return FileVisitResult.CONTINUE;
 			}
 
@@ -321,7 +319,8 @@ public class ClassEnhancer {
 
 	private static void enhanceClassesForPackage(String pkg,
 			Map<String, byte[]> enhancedClassBytes,
-			Map<String, List<ProcessInfo>> processInfos) throws Exception {
+			Map<String, Map<String, ProcessInfo>> processInfos)
+			throws Exception {
 		String pkgDir = pkg.replace('.', '/');
 		URI uri = Thread.currentThread().getContextClassLoader()
 				.getResource(pkgDir).toURI();
@@ -361,7 +360,7 @@ public class ClassEnhancer {
 
 	private static void enhanceProcess(byte[] bytes,
 			Map<String, byte[]> enhancedClassBytes,
-			Map<String, List<ProcessInfo>> processInfos) {
+			Map<String, Map<String, ProcessInfo>> processInfos) {
 		ClassReader cr = new ClassReader(bytes);
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		Map<String, Object> clsInfoMap = new HashMap<>();
@@ -370,6 +369,8 @@ public class ClassEnhancer {
 			public void visit(int version, int access, String name,
 					String signature, String superName, String[] interfaces) {
 				clsInfoMap.put("name", name.replace('/', '.'));
+				clsInfoMap.put("processInfosForCls",
+						processInfos.get(name.replace('/', '.')));
 				super.visit(version, access, name, signature, superName,
 						interfaces);
 			}
@@ -377,186 +378,153 @@ public class ClassEnhancer {
 			@Override
 			public MethodVisitor visitMethod(int access, String mthName,
 					String mthDesc, String signature, String[] exceptions) {
-				// 过滤构造器
-				if ("<init>".equals(mthName)) {
-					return super.visitMethod(access, mthName, mthDesc,
-							signature, exceptions);
-				}
 				Type[] argumentTypes = Type.getArgumentTypes(mthDesc);
 				String returnTypeDesc = mthDesc.substring(mthDesc.indexOf(")") + 1);
 				return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(
 						access, mthName, mthDesc, signature, exceptions),
 						access, mthName, mthDesc) {
 
-					private boolean isProcess;
-					private boolean publish;
-					private boolean dontPublishWhenResultIsNull;
-					private String processName = "";
-
 					private ProcessInfo processInfo = null;
 
 					private Label lTryBlockStart;
 					private Label lTryBlockEnd;
 
-					public AnnotationVisitor visitAnnotation(String desc,
-							boolean visible) {
-						isProcess = Type.getDescriptor(Process.class).equals(
-								desc);
-						if (isProcess) {
-							clsInfoMap.put("hasProcess", true);
-							processInfo = new ProcessInfo((String) clsInfoMap
-									.get("name"), mthName, processName, null,
-									publish);
-							return new AnnotationVisitor(Opcodes.ASM5, super
-									.visitAnnotation(desc, visible)) {
-								@Override
-								public void visit(String name, Object value) {
-									ListenerInfo listenerInfo = null;
-									if ("publish".equals(name)
-											&& Boolean.TRUE.equals(value)) {
-										publish = true;
-										processInfo.setPublish(publish);
-									} else if ("dontPublishWhenResultIsNull"
-											.equals(name)
-											&& Boolean.TRUE.equals(value)) {
-										dontPublishWhenResultIsNull = true;
-									} else if ("name".equals(name)) {
-										processName = (String) value;
-										processInfo.setProcessName(processName);
-									} else if ("listening".equals(name)) {
-										Type processOutputType = null;
-										if (argumentTypes != null
-												&& argumentTypes.length > 0) {
-											processOutputType = argumentTypes[0];
-										}
-										listenerInfo = new ListenerInfo(
-												(String) value,
-												processOutputType,
-												(String) clsInfoMap.get("name"),
-												mthName, mthDesc);
-										processInfo
-												.setListenerInfo(listenerInfo);
-									}
-									super.visit(name, value);
-								}
-							};
-						}
-						return super.visitAnnotation(desc, visible);
-					}
-
 					protected void onMethodEnter() {
-						if (isProcess) {
-							processInfoList.add(processInfo);
-							if (publish) {
-								visitInsn(Opcodes.ICONST_1);
-							} else {
-								visitInsn(Opcodes.ICONST_0);
-							}
-							visitMethodInsn(
-									Opcodes.INVOKESTATIC,
-									Type.getInternalName(ProcessWrapper.class),
-									"setPublish",
-									Type.getMethodDescriptor(
-											Type.getType(void.class),
-											Type.getType(boolean.class)), false);
-
-							if (publish) {
-								visitLdcInsn(clsInfoMap.get("name"));
-								visitLdcInsn(mthName);
-								visitLdcInsn(processName);
-								visitMethodInsn(Opcodes.INVOKESTATIC, Type
-										.getInternalName(ProcessWrapper.class),
-										"recordProcessDesc",
-										Type.getMethodDescriptor(
-												Type.getType(void.class),
-												Type.getType(String.class),
-												Type.getType(String.class),
-												Type.getType(String.class)),
-										false);
-
-								if (dontPublishWhenResultIsNull) {
+						Map<String, ProcessInfo> processInfosForCls = (Map<String, ProcessInfo>) clsInfoMap
+								.get("processInfosForCls");
+						if (processInfosForCls != null) {
+							ProcessInfo processInfo = processInfosForCls
+									.get(mthName + "@" + mthDesc);
+							if (processInfo != null) {
+								if (processInfo.isPublish()) {
 									visitInsn(Opcodes.ICONST_1);
 								} else {
 									visitInsn(Opcodes.ICONST_0);
 								}
 								visitMethodInsn(Opcodes.INVOKESTATIC, Type
 										.getInternalName(ProcessWrapper.class),
-										"setDontPublishWhenResultIsNull",
-										Type.getMethodDescriptor(
+										"setPublish", Type.getMethodDescriptor(
 												Type.getType(void.class),
 												Type.getType(boolean.class)),
 										false);
 
-								if (argumentTypes != null) {
-									int localNum = 1;
-									for (int argIdx = 0; argIdx < argumentTypes.length; argIdx++) {
-										Type argType = argumentTypes[argIdx];
-										localNum = loadLocalAndToObject(
-												localNum,
-												argType.getDescriptor(), this);
-										visitMethodInsn(
-												Opcodes.INVOKESTATIC,
-												Type.getInternalName(ProcessWrapper.class),
-												"recordProcessArgument",
-												Type.getMethodDescriptor(
-														Type.getType(void.class),
-														Type.getType(Object.class)),
-												false);
+								if (processInfo.isPublish()) {
+									visitLdcInsn(processInfo.getClsName());
+									visitLdcInsn(mthName);
+									visitLdcInsn(processInfo.getProcessName());
+									visitMethodInsn(
+											Opcodes.INVOKESTATIC,
+											Type.getInternalName(ProcessWrapper.class),
+											"recordProcessDesc",
+											Type.getMethodDescriptor(
+													Type.getType(void.class),
+													Type.getType(String.class),
+													Type.getType(String.class),
+													Type.getType(String.class)),
+											false);
+
+									if (processInfo
+											.isDontPublishWhenResultIsNull()) {
+										visitInsn(Opcodes.ICONST_1);
+									} else {
+										visitInsn(Opcodes.ICONST_0);
 									}
+									visitMethodInsn(
+											Opcodes.INVOKESTATIC,
+											Type.getInternalName(ProcessWrapper.class),
+											"setDontPublishWhenResultIsNull",
+											Type.getMethodDescriptor(
+													Type.getType(void.class),
+													Type.getType(boolean.class)),
+											false);
+
+									if (argumentTypes != null) {
+										int localNum = 1;
+										for (int argIdx = 0; argIdx < argumentTypes.length; argIdx++) {
+											Type argType = argumentTypes[argIdx];
+											localNum = loadLocalAndToObject(
+													localNum,
+													argType.getDescriptor(),
+													this);
+											visitMethodInsn(
+													Opcodes.INVOKESTATIC,
+													Type.getInternalName(ProcessWrapper.class),
+													"recordProcessArgument",
+													Type.getMethodDescriptor(
+															Type.getType(void.class),
+															Type.getType(Object.class)),
+													false);
+										}
+									}
+
 								}
 
+								visitMethodInsn(Opcodes.INVOKESTATIC, Type
+										.getInternalName(ProcessWrapper.class),
+										"beforeProcessStart", "()V", false);
+
+								lTryBlockStart = new Label();
+								lTryBlockEnd = new Label();
+
+								mark(lTryBlockStart);
 							}
-
-							visitMethodInsn(Opcodes.INVOKESTATIC,
-									Type.getInternalName(ProcessWrapper.class),
-									"beforeProcessStart", "()V", false);
-
-							lTryBlockStart = new Label();
-							lTryBlockEnd = new Label();
-
-							mark(lTryBlockStart);
 						}
 						super.onMethodEnter();
 					}
 
 					public void visitMaxs(int maxStack, int maxLocals) {
-						if (isProcess) {
-							mark(lTryBlockEnd);
-							catchException(lTryBlockStart, lTryBlockEnd, null);
 
-							visitMethodInsn(Opcodes.INVOKESTATIC,
-									Type.getInternalName(ProcessWrapper.class),
-									"afterProcessFaild", "()V", false);
+						Map<String, ProcessInfo> processInfosForCls = (Map<String, ProcessInfo>) clsInfoMap
+								.get("processInfosForCls");
+						if (processInfosForCls != null) {
+							ProcessInfo processInfo = processInfosForCls
+									.get(mthName + "@" + mthDesc);
+							if (processInfo != null) {
+								mark(lTryBlockEnd);
+								catchException(lTryBlockStart, lTryBlockEnd,
+										null);
 
-							throwException();
+								visitMethodInsn(Opcodes.INVOKESTATIC, Type
+										.getInternalName(ProcessWrapper.class),
+										"afterProcessFaild", "()V", false);
 
+								throwException();
+
+							}
 						}
 						super.visitMaxs(maxStack, maxLocals);
 					}
 
 					protected void onMethodExit(int opcode) {
-						if (isProcess) {
+						Map<String, ProcessInfo> processInfosForCls = (Map<String, ProcessInfo>) clsInfoMap
+								.get("processInfosForCls");
+						if (processInfosForCls != null) {
+							ProcessInfo processInfo = processInfosForCls
+									.get(mthName + "@" + mthDesc);
+							if (processInfo != null) {
 
-							if (publish) {
-								if (!Type.getDescriptor(void.class).equals(
-										returnTypeDesc)) {
-									dupStackTopAndToObject(returnTypeDesc, this);
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessWrapper.class),
-											"recordProcessResult",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(Object.class)),
-											false);
+								if (processInfo.isPublish()) {
+									if (!Type.getDescriptor(void.class).equals(
+											returnTypeDesc)) {
+										dupStackTopAndToObject(returnTypeDesc,
+												this);
+										visitMethodInsn(
+												Opcodes.INVOKESTATIC,
+												Type.getInternalName(ProcessWrapper.class),
+												"recordProcessResult",
+												Type.getMethodDescriptor(
+														Type.getType(void.class),
+														Type.getType(Object.class)),
+												false);
 
+									}
 								}
+
+								visitMethodInsn(Opcodes.INVOKESTATIC, Type
+										.getInternalName(ProcessWrapper.class),
+										"afterProcessFinish", "()V", false);
+
 							}
-
-							visitMethodInsn(Opcodes.INVOKESTATIC,
-									Type.getInternalName(ProcessWrapper.class),
-									"afterProcessFinish", "()V", false);
-
 						}
 						super.onMethodExit(opcode);
 					}
@@ -565,7 +533,9 @@ public class ClassEnhancer {
 			}
 
 		}, ClassReader.EXPAND_FRAMES);
-		if (Boolean.TRUE.equals(clsInfoMap.get("hasProcess"))) {
+		Map<String, ProcessInfo> processInfosForCls = (Map<String, ProcessInfo>) clsInfoMap
+				.get("processInfosForCls");
+		if (processInfosForCls != null) {
 			byte[] enhancedBytes = cw.toByteArray();
 			enhancedClassBytes.put((String) clsInfoMap.get("name"),
 					enhancedBytes);
@@ -594,7 +564,6 @@ public class ClassEnhancer {
 	}
 
 	private static void parseProcess(byte[] bytes,
-			Map<String, byte[]> enhancedClassBytes,
 			Map<String, Map<String, ProcessInfo>> processInfos) {
 		ClassReader cr = new ClassReader(bytes);
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
@@ -605,8 +574,6 @@ public class ClassEnhancer {
 			public void visit(int version, int access, String name,
 					String signature, String superName, String[] interfaces) {
 				clsInfoMap.put("name", name.replace('/', '.'));
-				processInfos.put((String) clsInfoMap.get("name"),
-						processInfoList);
 				super.visit(version, access, name, signature, superName,
 						interfaces);
 			}
@@ -620,7 +587,6 @@ public class ClassEnhancer {
 							signature, exceptions);
 				}
 				Type[] argumentTypes = Type.getArgumentTypes(mthDesc);
-				String returnTypeDesc = mthDesc.substring(mthDesc.indexOf(")") + 1);
 				return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(
 						access, mthName, mthDesc, signature, exceptions),
 						access, mthName, mthDesc) {
@@ -631,9 +597,6 @@ public class ClassEnhancer {
 					private String processName = "";
 
 					private ProcessInfo processInfo = null;
-
-					private Label lTryBlockStart;
-					private Label lTryBlockEnd;
 
 					public AnnotationVisitor visitAnnotation(String desc,
 							boolean visible) {
@@ -690,133 +653,18 @@ public class ClassEnhancer {
 						super.onMethodEnter();
 					}
 
-					// protected void onMethodEnter() {
-					// if (isProcess) {
-					// processInfoList.add(processInfo);
-					// if (publish) {
-					// visitInsn(Opcodes.ICONST_1);
-					// } else {
-					// visitInsn(Opcodes.ICONST_0);
-					// }
-					// visitMethodInsn(
-					// Opcodes.INVOKESTATIC,
-					// Type.getInternalName(ProcessWrapper.class),
-					// "setPublish",
-					// Type.getMethodDescriptor(
-					// Type.getType(void.class),
-					// Type.getType(boolean.class)), false);
-					//
-					// if (publish) {
-					// visitLdcInsn(clsInfoMap.get("name"));
-					// visitLdcInsn(mthName);
-					// visitLdcInsn(processName);
-					// visitMethodInsn(Opcodes.INVOKESTATIC, Type
-					// .getInternalName(ProcessWrapper.class),
-					// "recordProcessDesc",
-					// Type.getMethodDescriptor(
-					// Type.getType(void.class),
-					// Type.getType(String.class),
-					// Type.getType(String.class),
-					// Type.getType(String.class)),
-					// false);
-					//
-					// if (dontPublishWhenResultIsNull) {
-					// visitInsn(Opcodes.ICONST_1);
-					// } else {
-					// visitInsn(Opcodes.ICONST_0);
-					// }
-					// visitMethodInsn(Opcodes.INVOKESTATIC, Type
-					// .getInternalName(ProcessWrapper.class),
-					// "setDontPublishWhenResultIsNull",
-					// Type.getMethodDescriptor(
-					// Type.getType(void.class),
-					// Type.getType(boolean.class)),
-					// false);
-					//
-					// if (argumentTypes != null) {
-					// int localNum = 1;
-					// for (int argIdx = 0; argIdx < argumentTypes.length;
-					// argIdx++) {
-					// Type argType = argumentTypes[argIdx];
-					// localNum = loadLocalAndToObject(
-					// localNum,
-					// argType.getDescriptor(), this);
-					// visitMethodInsn(
-					// Opcodes.INVOKESTATIC,
-					// Type.getInternalName(ProcessWrapper.class),
-					// "recordProcessArgument",
-					// Type.getMethodDescriptor(
-					// Type.getType(void.class),
-					// Type.getType(Object.class)),
-					// false);
-					// }
-					// }
-					//
-					// }
-					//
-					// visitMethodInsn(Opcodes.INVOKESTATIC,
-					// Type.getInternalName(ProcessWrapper.class),
-					// "beforeProcessStart", "()V", false);
-					//
-					// lTryBlockStart = new Label();
-					// lTryBlockEnd = new Label();
-					//
-					// mark(lTryBlockStart);
-					// }
-					// super.onMethodEnter();
-					// }
-
-					// public void visitMaxs(int maxStack, int maxLocals) {
-					// if (isProcess) {
-					// mark(lTryBlockEnd);
-					// catchException(lTryBlockStart, lTryBlockEnd, null);
-					//
-					// visitMethodInsn(Opcodes.INVOKESTATIC,
-					// Type.getInternalName(ProcessWrapper.class),
-					// "afterProcessFaild", "()V", false);
-					//
-					// throwException();
-					//
-					// }
-					// super.visitMaxs(maxStack, maxLocals);
-					// }
-
-					// protected void onMethodExit(int opcode) {
-					// if (isProcess) {
-					//
-					// if (publish) {
-					// if (!Type.getDescriptor(void.class).equals(
-					// returnTypeDesc)) {
-					// dupStackTopAndToObject(returnTypeDesc, this);
-					// visitMethodInsn(
-					// Opcodes.INVOKESTATIC,
-					// Type.getInternalName(ProcessWrapper.class),
-					// "recordProcessResult",
-					// Type.getMethodDescriptor(
-					// Type.getType(void.class),
-					// Type.getType(Object.class)),
-					// false);
-					//
-					// }
-					// }
-					//
-					// visitMethodInsn(Opcodes.INVOKESTATIC,
-					// Type.getInternalName(ProcessWrapper.class),
-					// "afterProcessFinish", "()V", false);
-					//
-					// }
-					// super.onMethodExit(opcode);
-					// }
-
 				};
 			}
 
+			public void visitEnd() {
+				if (!processInfoList.isEmpty()) {
+					processInfos.put((String) clsInfoMap.get("name"),
+							processInfoList);
+				}
+				super.visitEnd();
+			}
+
 		}, ClassReader.EXPAND_FRAMES);
-		// if (Boolean.TRUE.equals(clsInfoMap.get("hasProcess"))) {
-		// byte[] enhancedBytes = cw.toByteArray();
-		// enhancedClassBytes.put((String) clsInfoMap.get("name"),
-		// enhancedBytes);
-		// }
 	}
 
 	private static void dupStackTopAndToObject(String stackTopTypeDesc,
