@@ -2,18 +2,18 @@ package test.arp.core;
 
 import static org.junit.Assert.assertEquals;
 
-
-
 import org.junit.Test;
 
-import arp.enhance.ClassEnhancer;
+import test.arp.core.pack1.TestService;
+import test.arp.core.pack2.TestService2;
+import arp.ARP;
 
 public class CoreTest {
 
 	@Test
 	public void test() {
 		try {
-			ClassEnhancer.parseAndEnhance("test.arp.core");
+			ARP.start("test.arp.core.pack1", "test.arp.core.pack2");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -38,6 +38,12 @@ public class CoreTest {
 		F4Result f4Result1 = service.f4(2, 3, 50);
 		assertEquals(50, f4Result1.getEntity1().getiValue());
 		assertEquals(150, f4Result1.getEntity2().getiValue());
+
+		TestService2 service2 = new TestService2();
+		TestEntity entity21 = service2.f1(1);
+		assertEquals(1, entity21.getId());
+		entity21.setiValue(2);
+		assertEquals(2, entity21.getiValue());
 
 	}
 

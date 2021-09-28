@@ -1,5 +1,8 @@
-package test.arp.core;
+package test.arp.core.pack1;
 
+import test.arp.core.F4Result;
+import test.arp.core.TestEntity;
+import test.arp.core.TestEntityRepository;
 import arp.process.Process;
 
 public class TestService {

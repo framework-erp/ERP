@@ -45,26 +45,26 @@ public class ClassEnhancer {
 		if (pkgs != null) {
 			ClassParseResult result = new ClassParseResult();
 			Map<String, byte[]> enhancedClassBytes = new HashMap<>();
-			Map<String, Map<String, ProcessInfo>> processInfos = new HashMap<>();
+			List<ResolvedClass> resolvedClasses = new ArrayList<>();
 			for (int i = 0; i < pkgs.length; i++) {
-				parseClassesForPackage(pkgs[i], processInfos);
+				parseClassesForPackage(pkgs[i], resolvedClasses);
 			}
 
 			List<ProcessInfo> processInfoList = new ArrayList<>();
-			for (Map<String, ProcessInfo> map : processInfos.values()) {
+			for (ResolvedClass rc : resolvedClasses) {
+				Map<String, ProcessInfo> map = rc.getProcessInfos();
 				processInfoList.addAll(map.values());
 			}
 
 			generateProcessInfoId(processInfoList);
 
-			for (int i = 0; i < pkgs.length; i++) {
-				enhanceClassesForPackage(pkgs[i], enhancedClassBytes,
-						processInfos);
+			for (ResolvedClass rc : resolvedClasses) {
+				enhanceProcess(rc, enhancedClassBytes);
 			}
 
 			result.setProcessInfoList(processInfoList);
 
-			if (!processInfos.isEmpty()) {
+			if (!resolvedClasses.isEmpty()) {
 				createMessageProcessorClasses(processInfoList);
 				enhanceClassesForListners(enhancedClassBytes, processInfoList);
 			}
@@ -297,12 +297,11 @@ public class ClassEnhancer {
 	}
 
 	private static void parseClassesForPackage(String pkg,
-			Map<String, Map<String, ProcessInfo>> processInfos)
-			throws Exception {
+			List<ResolvedClass> resolvedClasses) throws Exception {
 		String pkgDir = pkg.replace('.', '/');
 		URI uri = Thread.currentThread().getContextClassLoader()
 				.getResource(pkgDir).toURI();
-
+		FileSystem zipfs = null;
 		Path rootPath = null;
 		String uriStr = uri.toString();
 		if (uriStr.contains("jar:file:")) {// jar
@@ -314,7 +313,7 @@ public class ClassEnhancer {
 				URI zipFile = URI.create(zipFilePath);
 				Map<String, String> env = new HashMap<>();
 				env.put("create", "true");
-				FileSystem zipfs = FileSystems.newFileSystem(zipFile, env);
+				zipfs = FileSystems.newFileSystem(zipFile, env);
 				rootPath = zipfs.getPath(pathInFile);
 			} catch (Exception e) {
 			}
@@ -328,68 +327,25 @@ public class ClassEnhancer {
 			public FileVisitResult visitFile(Path file,
 					BasicFileAttributes attrs) throws IOException {
 				byte[] bytes = Files.readAllBytes(file);
-				parseProcess(bytes, processInfos);
+				parseProcess(bytes, resolvedClasses);
 				return FileVisitResult.CONTINUE;
 			}
 
 		});
-
-	}
-
-	private static void enhanceClassesForPackage(String pkg,
-			Map<String, byte[]> enhancedClassBytes,
-			Map<String, Map<String, ProcessInfo>> processInfos)
-			throws Exception {
-		String pkgDir = pkg.replace('.', '/');
-		URI uri = Thread.currentThread().getContextClassLoader()
-				.getResource(pkgDir).toURI();
-
-		Path rootPath = null;
-		String uriStr = uri.toString();
-		if (uriStr.contains("jar:file:")) {// jar
-			int idx = uriStr.indexOf(".jar");
-			String zipFilePath = uriStr.substring(0, idx) + ".jar";
-			String pathInFile = uriStr.substring(idx + ".jar".length())
-					.replaceAll("!", "");
-			try {
-				URI zipFile = URI.create(zipFilePath);
-				Map<String, String> env = new HashMap<>();
-				env.put("create", "true");
-				FileSystem zipfs = FileSystems.newFileSystem(zipFile, env);
-				rootPath = zipfs.getPath(pathInFile);
-			} catch (Exception e) {
-			}
-		} else {
-			rootPath = Paths.get(uri);
+		if (zipfs != null) {
+			zipfs.close();
 		}
-
-		Files.walkFileTree(rootPath, new SimpleFileVisitor<Path>() {
-
-			@Override
-			public FileVisitResult visitFile(Path file,
-					BasicFileAttributes attrs) throws IOException {
-				byte[] bytes = Files.readAllBytes(file);
-				enhanceProcess(bytes, enhancedClassBytes, processInfos);
-				return FileVisitResult.CONTINUE;
-			}
-
-		});
-
 	}
 
-	private static void enhanceProcess(byte[] bytes,
-			Map<String, byte[]> enhancedClassBytes,
-			Map<String, Map<String, ProcessInfo>> processInfos) {
-		ClassReader cr = new ClassReader(bytes);
+	private static void enhanceProcess(ResolvedClass resolvedClass,
+			Map<String, byte[]> enhancedClassBytes) {
+		Map<String, ProcessInfo> processInfos = resolvedClass.getProcessInfos();
+		ClassReader cr = new ClassReader(resolvedClass.getClassBytes());
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		Map<String, Object> clsInfoMap = new HashMap<>();
 		cr.accept(new ClassVisitor(Opcodes.ASM5, cw) {
 
 			public void visit(int version, int access, String name,
 					String signature, String superName, String[] interfaces) {
-				clsInfoMap.put("name", name.replace('/', '.'));
-				clsInfoMap.put("processInfosForCls",
-						processInfos.get(name.replace('/', '.')));
 				super.visit(version, access, name, signature, superName,
 						interfaces);
 			}
@@ -409,144 +365,127 @@ public class ClassEnhancer {
 					private Label lTryBlockEnd;
 
 					protected void onMethodEnter() {
-						Map<String, ProcessInfo> processInfosForCls = (Map<String, ProcessInfo>) clsInfoMap
-								.get("processInfosForCls");
-						if (processInfosForCls != null) {
-							ProcessInfo processInfo = processInfosForCls
-									.get(mthName + "@" + mthDesc);
-							if (processInfo != null) {
-								if (processInfo.isPublish()) {
+						ProcessInfo processInfo = processInfos.get(mthName
+								+ "@" + mthDesc);
+						if (processInfo != null) {
+							if (processInfo.isPublish()) {
+								visitInsn(Opcodes.ICONST_1);
+							} else {
+								visitInsn(Opcodes.ICONST_0);
+							}
+							visitMethodInsn(
+									Opcodes.INVOKESTATIC,
+									Type.getInternalName(ProcessWrapper.class),
+									"setPublish",
+									Type.getMethodDescriptor(
+											Type.getType(void.class),
+											Type.getType(boolean.class)), false);
+
+							if (processInfo.isPublish()) {
+								visitLdcInsn(processInfo.getClsName());
+								visitLdcInsn(mthName);
+								visitLdcInsn(processInfo.getProcessName());
+								visitMethodInsn(Opcodes.INVOKESTATIC, Type
+										.getInternalName(ProcessWrapper.class),
+										"recordProcessDesc",
+										Type.getMethodDescriptor(
+												Type.getType(void.class),
+												Type.getType(String.class),
+												Type.getType(String.class),
+												Type.getType(String.class)),
+										false);
+
+								if (processInfo.isDontPublishWhenResultIsNull()) {
 									visitInsn(Opcodes.ICONST_1);
 								} else {
 									visitInsn(Opcodes.ICONST_0);
 								}
 								visitMethodInsn(Opcodes.INVOKESTATIC, Type
 										.getInternalName(ProcessWrapper.class),
-										"setPublish", Type.getMethodDescriptor(
+										"setDontPublishWhenResultIsNull",
+										Type.getMethodDescriptor(
 												Type.getType(void.class),
 												Type.getType(boolean.class)),
 										false);
 
-								if (processInfo.isPublish()) {
-									visitLdcInsn(processInfo.getClsName());
-									visitLdcInsn(mthName);
-									visitLdcInsn(processInfo.getProcessName());
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessWrapper.class),
-											"recordProcessDesc",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(String.class),
-													Type.getType(String.class),
-													Type.getType(String.class)),
-											false);
-
-									if (processInfo
-											.isDontPublishWhenResultIsNull()) {
-										visitInsn(Opcodes.ICONST_1);
-									} else {
-										visitInsn(Opcodes.ICONST_0);
+								if (argumentTypes != null) {
+									int localNum = 1;
+									for (int argIdx = 0; argIdx < argumentTypes.length; argIdx++) {
+										Type argType = argumentTypes[argIdx];
+										localNum = loadLocalAndToObject(
+												localNum,
+												argType.getDescriptor(), this);
+										visitMethodInsn(
+												Opcodes.INVOKESTATIC,
+												Type.getInternalName(ProcessWrapper.class),
+												"recordProcessArgument",
+												Type.getMethodDescriptor(
+														Type.getType(void.class),
+														Type.getType(Object.class)),
+												false);
 									}
-									visitMethodInsn(
-											Opcodes.INVOKESTATIC,
-											Type.getInternalName(ProcessWrapper.class),
-											"setDontPublishWhenResultIsNull",
-											Type.getMethodDescriptor(
-													Type.getType(void.class),
-													Type.getType(boolean.class)),
-											false);
-
-									if (argumentTypes != null) {
-										int localNum = 1;
-										for (int argIdx = 0; argIdx < argumentTypes.length; argIdx++) {
-											Type argType = argumentTypes[argIdx];
-											localNum = loadLocalAndToObject(
-													localNum,
-													argType.getDescriptor(),
-													this);
-											visitMethodInsn(
-													Opcodes.INVOKESTATIC,
-													Type.getInternalName(ProcessWrapper.class),
-													"recordProcessArgument",
-													Type.getMethodDescriptor(
-															Type.getType(void.class),
-															Type.getType(Object.class)),
-													false);
-										}
-									}
-
 								}
-								push(processInfo.getId());
-								visitMethodInsn(Opcodes.INVOKESTATIC, Type
-										.getInternalName(ProcessWrapper.class),
-										"beforeProcessStart",
-										Type.getMethodDescriptor(
-												Type.getType(void.class),
-												Type.getType(int.class)), false);
 
-								lTryBlockStart = new Label();
-								lTryBlockEnd = new Label();
-
-								mark(lTryBlockStart);
 							}
+							push(processInfo.getId());
+							visitMethodInsn(
+									Opcodes.INVOKESTATIC,
+									Type.getInternalName(ProcessWrapper.class),
+									"beforeProcessStart",
+									Type.getMethodDescriptor(
+											Type.getType(void.class),
+											Type.getType(int.class)), false);
+
+							lTryBlockStart = new Label();
+							lTryBlockEnd = new Label();
+
+							mark(lTryBlockStart);
 						}
 						super.onMethodEnter();
 					}
 
 					public void visitMaxs(int maxStack, int maxLocals) {
+						ProcessInfo processInfo = processInfos.get(mthName
+								+ "@" + mthDesc);
+						if (processInfo != null) {
+							mark(lTryBlockEnd);
+							catchException(lTryBlockStart, lTryBlockEnd, null);
 
-						Map<String, ProcessInfo> processInfosForCls = (Map<String, ProcessInfo>) clsInfoMap
-								.get("processInfosForCls");
-						if (processInfosForCls != null) {
-							ProcessInfo processInfo = processInfosForCls
-									.get(mthName + "@" + mthDesc);
-							if (processInfo != null) {
-								mark(lTryBlockEnd);
-								catchException(lTryBlockStart, lTryBlockEnd,
-										null);
+							visitMethodInsn(Opcodes.INVOKESTATIC,
+									Type.getInternalName(ProcessWrapper.class),
+									"afterProcessFaild", "()V", false);
 
-								visitMethodInsn(Opcodes.INVOKESTATIC, Type
-										.getInternalName(ProcessWrapper.class),
-										"afterProcessFaild", "()V", false);
+							throwException();
 
-								throwException();
-
-							}
 						}
 						super.visitMaxs(maxStack, maxLocals);
 					}
 
 					protected void onMethodExit(int opcode) {
-						Map<String, ProcessInfo> processInfosForCls = (Map<String, ProcessInfo>) clsInfoMap
-								.get("processInfosForCls");
-						if (processInfosForCls != null) {
-							ProcessInfo processInfo = processInfosForCls
-									.get(mthName + "@" + mthDesc);
-							if (processInfo != null) {
+						ProcessInfo processInfo = processInfos.get(mthName
+								+ "@" + mthDesc);
+						if (processInfo != null) {
 
-								if (processInfo.isPublish()) {
-									if (!Type.getDescriptor(void.class).equals(
-											returnTypeDesc)) {
-										dupStackTopAndToObject(returnTypeDesc,
-												this);
-										visitMethodInsn(
-												Opcodes.INVOKESTATIC,
-												Type.getInternalName(ProcessWrapper.class),
-												"recordProcessResult",
-												Type.getMethodDescriptor(
-														Type.getType(void.class),
-														Type.getType(Object.class)),
-												false);
+							if (processInfo.isPublish()) {
+								if (!Type.getDescriptor(void.class).equals(
+										returnTypeDesc)) {
+									dupStackTopAndToObject(returnTypeDesc, this);
+									visitMethodInsn(
+											Opcodes.INVOKESTATIC,
+											Type.getInternalName(ProcessWrapper.class),
+											"recordProcessResult",
+											Type.getMethodDescriptor(
+													Type.getType(void.class),
+													Type.getType(Object.class)),
+											false);
 
-									}
 								}
-
-								visitMethodInsn(Opcodes.INVOKESTATIC, Type
-										.getInternalName(ProcessWrapper.class),
-										"afterProcessFinish", "()V", false);
-
 							}
+
+							visitMethodInsn(Opcodes.INVOKESTATIC,
+									Type.getInternalName(ProcessWrapper.class),
+									"afterProcessFinish", "()V", false);
+
 						}
 						super.onMethodExit(opcode);
 					}
@@ -555,13 +494,8 @@ public class ClassEnhancer {
 			}
 
 		}, ClassReader.EXPAND_FRAMES);
-		Map<String, ProcessInfo> processInfosForCls = (Map<String, ProcessInfo>) clsInfoMap
-				.get("processInfosForCls");
-		if (processInfosForCls != null) {
-			byte[] enhancedBytes = cw.toByteArray();
-			enhancedClassBytes.put((String) clsInfoMap.get("name"),
-					enhancedBytes);
-		}
+		byte[] enhancedBytes = cw.toByteArray();
+		enhancedClassBytes.put(resolvedClass.getName(), enhancedBytes);
 	}
 
 	private static void loadClasses(Map<String, byte[]> enhancedClassBytes)
@@ -586,11 +520,11 @@ public class ClassEnhancer {
 	}
 
 	private static void parseProcess(byte[] bytes,
-			Map<String, Map<String, ProcessInfo>> processInfos) {
+			List<ResolvedClass> resolvedClasses) {
 		ClassReader cr = new ClassReader(bytes);
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		Map<String, Object> clsInfoMap = new HashMap<>();
-		Map<String, ProcessInfo> processInfoList = new HashMap<>();
+		Map<String, ProcessInfo> processInfos = new HashMap<>();
 		cr.accept(new ClassVisitor(Opcodes.ASM5, cw) {
 
 			public void visit(int version, int access, String name,
@@ -669,7 +603,7 @@ public class ClassEnhancer {
 
 					protected void onMethodEnter() {
 						if (isProcess) {
-							processInfoList.put(processInfo.getMthName() + "@"
+							processInfos.put(processInfo.getMthName() + "@"
 									+ processInfo.getMthDesc(), processInfo);
 						}
 						super.onMethodEnter();
@@ -679,9 +613,9 @@ public class ClassEnhancer {
 			}
 
 			public void visitEnd() {
-				if (!processInfoList.isEmpty()) {
-					processInfos.put((String) clsInfoMap.get("name"),
-							processInfoList);
+				if (!processInfos.isEmpty()) {
+					resolvedClasses.add(new ResolvedClass((String) clsInfoMap
+							.get("name"), processInfos, bytes));
 				}
 				super.visitEnd();
 			}
