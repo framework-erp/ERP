@@ -359,8 +359,6 @@ public class ClassEnhancer {
 						access, mthName, mthDesc, signature, exceptions),
 						access, mthName, mthDesc) {
 
-					private ProcessInfo processInfo = null;
-
 					private Label lTryBlockStart;
 					private Label lTryBlockEnd;
 
