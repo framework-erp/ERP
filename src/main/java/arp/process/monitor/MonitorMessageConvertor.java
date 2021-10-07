@@ -1,6 +1,8 @@
-package arp.process.publish;
+package arp.process.monitor;
 
 import java.util.List;
+
+import arp.process.publish.Message;
 
 public abstract class MonitorMessageConvertor {
 

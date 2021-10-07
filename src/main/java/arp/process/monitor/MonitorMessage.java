@@ -1,4 +1,4 @@
-package arp.process.publish;
+package arp.process.monitor;
 
 public class MonitorMessage {
 

@@ -1,4 +1,5 @@
-package arp.process.publish;
+package arp.process.monitor;
+
 
 public interface ProcessesMonitorMessageProcessor {
 
