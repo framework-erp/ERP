@@ -8,6 +8,7 @@ public class ListenerInfo {
 	private String listenerProcessObjType;// listener所在的处理类类型
 	private String listenerMthName;
 	private String listenerMthDesc;
+	private String messageProcessorClasseType;
 
 	public ListenerInfo() {
 	}
@@ -60,6 +61,14 @@ public class ListenerInfo {
 
 	public void setListenerMthDesc(String listenerMthDesc) {
 		this.listenerMthDesc = listenerMthDesc;
+	}
+
+	public String getMessageProcessorClasseType() {
+		return messageProcessorClasseType;
+	}
+
+	public void setMessageProcessorClasseType(String messageProcessorClasseType) {
+		this.messageProcessorClasseType = messageProcessorClasseType;
 	}
 
 }

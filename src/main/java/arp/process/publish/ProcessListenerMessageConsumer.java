@@ -1,10 +1,8 @@
 package arp.process.publish;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -12,7 +10,6 @@ import java.util.concurrent.Executors;
 public class ProcessListenerMessageConsumer {
 
 	private Map<String, List<ProcessListenerMessageProcessor>> processors = new ConcurrentHashMap<>();
-	private Set<String> messageProcessorTypes = new HashSet<>();
 	private ExecutorService executorService;
 
 	public ProcessListenerMessageConsumer() {
@@ -21,9 +18,6 @@ public class ProcessListenerMessageConsumer {
 
 	public void registerProcessor(String processDesc,
 			ProcessListenerMessageProcessor processor) {
-		if (messageProcessorTypes.contains(processor.getClass().getName())) {
-			return;
-		}
 		List<ProcessListenerMessageProcessor> list = processors
 				.get(processDesc);
 		if (list == null) {
@@ -31,7 +25,6 @@ public class ProcessListenerMessageConsumer {
 			processors.put(processDesc, list);
 		}
 		list.add(processor);
-		messageProcessorTypes.add(processor.getClass().getName());
 	}
 
 	public void start(List<String> processesToSubscribe,

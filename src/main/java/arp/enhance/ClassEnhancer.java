@@ -98,6 +98,7 @@ public class ClassEnhancer {
 				.getDeclaredMethod("defineClass", new Class[] { String.class,
 						byte[].class, int.class, int.class });
 		method.setAccessible(true);
+		Map<String, Integer> processorTypeNameCount = new HashMap<>();
 		for (ProcessInfo processInfo : processInfoList) {
 			ListenerInfo listenerInfo = processInfo.getListenerInfo();
 			if (listenerInfo == null) {
@@ -110,6 +111,19 @@ public class ClassEnhancer {
 					'.', '/')
 					+ "/MessageProcessor_"
 					+ listenerInfo.getListenerMthName();
+			Integer typeNameCount = processorTypeNameCount
+					.get(messageProcessorClasseType);
+			if (typeNameCount == null) {
+				typeNameCount = 0;
+			}
+			typeNameCount++;
+			processorTypeNameCount.put(messageProcessorClasseType,
+					typeNameCount);
+			if (typeNameCount > 1) {
+				messageProcessorClasseType = (messageProcessorClasseType + "_" + (typeNameCount - 1));
+			}
+			listenerInfo
+					.setMessageProcessorClasseType(messageProcessorClasseType);
 			ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 			cw.visit(
 					Opcodes.V1_8,
@@ -253,10 +267,8 @@ public class ClassEnhancer {
 										.getProcessDesc();
 								String listenerProcessObjType = listenerInfo
 										.getListenerProcessObjType();
-								String messageProcessorClasseType = listenerProcessObjType
-										.replace('.', '/')
-										+ "/MessageProcessor_"
-										+ listenerInfo.getListenerMthName();
+								String messageProcessorClasseType = listenerInfo
+										.getMessageProcessorClasseType();
 
 								visitLdcInsn(processDesc);
 								visitTypeInsn(Opcodes.NEW,
