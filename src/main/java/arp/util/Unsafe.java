@@ -262,4 +262,10 @@ public class Unsafe {
 				+ sun.misc.Unsafe.ARRAY_BYTE_INDEX_SCALE * idx, value);
 	}
 
+	public static byte getVolatile(byte[] array, int idx) {
+		return theUnsafe.getByteVolatile(array,
+				sun.misc.Unsafe.ARRAY_BYTE_BASE_OFFSET
+						+ sun.misc.Unsafe.ARRAY_BYTE_INDEX_SCALE * idx);
+	}
+
 }

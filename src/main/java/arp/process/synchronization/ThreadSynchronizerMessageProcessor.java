@@ -18,6 +18,9 @@ public class ThreadSynchronizerMessageProcessor implements
 				contextParameters.get("nodeId"))) {
 			return;
 		}
+		int tid = (int) contextParameters.get("tid");
+		if (ThreadBoundProcessSyncReqFlgArray.getFlg(tid) == 1) {
+			ThreadBoundProcessSyncReqFlgArray.setFlg((byte) 0);
+		}
 	}
-
 }

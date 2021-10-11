@@ -28,7 +28,7 @@ public class ThreadProcessSynchronizer {
 					((Long) (Thread.currentThread().getId())).intValue());
 			processContext.addContextParameter("nodeId", nodeId);
 		}
-		ThreadBoundProcessSyncReqFlgArray.requestSync();
+		ThreadBoundProcessSyncReqFlgArray.setFlg((byte) 1);
 		if (!registeredProcessors.containsKey(waitingProcessName)) {
 			registerProcessor(waitingProcessName);
 		}
@@ -38,7 +38,8 @@ public class ThreadProcessSynchronizer {
 		if (registeredProcessors.containsKey(waitingProcessName)) {
 			return;
 		}
-		ARP.registerMessageProcessor(waitingProcessName, processor);
+		ARP.registerMessageProcessor(waitingProcessName,
+				new ThreadSynchronizerMessageProcessor());
 		registeredProcessors.put(waitingProcessName, waitingProcessName);
 	}
 
