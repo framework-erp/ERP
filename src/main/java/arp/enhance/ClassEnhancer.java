@@ -34,6 +34,7 @@ import org.objectweb.asm.commons.AdviceAdapter;
 import arp.ARP;
 import arp.process.Process;
 import arp.process.ProcessWrapper;
+import arp.process.publish.Message;
 import arp.process.publish.ProcessListenerMessageProcessor;
 
 public class ClassEnhancer {
@@ -164,7 +165,7 @@ public class ClassEnhancer {
 					Opcodes.ACC_PUBLIC,
 					"process",
 					Type.getMethodDescriptor(Type.VOID_TYPE,
-							Type.getType(Object.class)), null, null);
+							Type.getType(Message.class)), null, null);
 			mv.visitMaxs(2, 2);
 			mv.visitCode();
 			mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -173,6 +174,11 @@ public class ClassEnhancer {
 							+ ";");
 			if (processOutputType != null) {
 				mv.visitVarInsn(Opcodes.ALOAD, 1);
+				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+						Type.getInternalName(Message.class),
+						"getProcessOutput",
+						Type.getMethodDescriptor(Type.getType(Object.class)),
+						false);
 				mv.visitTypeInsn(Opcodes.CHECKCAST,
 						processOutputType.getInternalName());
 				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,

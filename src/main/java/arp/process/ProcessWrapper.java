@@ -22,6 +22,7 @@ public class ProcessWrapper {
 					processContext.getUpdatedAggrs(),
 					processContext.getProcessDesc(),
 					processContext.isDontPublishWhenResultIsNull(),
+					processContext.getContextParameters(),
 					System.currentTimeMillis());
 		}
 		processContext.clear();

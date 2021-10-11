@@ -1,6 +1,7 @@
 package arp.process.publish;
 
 import java.util.List;
+import java.util.Map;
 
 public class ProcessPublisher {
 
@@ -10,7 +11,8 @@ public class ProcessPublisher {
 			Object processResult, List<Object> processCreatedAggrs,
 			List<Object> processDeletedAggrs,
 			List<Object[]> processUpdatedAggrs, String processDesc,
-			boolean dontPublishWhenResultIsNull, long processFinishTime) {
+			boolean dontPublishWhenResultIsNull,
+			Map<String, Object> contextParameters, long processFinishTime) {
 		if (dontPublishWhenResultIsNull && processResult == null) {
 			return;
 		}
@@ -21,6 +23,7 @@ public class ProcessPublisher {
 		msg.setProcessCreatedAggrs(processCreatedAggrs);
 		msg.setProcessDeletedAggrs(processDeletedAggrs);
 		msg.setProcessUpdatedAggrs(processUpdatedAggrs);
+		msg.setContextParameters(contextParameters);
 		msg.setProcessFinishTime(processFinishTime);
 		try {
 			messageSender.send(msg);

@@ -1,6 +1,7 @@
 package arp.process.publish;
 
 import java.util.List;
+import java.util.Map;
 
 public class Message {
 
@@ -10,6 +11,7 @@ public class Message {
 	private List<Object> processCreatedAggrs;
 	private List<Object> processDeletedAggrs;
 	private List<Object[]> processUpdatedAggrs;
+	private Map<String, Object> contextParameters;
 	private long processFinishTime;
 
 	public String getProcessDesc() {
@@ -58,6 +60,14 @@ public class Message {
 
 	public void setProcessUpdatedAggrs(List<Object[]> processUpdatedAggrs) {
 		this.processUpdatedAggrs = processUpdatedAggrs;
+	}
+
+	public Map<String, Object> getContextParameters() {
+		return contextParameters;
+	}
+
+	public void setContextParameters(Map<String, Object> contextParameters) {
+		this.contextParameters = contextParameters;
 	}
 
 	public long getProcessFinishTime() {

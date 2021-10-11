@@ -51,7 +51,7 @@ public class ProcessListenerMessageConsumer {
 				for (ProcessListenerMessageProcessor processor : list) {
 					executorService.submit(() -> {
 						try {
-							processor.process(msg.getProcessOutput());
+							processor.process(msg);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}

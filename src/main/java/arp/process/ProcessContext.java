@@ -51,6 +51,8 @@ public class ProcessContext {
 
 	private int processInfoId;
 
+	private Map<String, Object> contextParameters = new HashMap<>();
+
 	public void startProcess(int processInfoId) {
 		if (started) {
 			throw new RuntimeException(
@@ -290,6 +292,14 @@ public class ProcessContext {
 		createdAggrs.add(createdAggr);
 	}
 
+	public Object getContextParameter(String key) {
+		return contextParameters.get(key);
+	}
+
+	public void addContextParameter(String key, Object value) {
+		contextParameters.put(key, value);
+	}
+
 	public Object getResult() {
 		return result;
 	}
@@ -336,6 +346,10 @@ public class ProcessContext {
 
 	public ProcessInfo getProcessInfo() {
 		return processInfos[processInfoId];
+	}
+
+	public Map<String, Object> getContextParameters() {
+		return contextParameters;
 	}
 
 }
