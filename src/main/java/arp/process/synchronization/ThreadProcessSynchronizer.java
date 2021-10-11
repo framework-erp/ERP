@@ -15,6 +15,10 @@ public class ThreadProcessSynchronizer {
 		ThreadProcessSynchronizer.nodeId = nodeId;
 	}
 
+	public static String getNodeId() {
+		return nodeId;
+	}
+
 	public static void requestSync(String waitingProcessName) {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
@@ -24,7 +28,7 @@ public class ThreadProcessSynchronizer {
 					((Long) (Thread.currentThread().getId())).intValue());
 			processContext.addContextParameter("nodeId", nodeId);
 		}
-
+		ThreadBoundProcessSyncReqFlgArray.requestSync();
 		if (!registeredProcessors.containsKey(waitingProcessName)) {
 			registerProcessor(waitingProcessName);
 		}

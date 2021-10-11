@@ -1,5 +1,7 @@
 package arp.process.synchronization;
 
+import arp.util.Unsafe;
+
 public class ThreadBoundProcessSyncReqFlgArray {
 	private static byte[] threadProcessSyncReqFlgArray = new byte[1024];
 
@@ -8,7 +10,7 @@ public class ThreadBoundProcessSyncReqFlgArray {
 		if (iTid >= threadProcessSyncReqFlgArray.length) {
 			resizeArray(iTid);
 		}
-		// TODO unsafe 方式 赋值
+		Unsafe.setVolatile(threadProcessSyncReqFlgArray, iTid, (byte) 1);
 	}
 
 	private static synchronized void resizeArray(int iTid) {
