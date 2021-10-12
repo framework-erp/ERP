@@ -53,6 +53,8 @@ public class ProcessContext {
 
 	private Map<String, Object> contextParameters = new HashMap<>();
 
+	private List<Map<String, Object>> contextParametersTrace = new ArrayList<>();
+
 	public void startProcess(int processInfoId) {
 		if (started) {
 			throw new RuntimeException(
@@ -350,6 +352,22 @@ public class ProcessContext {
 
 	public Map<String, Object> getContextParameters() {
 		return contextParameters;
+	}
+
+	public List<Map<String, Object>> getContextParametersTrace() {
+		return contextParametersTrace;
+	}
+
+	public void setContextParametersTrace(
+			List<Map<String, Object>> contextParametersTrace) {
+		this.contextParametersTrace = contextParametersTrace;
+	}
+
+	public List<Map<String, Object>> buildContextParametersTrace() {
+		List<Map<String, Object>> newTrace = new ArrayList<>(
+				contextParametersTrace);
+		newTrace.add(contextParameters);
+		return newTrace;
 	}
 
 }

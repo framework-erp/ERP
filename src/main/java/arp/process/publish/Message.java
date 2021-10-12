@@ -11,7 +11,7 @@ public class Message {
 	private List<Object> processCreatedAggrs;
 	private List<Object> processDeletedAggrs;
 	private List<Object[]> processUpdatedAggrs;
-	private Map<String, Object> contextParameters;
+	private List<Map<String, Object>> contextParametersTrace;
 	private long processFinishTime;
 
 	public String getProcessDesc() {
@@ -62,12 +62,13 @@ public class Message {
 		this.processUpdatedAggrs = processUpdatedAggrs;
 	}
 
-	public Map<String, Object> getContextParameters() {
-		return contextParameters;
+	public List<Map<String, Object>> getContextParametersTrace() {
+		return contextParametersTrace;
 	}
 
-	public void setContextParameters(Map<String, Object> contextParameters) {
-		this.contextParameters = contextParameters;
+	public void setContextParametersTrace(
+			List<Map<String, Object>> contextParametersTrace) {
+		this.contextParametersTrace = contextParametersTrace;
 	}
 
 	public long getProcessFinishTime() {

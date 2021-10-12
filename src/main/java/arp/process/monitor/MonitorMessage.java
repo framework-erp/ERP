@@ -1,5 +1,6 @@
 package arp.process.monitor;
 
+import java.util.List;
 import java.util.Map;
 
 public class MonitorMessage {
@@ -10,7 +11,7 @@ public class MonitorMessage {
 	private String processCreatedAggrs;
 	private String processDeletedAggrs;
 	private String processUpdatedAggrs;
-	private Map<String, Object> contextParameters;
+	private List<Map<String, Object>> contextParametersTrace;
 	private long processFinishTime;
 
 	public String getProcessDesc() {
@@ -61,12 +62,13 @@ public class MonitorMessage {
 		this.processUpdatedAggrs = processUpdatedAggrs;
 	}
 
-	public Map<String, Object> getContextParameters() {
-		return contextParameters;
+	public List<Map<String, Object>> getContextParametersTrace() {
+		return contextParametersTrace;
 	}
 
-	public void setContextParameters(Map<String, Object> contextParameters) {
-		this.contextParameters = contextParameters;
+	public void setContextParametersTrace(
+			List<Map<String, Object>> contextParametersTrace) {
+		this.contextParametersTrace = contextParametersTrace;
 	}
 
 	public long getProcessFinishTime() {

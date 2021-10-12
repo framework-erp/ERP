@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 public class ProcessListenerMessageConsumer {
 
 	private Map<String, List<ProcessListenerMessageProcessor>> processors = new ConcurrentHashMap<>();
+	private ProcessListenerMessageReceiver receiver;
 	private ExecutorService executorService;
 
 	public ProcessListenerMessageConsumer() {
@@ -27,8 +28,13 @@ public class ProcessListenerMessageConsumer {
 		list.add(processor);
 	}
 
+	public void subscribeProcess(String processDesc) {
+		receiver.subscribeProcess(processDesc);
+	}
+
 	public void start(List<String> processesToSubscribe,
 			ProcessListenerMessageReceiver receiver) {
+		this.receiver = receiver;
 		receiver.subscribeProcesses(processesToSubscribe);
 		new Thread(() -> {
 			while (true) {

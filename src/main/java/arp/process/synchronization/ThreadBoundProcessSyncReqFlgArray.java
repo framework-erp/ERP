@@ -5,12 +5,11 @@ import arp.util.Unsafe;
 public class ThreadBoundProcessSyncReqFlgArray {
 	private static byte[] threadProcessSyncReqFlgArray = new byte[1024];
 
-	public static void setFlg(byte flg) {
-		int iTid = (int) Thread.currentThread().getId();
-		if (iTid >= threadProcessSyncReqFlgArray.length) {
-			resizeArray(iTid);
+	public static void setFlg(int tid, byte flg) {
+		if (tid >= threadProcessSyncReqFlgArray.length) {
+			resizeArray(tid);
 		}
-		Unsafe.setVolatile(threadProcessSyncReqFlgArray, iTid, flg);
+		Unsafe.setVolatile(threadProcessSyncReqFlgArray, tid, flg);
 	}
 
 	private static synchronized void resizeArray(int iTid) {

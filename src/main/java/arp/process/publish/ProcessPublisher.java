@@ -12,7 +12,8 @@ public class ProcessPublisher {
 			List<Object> processDeletedAggrs,
 			List<Object[]> processUpdatedAggrs, String processDesc,
 			boolean dontPublishWhenResultIsNull,
-			Map<String, Object> contextParameters, long processFinishTime) {
+			List<Map<String, Object>> contextParametersTrace,
+			long processFinishTime) {
 		if (dontPublishWhenResultIsNull && processResult == null) {
 			return;
 		}
@@ -23,7 +24,7 @@ public class ProcessPublisher {
 		msg.setProcessCreatedAggrs(processCreatedAggrs);
 		msg.setProcessDeletedAggrs(processDeletedAggrs);
 		msg.setProcessUpdatedAggrs(processUpdatedAggrs);
-		msg.setContextParameters(contextParameters);
+		msg.setContextParametersTrace(contextParametersTrace);
 		msg.setProcessFinishTime(processFinishTime);
 		try {
 			messageSender.send(msg);

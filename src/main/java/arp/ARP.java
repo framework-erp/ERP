@@ -97,6 +97,10 @@ public class ARP {
 		messageConsumer.registerProcessor(processDesc, processor);
 	}
 
+	public static void subscribeProcess(String processDesc) {
+		messageConsumer.subscribeProcess(processDesc);
+	}
+
 	public static void startJoinMonitor(
 			MonitorMessageConvertor monitorMessageConvertor) throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseResult;

@@ -22,7 +22,7 @@ public class ProcessWrapper {
 					processContext.getUpdatedAggrs(),
 					processContext.getProcessDesc(),
 					processContext.isDontPublishWhenResultIsNull(),
-					processContext.getContextParameters(),
+					processContext.buildContextParametersTrace(),
 					System.currentTimeMillis());
 		}
 		processContext.clear();

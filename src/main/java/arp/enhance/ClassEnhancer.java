@@ -33,7 +33,9 @@ import org.objectweb.asm.commons.AdviceAdapter;
 
 import arp.ARP;
 import arp.process.Process;
+import arp.process.ProcessContext;
 import arp.process.ProcessWrapper;
+import arp.process.ThreadBoundProcessContextArray;
 import arp.process.publish.Message;
 import arp.process.publish.ProcessListenerMessageProcessor;
 
@@ -168,6 +170,22 @@ public class ClassEnhancer {
 							Type.getType(Message.class)), null, null);
 			mv.visitMaxs(2, 2);
 			mv.visitCode();
+
+			mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type
+					.getInternalName(ThreadBoundProcessContextArray.class),
+					"getProcessContext", Type.getMethodDescriptor(Type
+							.getType(ProcessContext.class)), false);
+			mv.visitVarInsn(Opcodes.ALOAD, 1);
+			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+					Type.getInternalName(Message.class),
+					"getContextParametersTrace",
+					Type.getMethodDescriptor(Type.getType(List.class)), false);
+			mv.visitMethodInsn(
+					Opcodes.INVOKEVIRTUAL,
+					Type.getInternalName(ProcessContext.class),
+					"setContextParametersTrace",
+					Type.getMethodDescriptor(Type.getType(void.class),
+							Type.getType(List.class)), false);
 			mv.visitVarInsn(Opcodes.ALOAD, 0);
 			mv.visitFieldInsn(Opcodes.GETFIELD, messageProcessorClasseType,
 					"processor", "L" + listenerProcessObjType.replace('.', '/')
