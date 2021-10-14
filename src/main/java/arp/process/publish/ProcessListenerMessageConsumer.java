@@ -28,8 +28,8 @@ public class ProcessListenerMessageConsumer {
 		list.add(processor);
 	}
 
-	public void subscribeProcess(String processDesc) {
-		receiver.subscribeProcess(processDesc);
+	public void subscribeProcessForNode(String processDesc, String nodeId) {
+		receiver.subscribeProcessForNode(processDesc, nodeId);
 	}
 
 	public void start(List<String> processesToSubscribe,

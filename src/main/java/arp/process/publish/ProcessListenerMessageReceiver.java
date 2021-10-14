@@ -8,6 +8,6 @@ public interface ProcessListenerMessageReceiver {
 
 	void subscribeProcesses(List<String> processesToSubscribe);
 
-	void subscribeProcess(String processDesc);
+	void subscribeProcessForNode(String processDesc, String nodeId);
 
 }

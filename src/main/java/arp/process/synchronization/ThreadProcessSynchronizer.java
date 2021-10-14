@@ -41,7 +41,7 @@ public class ThreadProcessSynchronizer {
 		}
 		ARP.registerMessageProcessor(waitingProcessName,
 				new ThreadSynchronizerMessageProcessor());
-		ARP.subscribeProcess(waitingProcessName);
+		ARP.subscribeProcessForNode(waitingProcessName, nodeId);
 		registeredProcessors.put(waitingProcessName, waitingProcessName);
 	}
 
@@ -56,14 +56,18 @@ public class ThreadProcessSynchronizer {
 	private static void threadWaitNano(long waitNano) {
 		long startTime = System.nanoTime();
 		int tid = (int) Thread.currentThread().getId();
+		int tryTimes = 0;
 		do {
 			byte flg = ThreadBoundProcessSyncReqFlgArray.getFlg(tid);
 			if (flg == 0) {
+				System.out.println("==success==" + tryTimes);
 				return;
 			}
 			if ((System.nanoTime() - startTime) > waitNano) {
+				System.out.println("==timeout==" + tryTimes);
 				return;
 			}
+			tryTimes++;
 		} while (true);
 	}
 

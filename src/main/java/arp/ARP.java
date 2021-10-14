@@ -97,8 +97,8 @@ public class ARP {
 		messageConsumer.registerProcessor(processDesc, processor);
 	}
 
-	public static void subscribeProcess(String processDesc) {
-		messageConsumer.subscribeProcess(processDesc);
+	public static void subscribeProcessForNode(String processDesc, String nodeId) {
+		messageConsumer.subscribeProcessForNode(processDesc, nodeId);
 	}
 
 	public static void startJoinMonitor(
