@@ -3,17 +3,22 @@ package arp.process.synchronization;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import arp.ARP;
 import arp.process.ProcessContext;
 import arp.process.ThreadBoundProcessContextArray;
+import arp.process.publish.Message;
+import arp.process.publish.MessageReceiver;
 
 public class ThreadProcessSynchronizer {
 	private static String nodeId = "";
-	private static Map<String, String> registeredProcessors = new ConcurrentHashMap<>();
+	private static Map<String, String> subscribedProcessors = new ConcurrentHashMap<>();
 	private static long defaultWaitNano = 100 * 1000000l;
+	private static ThreadProcessSyncFinishMessageConsumer threadProcessSyncFinishMessageConsumer;
 
-	public static void setNodeId(String nodeId) {
+	public static void start(String nodeId, MessageReceiver<Message> receiver) {
 		ThreadProcessSynchronizer.nodeId = nodeId;
+		threadProcessSyncFinishMessageConsumer = new ThreadProcessSyncFinishMessageConsumer(
+				receiver);
+		threadProcessSyncFinishMessageConsumer.start();
 	}
 
 	public static String getNodeId() {
@@ -30,19 +35,18 @@ public class ThreadProcessSynchronizer {
 			processContext.addContextParameter("nodeId", nodeId);
 		}
 		ThreadBoundProcessSyncReqFlgArray.setFlg((int) tid, (byte) 1);
-		if (!registeredProcessors.containsKey(waitingProcessName)) {
-			registerProcessor(waitingProcessName);
+		if (!subscribedProcessors.containsKey(waitingProcessName)) {
+			subscribeProcess(waitingProcessName);
 		}
 	}
 
-	private synchronized static void registerProcessor(String waitingProcessName) {
-		if (registeredProcessors.containsKey(waitingProcessName)) {
+	private synchronized static void subscribeProcess(String waitingProcessName) {
+		if (subscribedProcessors.containsKey(waitingProcessName)) {
 			return;
 		}
-		ARP.registerMessageProcessor(waitingProcessName,
-				new ThreadSynchronizerMessageProcessor());
-		ARP.subscribeProcessForNode(waitingProcessName, nodeId);
-		registeredProcessors.put(waitingProcessName, waitingProcessName);
+		threadProcessSyncFinishMessageConsumer
+				.subscribeProcess(waitingProcessName);
+		subscribedProcessors.put(waitingProcessName, waitingProcessName);
 	}
 
 	public static void threadWait() {

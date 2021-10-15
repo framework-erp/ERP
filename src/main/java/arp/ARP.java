@@ -9,10 +9,11 @@ import arp.enhance.ListenerInfo;
 import arp.enhance.ProcessInfo;
 import arp.process.ProcessContext;
 import arp.process.monitor.MonitorMessageConvertor;
+import arp.process.publish.Message;
+import arp.process.publish.MessageReceiver;
 import arp.process.publish.MessageSender;
 import arp.process.publish.ProcessListenerMessageConsumer;
 import arp.process.publish.ProcessListenerMessageProcessor;
-import arp.process.publish.ProcessListenerMessageReceiver;
 import arp.process.publish.ProcessPublisher;
 
 public class ARP {
@@ -33,13 +34,16 @@ public class ARP {
 		ProcessPublisher.defineProcessesToPublish(processesToPublish);
 	}
 
-	public static void start(ProcessListenerMessageReceiver messageReceiver,
-			String... pkgs) throws Exception {
+	public static void start(MessageReceiver messageReceiver, String... pkgs)
+			throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
 		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 		List<String> processesToSubscribe = getProcessesToSubscribe(parseResult);
-		messageConsumer = new ProcessListenerMessageConsumer();
-		messageConsumer.start(processesToSubscribe, messageReceiver);
+		messageConsumer = new ProcessListenerMessageConsumer(messageReceiver);
+		for (String processToSubscribe : processesToSubscribe) {
+			messageConsumer.subscribeProcess(processToSubscribe);
+		}
+		messageConsumer.start();
 	}
 
 	private static List<String> getProcessesToSubscribe(
@@ -61,7 +65,7 @@ public class ARP {
 	}
 
 	public static void start(MessageSender messageSender,
-			ProcessListenerMessageReceiver messageReceiver, String... pkgs)
+			MessageReceiver<Message> messageReceiver, String... pkgs)
 			throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
 		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
@@ -69,8 +73,11 @@ public class ARP {
 		List<String> processesToPublish = getProcessesToSend(parseResult);
 		ProcessPublisher.messageSender = messageSender;
 		ProcessPublisher.defineProcessesToPublish(processesToPublish);
-		messageConsumer = new ProcessListenerMessageConsumer();
-		messageConsumer.start(processesToSubscribe, messageReceiver);
+		messageConsumer = new ProcessListenerMessageConsumer(messageReceiver);
+		for (String processToSubscribe : processesToSubscribe) {
+			messageConsumer.subscribeProcess(processToSubscribe);
+		}
+		messageConsumer.start();
 	}
 
 	private static List<String> getProcessesToSend(ClassParseResult parseResult) {
@@ -95,10 +102,6 @@ public class ARP {
 	public static void registerMessageProcessor(String processDesc,
 			ProcessListenerMessageProcessor processor) {
 		messageConsumer.registerProcessor(processDesc, processor);
-	}
-
-	public static void subscribeProcessForNode(String processDesc, String nodeId) {
-		messageConsumer.subscribeProcessForNode(processDesc, nodeId);
 	}
 
 	public static void startJoinMonitor(
