@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class ProcessPublisher {
 
-	public static MessageSender messageSender;
+	public static MessageSender<Message> messageSender;
 
 	public static void publish(List<Object> processArguments,
 			Object processResult, List<Object> processCreatedAggrs,
@@ -27,7 +27,7 @@ public class ProcessPublisher {
 		msg.setContextParametersTrace(contextParametersTrace);
 		msg.setProcessFinishTime(processFinishTime);
 		try {
-			messageSender.send(msg);
+			messageSender.send(processDesc, msg);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

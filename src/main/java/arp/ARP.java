@@ -25,8 +25,8 @@ public class ARP {
 		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 	}
 
-	public static void start(MessageSender messageSender, String... pkgs)
-			throws Exception {
+	public static void start(MessageSender<Message> messageSender,
+			String... pkgs) throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
 		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 		List<String> processesToPublish = getProcessesToSend(parseResult);
@@ -34,8 +34,8 @@ public class ARP {
 		ProcessPublisher.defineProcessesToPublish(processesToPublish);
 	}
 
-	public static void start(MessageReceiver messageReceiver, String... pkgs)
-			throws Exception {
+	public static void start(MessageReceiver<Message> messageReceiver,
+			String... pkgs) throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
 		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 		List<String> processesToSubscribe = getProcessesToSubscribe(parseResult);
@@ -64,7 +64,7 @@ public class ARP {
 		return processesToSubscribe;
 	}
 
-	public static void start(MessageSender messageSender,
+	public static void start(MessageSender<Message> messageSender,
 			MessageReceiver<Message> messageReceiver, String... pkgs)
 			throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);

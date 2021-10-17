@@ -4,12 +4,17 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public abstract class ProcessesMonitor {
+import arp.process.publish.MessageReceiver;
+
+public class ProcessesMonitor {
 	private ExecutorService executorService;
 	private ProcessesMonitorMessageProcessor processor;
 	private Runnable subscribeProcessesTask;
 
-	public ProcessesMonitor() {
+	private MessageReceiver<MonitorMessage> messageReceiver;
+
+	public ProcessesMonitor(MessageReceiver<MonitorMessage> messageReceiver) {
+		this.messageReceiver = messageReceiver;
 		executorService = Executors.newCachedThreadPool();
 	}
 
@@ -18,17 +23,16 @@ public abstract class ProcessesMonitor {
 	}
 
 	public void updateAllProcessesToSubscribe() {
-		List<String> processesToSubscribe = queryAllProcessesToSubscribe();
+		List<String> processesToSubscribe = messageReceiver
+				.queryAllProcessesToSubscribe();
 		subscribeProcessesTask = () -> {
-			subscribeProcesses(processesToSubscribe);
+			if (processesToSubscribe != null) {
+				for (String process : processesToSubscribe) {
+					messageReceiver.subscribeProcess(process);
+				}
+			}
 		};
 	}
-
-	protected abstract void subscribeProcesses(List<String> processesToSubscribe);
-
-	protected abstract List<String> queryAllProcessesToSubscribe();
-
-	protected abstract List<MonitorMessage> receive() throws Exception;
 
 	public void start() {
 		updateAllProcessesToSubscribe();
@@ -44,7 +48,7 @@ public abstract class ProcessesMonitor {
 				}
 				List<MonitorMessage> msgList = null;
 				try {
-					msgList = receive();
+					msgList = messageReceiver.receive();
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}

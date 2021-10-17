@@ -8,4 +8,6 @@ public interface MessageReceiver<T> {
 
 	void subscribeProcess(String processDesc);
 
+	List<String> queryAllProcessesToSubscribe();
+
 }
