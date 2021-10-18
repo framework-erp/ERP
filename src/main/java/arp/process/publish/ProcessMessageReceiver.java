@@ -2,9 +2,9 @@ package arp.process.publish;
 
 import java.util.List;
 
-public interface MessageReceiver<T> {
+public interface ProcessMessageReceiver {
 
-	List<T> receive() throws Exception;
+	List<Message> receive() throws Exception;
 
 	void subscribeProcess(String processDesc);
 

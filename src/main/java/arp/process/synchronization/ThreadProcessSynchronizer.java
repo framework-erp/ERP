@@ -5,8 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import arp.process.ProcessContext;
 import arp.process.ThreadBoundProcessContextArray;
-import arp.process.publish.Message;
-import arp.process.publish.MessageReceiver;
+import arp.process.publish.ProcessMessageReceiver;
 
 public class ThreadProcessSynchronizer {
 	private static String nodeId = "";
@@ -14,7 +13,7 @@ public class ThreadProcessSynchronizer {
 	private static long defaultWaitNano = 100 * 1000000l;
 	private static ThreadProcessSyncFinishMessageConsumer threadProcessSyncFinishMessageConsumer;
 
-	public static void start(String nodeId, MessageReceiver<Message> receiver) {
+	public static void start(String nodeId, ProcessMessageReceiver receiver) {
 		ThreadProcessSynchronizer.nodeId = nodeId;
 		threadProcessSyncFinishMessageConsumer = new ThreadProcessSyncFinishMessageConsumer(
 				receiver);
@@ -60,18 +59,19 @@ public class ThreadProcessSynchronizer {
 	private static void threadWaitNano(long waitNano) {
 		long startTime = System.nanoTime();
 		int tid = (int) Thread.currentThread().getId();
-		int tryTimes = 0;
+		long t1 = System.currentTimeMillis();
 		do {
 			byte flg = ThreadBoundProcessSyncReqFlgArray.getFlg(tid);
 			if (flg == 0) {
-				System.out.println("==success==" + tryTimes);
+				long t2 = System.currentTimeMillis();
+				System.out.println("==success==" + (t2 - t1));
 				return;
 			}
 			if ((System.nanoTime() - startTime) > waitNano) {
-				System.out.println("==timeout==" + tryTimes);
+				long t2 = System.currentTimeMillis();
+				System.out.println("==timeout==" + (t2 - t1));
 				return;
 			}
-			tryTimes++;
 		} while (true);
 	}
 

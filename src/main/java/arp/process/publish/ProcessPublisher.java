@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class ProcessPublisher {
 
-	public static MessageSender<Message> messageSender;
+	public static ProcessMessageSender messageSender;
 
 	public static void publish(List<Object> processArguments,
 			Object processResult, List<Object> processCreatedAggrs,

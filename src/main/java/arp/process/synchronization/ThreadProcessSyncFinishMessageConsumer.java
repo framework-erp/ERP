@@ -6,15 +6,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import arp.process.publish.Message;
-import arp.process.publish.MessageReceiver;
+import arp.process.publish.ProcessMessageReceiver;
 
 public class ThreadProcessSyncFinishMessageConsumer {
 
-	private MessageReceiver receiver;
+	private ProcessMessageReceiver receiver;
 	private ExecutorService executorService;
 
 	public ThreadProcessSyncFinishMessageConsumer(
-			MessageReceiver receiver) {
+			ProcessMessageReceiver receiver) {
 		this.receiver = receiver;
 		executorService = Executors.newCachedThreadPool();
 	}

@@ -4,16 +4,17 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import arp.process.publish.MessageReceiver;
+import arp.process.publish.Message;
+import arp.process.publish.ProcessMessageReceiver;
 
 public class ProcessesMonitor {
 	private ExecutorService executorService;
 	private ProcessesMonitorMessageProcessor processor;
 	private Runnable subscribeProcessesTask;
 
-	private MessageReceiver<MonitorMessage> messageReceiver;
+	private ProcessMessageReceiver messageReceiver;
 
-	public ProcessesMonitor(MessageReceiver<MonitorMessage> messageReceiver) {
+	public ProcessesMonitor(ProcessMessageReceiver messageReceiver) {
 		this.messageReceiver = messageReceiver;
 		executorService = Executors.newCachedThreadPool();
 	}
@@ -46,7 +47,7 @@ public class ProcessesMonitor {
 					}
 					subscribeProcessesTask = null;
 				}
-				List<MonitorMessage> msgList = null;
+				List<Message> msgList = null;
 				try {
 					msgList = messageReceiver.receive();
 				} catch (Exception e1) {
@@ -60,7 +61,7 @@ public class ProcessesMonitor {
 					}
 					continue;
 				}
-				for (MonitorMessage msg : msgList) {
+				for (Message msg : msgList) {
 					if (processor == null) {
 						continue;
 					}

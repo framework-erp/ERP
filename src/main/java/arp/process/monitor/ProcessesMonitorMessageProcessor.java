@@ -1,8 +1,9 @@
 package arp.process.monitor;
 
+import arp.process.publish.Message;
 
 public interface ProcessesMonitorMessageProcessor {
 
-	void process(MonitorMessage message);
+	void process(Message message);
 
 }

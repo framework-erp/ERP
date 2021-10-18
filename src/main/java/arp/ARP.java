@@ -8,12 +8,10 @@ import arp.enhance.ClassParseResult;
 import arp.enhance.ListenerInfo;
 import arp.enhance.ProcessInfo;
 import arp.process.ProcessContext;
-import arp.process.monitor.MonitorMessageConvertor;
-import arp.process.publish.Message;
-import arp.process.publish.MessageReceiver;
-import arp.process.publish.MessageSender;
 import arp.process.publish.ProcessListenerMessageConsumer;
 import arp.process.publish.ProcessListenerMessageProcessor;
+import arp.process.publish.ProcessMessageReceiver;
+import arp.process.publish.ProcessMessageSender;
 import arp.process.publish.ProcessPublisher;
 
 public class ARP {
@@ -25,8 +23,8 @@ public class ARP {
 		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 	}
 
-	public static void start(MessageSender<Message> messageSender,
-			String... pkgs) throws Exception {
+	public static void start(ProcessMessageSender messageSender, String... pkgs)
+			throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
 		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 		List<String> processesToPublish = getProcessesToSend(parseResult);
@@ -34,7 +32,7 @@ public class ARP {
 		ProcessPublisher.defineProcessesToPublish(processesToPublish);
 	}
 
-	public static void start(MessageReceiver<Message> messageReceiver,
+	public static void start(ProcessMessageReceiver messageReceiver,
 			String... pkgs) throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
 		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
@@ -64,8 +62,8 @@ public class ARP {
 		return processesToSubscribe;
 	}
 
-	public static void start(MessageSender<Message> messageSender,
-			MessageReceiver<Message> messageReceiver, String... pkgs)
+	public static void start(ProcessMessageSender messageSender,
+			ProcessMessageReceiver messageReceiver, String... pkgs)
 			throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
 		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
@@ -102,13 +100,6 @@ public class ARP {
 	public static void registerMessageProcessor(String processDesc,
 			ProcessListenerMessageProcessor processor) {
 		messageConsumer.registerProcessor(processDesc, processor);
-	}
-
-	public static void startJoinMonitor(
-			MonitorMessageConvertor monitorMessageConvertor) throws Exception {
-		ClassParseResult parseResult = ClassEnhancer.parseResult;
-		List<String> processesToPublish = getProcessesToSend(parseResult);
-		monitorMessageConvertor.start(processesToPublish);
 	}
 
 }

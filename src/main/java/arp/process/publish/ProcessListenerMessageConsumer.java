@@ -10,10 +10,10 @@ import java.util.concurrent.Executors;
 public class ProcessListenerMessageConsumer {
 
 	private Map<String, List<ProcessListenerMessageProcessor>> processors = new ConcurrentHashMap<>();
-	private MessageReceiver<Message> receiver;
+	private ProcessMessageReceiver receiver;
 	private ExecutorService executorService;
 
-	public ProcessListenerMessageConsumer(MessageReceiver<Message> receiver) {
+	public ProcessListenerMessageConsumer(ProcessMessageReceiver receiver) {
 		this.receiver = receiver;
 		executorService = Executors.newCachedThreadPool();
 	}
