@@ -59,19 +59,15 @@ public class ThreadProcessSynchronizer {
 	private static void threadWaitNano(long waitNano) {
 		long startTime = System.nanoTime();
 		int tid = (int) Thread.currentThread().getId();
-		long t1 = System.currentTimeMillis();
 		do {
 			byte flg = ThreadBoundProcessSyncReqFlgArray.getFlg(tid);
 			if (flg == 0) {
-				long t2 = System.currentTimeMillis();
-				System.out.println("==success==" + (t2 - t1));
 				return;
 			}
 			if ((System.nanoTime() - startTime) > waitNano) {
-				long t2 = System.currentTimeMillis();
-				System.out.println("==timeout==" + (t2 - t1));
 				return;
 			}
+			Thread.yield();
 		} while (true);
 	}
 
