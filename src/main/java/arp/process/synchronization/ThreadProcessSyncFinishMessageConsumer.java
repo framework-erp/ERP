@@ -19,10 +19,6 @@ public class ThreadProcessSyncFinishMessageConsumer {
 		executorService = Executors.newCachedThreadPool();
 	}
 
-	public void subscribeProcess(String processDesc) {
-		receiver.subscribeProcess(processDesc);
-	}
-
 	public void start() {
 		new Thread(
 				() -> {

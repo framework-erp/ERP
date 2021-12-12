@@ -1,15 +1,11 @@
 package arp.process.synchronization;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import arp.process.ProcessContext;
 import arp.process.ThreadBoundProcessContextArray;
 import arp.process.publish.ProcessMessageReceiver;
 
 public class ThreadProcessSynchronizer {
 	private static String nodeId = "";
-	private static Map<String, String> subscribedProcessors = new ConcurrentHashMap<>();
 	private static long defaultWaitNano = 100 * 1000000l;
 	private static ThreadProcessSyncFinishMessageConsumer threadProcessSyncFinishMessageConsumer;
 
@@ -34,18 +30,6 @@ public class ThreadProcessSynchronizer {
 			processContext.addContextParameter("nodeId", nodeId);
 		}
 		ThreadBoundProcessSyncReqFlgArray.setFlg((int) tid, (byte) 1);
-		if (!subscribedProcessors.containsKey(waitingProcessName)) {
-			subscribeProcess(waitingProcessName);
-		}
-	}
-
-	private synchronized static void subscribeProcess(String waitingProcessName) {
-		if (subscribedProcessors.containsKey(waitingProcessName)) {
-			return;
-		}
-		threadProcessSyncFinishMessageConsumer
-				.subscribeProcess(waitingProcessName);
-		subscribedProcessors.put(waitingProcessName, waitingProcessName);
 	}
 
 	public static void threadWait() {

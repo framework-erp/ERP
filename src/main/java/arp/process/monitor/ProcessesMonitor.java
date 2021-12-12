@@ -23,20 +23,7 @@ public class ProcessesMonitor {
 		this.processor = processor;
 	}
 
-	public void updateAllProcessesToSubscribe() {
-		List<String> processesToSubscribe = messageReceiver
-				.queryAllProcessesToSubscribe();
-		subscribeProcessesTask = () -> {
-			if (processesToSubscribe != null) {
-				for (String process : processesToSubscribe) {
-					messageReceiver.subscribeProcess(process);
-				}
-			}
-		};
-	}
-
 	public void start() {
-		updateAllProcessesToSubscribe();
 		new Thread(() -> {
 			while (true) {
 				if (subscribeProcessesTask != null) {

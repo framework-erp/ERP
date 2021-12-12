@@ -29,10 +29,6 @@ public class ProcessListenerMessageConsumer {
 		list.add(processor);
 	}
 
-	public void subscribeProcess(String processDesc) {
-		receiver.subscribeProcess(processDesc);
-	}
-
 	public void start() {
 		new Thread(() -> {
 			while (true) {

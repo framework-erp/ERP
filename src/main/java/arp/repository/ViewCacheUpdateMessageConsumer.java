@@ -26,10 +26,6 @@ public class ViewCacheUpdateMessageConsumer {
 		repositories.put(entityType.getName(), repository);
 	}
 
-	public void subscribeProcess(String processDesc) {
-		receiver.subscribeProcess(processDesc);
-	}
-
 	public void start() {
 		new Thread(
 				() -> {

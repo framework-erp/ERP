@@ -27,15 +27,11 @@ public class ProcessPublisher {
 		msg.setContextParametersTrace(contextParametersTrace);
 		msg.setProcessFinishTime(processFinishTime);
 		try {
-			messageSender.send(processDesc, msg);
+			messageSender.send(msg);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	public static void defineProcessesToPublish(List<String> processesToPublish) {
-		messageSender.defineProcessesToSend(processesToPublish);
 	}
 
 }
