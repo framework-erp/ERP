@@ -14,6 +14,9 @@ public class ProcessPublisher {
 			boolean dontPublishWhenResultIsNull,
 			List<Map<String, Object>> contextParametersTrace,
 			long processFinishTime) {
+		if (messageSender == null) {
+			return;
+		}
 		if (dontPublishWhenResultIsNull && processResult == null) {
 			return;
 		}

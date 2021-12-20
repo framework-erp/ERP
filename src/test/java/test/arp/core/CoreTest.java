@@ -39,6 +39,8 @@ public class CoreTest {
 		assertEquals(50, f4Result1.getEntity1().getiValue());
 		assertEquals(150, f4Result1.getEntity2().getiValue());
 
+		service.f5(0, 0);
+
 		TestService2 service2 = new TestService2();
 		TestEntity entity21 = service2.f1(1);
 		assertEquals(1, entity21.getId());
