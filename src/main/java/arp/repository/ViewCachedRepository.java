@@ -32,6 +32,7 @@ public class ViewCachedRepository<E, I> extends Repository<E, I> {
 			Class<E> entityType) {
 		if (underlyingRepository.mock) {
 			initAsMock();
+			this.underlyingRepository = underlyingRepository;
 			return;
 		}
 		this.underlyingRepository = underlyingRepository;

@@ -8,7 +8,9 @@ public class ViewCachedRepositorySynchronizer {
 
 	public static void registerRepository(ViewCachedRepository<?, ?> repo,
 			Class<?> entityType) {
-		viewCacheUpdateMessageConsumer.registerRepository(repo, entityType);
+		if (viewCacheUpdateMessageConsumer != null) {
+			viewCacheUpdateMessageConsumer.registerRepository(repo, entityType);
+		}
 	}
 
 	public static void start(ProcessMessageReceiver receiver) {
