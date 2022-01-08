@@ -28,7 +28,7 @@ public abstract class Repository<E, I> {
 
 	private Map<I, E> mockStore;
 
-	private boolean mock = false;
+	protected boolean mock = false;
 
 	public static Repository getRepository(int id) {
 		return repositories[id];
