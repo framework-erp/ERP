@@ -59,6 +59,8 @@ public class EntityComparator {
 				comparators[i] = new DoubleFieldComparator(field);
 			} else if (boolean.class.equals(fieldType)) {
 				comparators[i] = new BooleanFieldComparator(field);
+			} else if (Object.class.equals(fieldType)) {
+				comparators[i] = new JavaObjectFieldComparator(field);
 			} else if (Byte.class.equals(fieldType)) {
 				comparators[i] = new JavaObjectFieldComparator(field);
 			} else if (Short.class.equals(fieldType)) {
