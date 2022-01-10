@@ -83,8 +83,6 @@ public class EntityCopier {
 				copiers[i] = new ValueObjectFieldCopier(field);
 			} else if (Enum.class.equals(fieldType.getSuperclass())) {
 				copiers[i] = new ValueObjectFieldCopier(field);
-			} else if (Object.class.equals(fieldType)) {
-				copiers[i] = new ValueObjectFieldCopier(field);
 			} else if (byte[].class.equals(fieldType)) {
 				copiers[i] = new ByteArrayFieldCopier(field);
 			} else if (short[].class.equals(fieldType)) {
