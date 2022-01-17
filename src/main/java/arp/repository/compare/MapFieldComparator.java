@@ -19,8 +19,8 @@ public class MapFieldComparator extends BaseFieldComparator {
 		Map mOne = (Map) Unsafe.getObjectFieldOfObject(one, fieldOffset);
 		if (mOne instanceof HashMap) {
 			HashMap hmOne = (HashMap) mOne;
-			HashMap hmAnother = (HashMap) Unsafe.getObjectFieldOfObject(another,
-					fieldOffset);
+			HashMap hmAnother = (HashMap) Unsafe.getObjectFieldOfObject(
+					another, fieldOffset);
 			if (hmOne == null) {
 				return hmAnother == null;
 			} else {
@@ -40,7 +40,8 @@ public class MapFieldComparator extends BaseFieldComparator {
 								return false;
 							}
 						} else {
-							if (!value.equals(hmAnother.get(key))) {
+							if (!EntityComparator.equals(value,
+									hmAnother.get(key))) {
 								return false;
 							}
 						}

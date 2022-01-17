@@ -39,7 +39,7 @@ public class HashMapFieldComparator extends BaseFieldComparator {
 							return false;
 						}
 					} else {
-						if (!value.equals(mAnother.get(key))) {
+						if (!EntityComparator.equals(value, mAnother.get(key))) {
 							return false;
 						}
 					}
