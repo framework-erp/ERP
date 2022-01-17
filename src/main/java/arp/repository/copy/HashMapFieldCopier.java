@@ -2,6 +2,8 @@ package arp.repository.copy;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import arp.util.Unsafe;
 
@@ -13,7 +15,14 @@ public class HashMapFieldCopier extends BaseFieldCopier {
 
 	@Override
 	public void copyField(Object fromEntity, Object toEntity) {
-		HashMap map = (HashMap) Unsafe.getObjectFieldOfObject(fromEntity, fieldOffset);
-		Unsafe.setObjectFieldOfObject(toEntity, fieldOffset, map.clone());
+		HashMap map = (HashMap) Unsafe.getObjectFieldOfObject(fromEntity,
+				fieldOffset);
+		HashMap copiedMap = new HashMap(map.size());
+		Iterator<Entry> i = map.entrySet().iterator();
+		while (i.hasNext()) {
+			Entry<?, ?> e = i.next();
+			copiedMap.put(e.getKey(), EntityCopier.copy(e.getValue()));
+		}
+		Unsafe.setObjectFieldOfObject(toEntity, fieldOffset, copiedMap);
 	}
 }

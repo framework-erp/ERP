@@ -96,9 +96,9 @@ public class EntityComparator {
 			} else if (Set.class.equals(fieldType)) {
 				comparators[i] = new JavaObjectFieldComparator(field);
 			} else if (HashMap.class.equals(fieldType)) {
-				comparators[i] = new JavaObjectFieldComparator(field);
+				comparators[i] = new HashMapFieldComparator(field);
 			} else if (Map.class.equals(fieldType)) {
-				comparators[i] = new JavaObjectFieldComparator(field);
+				comparators[i] = new MapFieldComparator(field);
 			} else {
 				comparators[i] = new EntityFieldComparator(field);
 			}
