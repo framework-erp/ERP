@@ -31,9 +31,10 @@ public class ViewCacheUpdateMessageConsumer {
 		new Thread(
 				() -> {
 					boolean park = false;
+					long parkNanos = 100 * 1000L;
 					while (true) {
 						if (park) {
-							LockSupport.parkNanos(1);
+							LockSupport.parkNanos(parkNanos);
 						}
 						List<Message> msgList = null;
 						try {
