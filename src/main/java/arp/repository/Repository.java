@@ -16,7 +16,13 @@ import arp.process.ThreadBoundProcessContextArray;
 import arp.process.TransientProcessEntityState;
 import arp.util.Unsafe;
 
-public abstract class Repository<E, I> {
+/**
+ * 仓库是存放聚合的地方，聚合只会通过它的id来获取。
+ *
+ * @param <E> 实体类型
+ * @param <ID> ID类型
+ */
+public abstract class Repository<E, ID> {
 
 	private static AtomicInteger ids = new AtomicInteger();
 
@@ -26,7 +32,7 @@ public abstract class Repository<E, I> {
 
 	private Function<Object[], Object> setIdFunction = null;
 
-	private Map<I, E> mockStore;
+	private Map<ID, E> mockStore;
 
 	protected boolean mock = false;
 
@@ -44,9 +50,9 @@ public abstract class Repository<E, I> {
 		mockStore = new HashMap<>();
 	}
 
-	protected abstract I getId(E entity);
+	protected abstract ID getId(E entity);
 
-	public E findByIdForUpdate(I id) {
+	public E take(ID id) {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
 		if (!processContext.isStarted()) {
@@ -74,7 +80,7 @@ public abstract class Repository<E, I> {
 		return entity;
 	}
 
-	private E doFindByIdForUpdate(I id) {
+	private E doFindByIdForUpdate(ID id) {
 		if (!mock) {
 			return findByIdForUpdateFromStore(id);
 		} else {
@@ -82,9 +88,9 @@ public abstract class Repository<E, I> {
 		}
 	}
 
-	protected abstract E findByIdForUpdateFromStore(I id);
+	protected abstract E findByIdForUpdateFromStore(ID id);
 
-	public E findById(I id) {
+	public E find(ID id) {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
 		if (!processContext.isStarted()) {
@@ -98,7 +104,7 @@ public abstract class Repository<E, I> {
 		return doFindById(id);
 	}
 
-	private E doFindById(I id) {
+	private E doFindById(ID id) {
 		if (!mock) {
 			return findByIdFromStore(id);
 		} else {
@@ -106,9 +112,9 @@ public abstract class Repository<E, I> {
 		}
 	}
 
-	protected abstract E findByIdFromStore(I id);
+	protected abstract E findByIdFromStore(ID id);
 
-	public void save(E entity) {
+	public void put(E entity) {
 
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
@@ -117,12 +123,12 @@ public abstract class Repository<E, I> {
 					"can not use repository without a process");
 		}
 
-		I id = getId(entity);
+		ID id = getId(entity);
 		processContext.putEntityInProcess(this.id, id, entity);
 
 	}
 
-	public E saveIfAbsent(E entity) {
+	public E putIfAbsent(E entity) {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
 		if (!processContext.isStarted()) {
@@ -130,7 +136,7 @@ public abstract class Repository<E, I> {
 					"can not use repository without a process");
 		}
 
-		I id = getId(entity);
+		ID id = getId(entity);
 
 		ProcessEntity<E> processEntity = processContext
 				.putIfAbsentEntityInProcess(this.id, id, entity);
@@ -153,7 +159,7 @@ public abstract class Repository<E, I> {
 		return entityFromStore;
 	}
 
-	private E doSaveIfAbsent(I id, E entity) {
+	private E doSaveIfAbsent(ID id, E entity) {
 		if (!mock) {
 			return saveIfAbsentToStore(id, entity);
 		} else {
@@ -161,9 +167,9 @@ public abstract class Repository<E, I> {
 		}
 	}
 
-	protected abstract E saveIfAbsentToStore(I id, E entity);
+	protected abstract E saveIfAbsentToStore(ID id, E entity);
 
-	public E remove(I id) {
+	public E remove(ID id) {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
 		if (!processContext.isStarted()) {
@@ -185,21 +191,21 @@ public abstract class Repository<E, I> {
 
 	}
 
-	public void deleteEntities(Set<I> ids) {
+	public void deleteEntities(Set<ID> ids) {
 
 		if (!mock) {
 			removeAllToStore(ids);
 		} else {
-			for (I id : ids) {
+			for (ID id : ids) {
 				mockStore.remove(id);
 			}
 		}
 
 	}
 
-	protected abstract void removeAllToStore(Set<I> ids);
+	protected abstract void removeAllToStore(Set<ID> ids);
 
-	public void updateEntities(Map<I, E> entitiesToReturn) {
+	public void updateEntities(Map<ID, E> entitiesToReturn) {
 
 		if (!mock) {
 			updateAllToStore(entitiesToReturn);
@@ -208,9 +214,9 @@ public abstract class Repository<E, I> {
 
 	}
 
-	protected abstract void updateAllToStore(Map<I, E> entities);
+	protected abstract void updateAllToStore(Map<ID, E> entities);
 
-	public void createEntities(Map<I, E> entitiesToCreate) {
+	public void createEntities(Map<ID, E> entitiesToCreate) {
 
 		if (!mock) {
 			saveAllToStore(entitiesToCreate);
@@ -220,19 +226,19 @@ public abstract class Repository<E, I> {
 
 	}
 
-	protected abstract void saveAllToStore(Map<I, E> entities);
+	protected abstract void saveAllToStore(Map<ID, E> entities);
 
-	public void returnEntities(Set<I> ids) {
+	public void returnEntities(Set<ID> ids) {
 		if (!mock) {
 			unlockAllToStore(ids);
 		} else {
 		}
 	}
 
-	protected abstract void unlockAllToStore(Set<I> ids);
+	protected abstract void unlockAllToStore(Set<ID> ids);
 
-	public E findByIdForUpdateOrCreateAndLock(I id, E newEntity) {
-		E entity = findByIdForUpdate(id);
+	public E findByIdForUpdateOrCreateAndLock(ID id, E newEntity) {
+		E entity = take(id);
 		if (entity == null) {
 			if (setIdFunction == null) {
 				try {
@@ -241,7 +247,7 @@ public abstract class Repository<E, I> {
 				}
 			}
 			setIdFunction.apply(new Object[] { newEntity, id });
-			E existsEntity = saveIfAbsent(newEntity);
+			E existsEntity = putIfAbsent(newEntity);
 			if (existsEntity != null) {
 				return existsEntity;
 			}

@@ -13,7 +13,7 @@ public class TestService2 {
 	public TestEntity f1(int id) {
 		TestEntity entity = new TestEntity();
 		entity.setId(id);
-		TestEntity existsEntity = testEntityRepository.saveIfAbsent(entity);
+		TestEntity existsEntity = testEntityRepository.putIfAbsent(entity);
 		if (existsEntity != null) {
 			return existsEntity;
 		} else {
@@ -23,7 +23,7 @@ public class TestService2 {
 
 	@Process
 	public TestEntity f2(int id) {
-		TestEntity entity = testEntityRepository.findByIdForUpdate(id);
+		TestEntity entity = testEntityRepository.take(id);
 		entity.setiValue(1);
 		return entity;
 	}
@@ -33,14 +33,14 @@ public class TestService2 {
 		TestEntity entity = new TestEntity();
 		entity.setId(id);
 		entity.setiValue(iValue);
-		testEntityRepository.save(entity);
+		testEntityRepository.put(entity);
 	}
 
 	@Process
 	public F4Result f4(int id1, int id2, int value) {
-		TestEntity entity1 = testEntityRepository.findByIdForUpdate(id1);
+		TestEntity entity1 = testEntityRepository.take(id1);
 		entity1.setiValue(entity1.getiValue() - value);
-		TestEntity entity2 = testEntityRepository.findByIdForUpdate(id2);
+		TestEntity entity2 = testEntityRepository.take(id2);
 		entity2.setiValue(entity2.getiValue() + value);
 		return new F4Result(entity1, entity2);
 	}
