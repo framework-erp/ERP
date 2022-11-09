@@ -22,7 +22,7 @@ import arp.util.Unsafe;
  * @param <E> 实体类型
  * @param <ID> ID类型
  */
-public abstract class Repository<E, ID> {
+public class Repository<E, ID> {
 
 	private static AtomicInteger ids = new AtomicInteger();
 
