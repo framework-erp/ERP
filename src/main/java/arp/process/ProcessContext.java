@@ -51,8 +51,6 @@ public class ProcessContext {
 
 	private int processInfoId;
 
-	private Map<String, Object> contextParameters = new HashMap<>();
-
 	private List<Map<String, Object>> contextParametersTrace = new ArrayList<>();
 
 	public void startProcess(int processInfoId) {
@@ -294,14 +292,6 @@ public class ProcessContext {
 		createdAggrs.add(createdAggr);
 	}
 
-	public Object getContextParameter(String key) {
-		return contextParameters.get(key);
-	}
-
-	public void addContextParameter(String key, Object value) {
-		contextParameters.put(key, value);
-	}
-
 	public Object getResult() {
 		return result;
 	}
@@ -350,10 +340,6 @@ public class ProcessContext {
 		return processInfos[processInfoId];
 	}
 
-	public Map<String, Object> getContextParameters() {
-		return contextParameters;
-	}
-
 	public List<Map<String, Object>> getContextParametersTrace() {
 		return contextParametersTrace;
 	}
@@ -361,13 +347,6 @@ public class ProcessContext {
 	public void setContextParametersTrace(
 			List<Map<String, Object>> contextParametersTrace) {
 		this.contextParametersTrace = contextParametersTrace;
-	}
-
-	public List<Map<String, Object>> buildContextParametersTrace() {
-		List<Map<String, Object>> newTrace = new ArrayList<>(
-				contextParametersTrace);
-		newTrace.add(contextParameters);
-		return newTrace;
 	}
 
 }
