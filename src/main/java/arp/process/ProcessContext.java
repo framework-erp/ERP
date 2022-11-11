@@ -123,10 +123,6 @@ public class ProcessContext {
 		}
 	}
 
-	public boolean isStarted() {
-		return started;
-	}
-
 	public <I, E> ProcessEntity<E> getEntityInProcessForTake(int repositoryId,
 			I entityId) {
 		RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities

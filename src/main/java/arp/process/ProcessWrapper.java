@@ -6,7 +6,7 @@ public class ProcessWrapper {
 
 	public static void beforeProcessStart(int processInfoId) {
 		ProcessContext processContext = ThreadBoundProcessContextArray
-				.getProcessContext();
+				.createProcessContext();
 		processContext.startProcess(processInfoId);
 	}
 
