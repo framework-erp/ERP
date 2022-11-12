@@ -23,7 +23,7 @@
 		<dependency>
 			<groupId>org.ow2.asm</groupId>
 			<artifactId>asm-commons</artifactId>
-			<version>5.1</version>
+			<version>6.2</version>
 		</dependency>
 	</dependencies>
 
@@ -81,8 +81,8 @@
 						<version>3.8.0</version>
 						<configuration>
 							<skip>true</skip>
-							<source>1.8</source>
-							<target>1.8</target>
+							<source>${maven.compiler.source}</source>
+							<target>${maven.compiler.target}</target>
 							<compilerArguments>
 								<verbose />
 								<bootclasspath>${java.home}/lib/rt.jar;${java.home}/lib/jce.jar;${java.home}/lib/jsse.jar</bootclasspath>
