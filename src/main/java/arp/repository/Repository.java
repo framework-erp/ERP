@@ -16,7 +16,7 @@ import java.util.function.Function;
  * @param <E>  实体类型
  * @param <ID> ID类型
  */
-public class Repository<E, ID> {
+public abstract class Repository<E, ID> {
 
     private Store<E, ID> store;
     private Mutexes<ID> mutexes;
