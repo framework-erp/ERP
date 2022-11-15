@@ -1,5 +1,6 @@
 package arp.process;
 
+import arp.process.states.ProcessEntityState;
 import arp.repository.compare.EntityComparator;
 
 public class ProcessEntity<T> {
@@ -11,8 +12,8 @@ public class ProcessEntity<T> {
 		return !EntityComparator.equals(initialEntitySnapshot, entity);
 	}
 
-	public void updateStateByTake() {
-		state = state.take();
+	public void changeStateByTake() {
+		state = state.transferByTake();
 	}
 
 	public void updateStateByPut() {
@@ -47,4 +48,7 @@ public class ProcessEntity<T> {
 		this.state = state;
 	}
 
+	public boolean isAvailable() {
+		return state.isEntityAvailable();
+	}
 }

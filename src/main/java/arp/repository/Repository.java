@@ -52,17 +52,15 @@ public abstract class Repository<E, ID> {
     public E take(ID id) {
         ProcessContext processContext = ThreadBoundProcessContextArray
                 .getProcessContext();
-        if (!processContext.isStarted()) {
+        if (processContext == null) {
             throw new RuntimeException(
-                    "can not use repository without a process");
+                    "can not take from repository without a process");
         }
 
         ProcessEntity<E> processEntity = processContext
-                .getEntityInProcessForTake(this.id, id);
+                .takeEntityInProcess(this.id, id);
         if (processEntity != null) {
-            ProcessEntityState entityState = processEntity.getState();
-            if (entityState instanceof CreatedProcessEntityState
-                    || entityState instanceof TakenProcessEntityState) {
+            if (processEntity.isAvailable()) {
                 return processEntity.getEntity();
             } else {
                 return null;
