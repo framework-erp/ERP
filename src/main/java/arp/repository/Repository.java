@@ -50,15 +50,12 @@ public abstract class Repository<E, ID> {
     protected abstract ID getId(E entity);
 
     public E take(ID id) {
-        ProcessContext processContext = ThreadBoundProcessContextArray
-                .getProcessContext();
+        ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
         if (processContext == null) {
-            throw new RuntimeException(
-                    "can not take from repository without a process");
+            throw new RuntimeException("can not take from repository without a process");
         }
 
-        ProcessEntity<E> processEntity = processContext
-                .takeEntityInProcess(this.id, id);
+        ProcessEntity<E> processEntity = processContext.takeEntityInProcess(this.id, id);
         if (processEntity != null) {
             if (processEntity.isAvailable()) {
                 return processEntity.getEntity();
@@ -67,27 +64,37 @@ public abstract class Repository<E, ID> {
             }
         }
 
-        E entity = doFindByIdForUpdate(id);
-        if (entity != null) {
-            processContext.takeEntityFromRepoAndPutInProcess(this.id, id,
-                    entity);
-        }
-        return entity;
-    }
-
-    private E doFindByIdForUpdate(ID id) {
-        if (!mock) {
-            return findByIdForUpdateFromStore(id);
+        int lockRslt = mutexes.lock(id);
+        E existsEntity;
+        if (lockRslt == -1) {
+            //检查entity存在且补锁
+            existsEntity = find(id);
+            if (existsEntity == null) {
+                return null;
+            }
+            boolean ok = mutexes.newAndLock(id);
+            if (!ok) {
+                //补锁不成功那就是有人抢先补锁，那么这里就需要再去获得锁了
+                lockRslt = mutexes.lock(id);
+                if (lockRslt == 0) {
+                    throw new CanNotAcquireLockException(mutexes.getLockProcess());
+                }
+            }
         } else {
-            return mockStore.get(id);
+            if (lockRslt == 0) {
+                throw new CanNotAcquireLockException(mutexes.getLockProcess());
+            }
+            existsEntity = find(id);
+            if (existsEntity == null) {
+                return null;
+            }
         }
+        processContext.addEntityTakenFromRepo(this.id, id, existsEntity);
+        return existsEntity;
     }
-
-    protected abstract E findByIdForUpdateFromStore(ID id);
 
     public E find(ID id) {
-        ProcessContext processContext = ThreadBoundProcessContextArray
-                .getProcessContext();
+        ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
         if (processContext != null) {
             E entity = processContext.copyEntityInProcess(this.id, id);
             if (entity != null) {
@@ -97,23 +104,11 @@ public abstract class Repository<E, ID> {
         return store.load(id);
     }
 
-    private E doFindById(ID id) {
-        if (!mock) {
-            return findByIdFromStore(id);
-        } else {
-            return mockStore.get(id);
-        }
-    }
-
-    protected abstract E findByIdFromStore(ID id);
-
     public void put(E entity) {
 
-        ProcessContext processContext = ThreadBoundProcessContextArray
-                .getProcessContext();
+        ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
         if (!processContext.isStarted()) {
-            throw new RuntimeException(
-                    "can not use repository without a process");
+            throw new RuntimeException("can not use repository without a process");
         }
 
         ID id = getId(entity);
@@ -122,17 +117,14 @@ public abstract class Repository<E, ID> {
     }
 
     public E putIfAbsent(E entity) {
-        ProcessContext processContext = ThreadBoundProcessContextArray
-                .getProcessContext();
+        ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
         if (!processContext.isStarted()) {
-            throw new RuntimeException(
-                    "can not use repository without a process");
+            throw new RuntimeException("can not use repository without a process");
         }
 
         ID id = getId(entity);
 
-        ProcessEntity<E> processEntity = processContext
-                .putIfAbsentEntityInProcess(this.id, id, entity);
+        ProcessEntity<E> processEntity = processContext.putIfAbsentEntityInProcess(this.id, id, entity);
         if (processEntity != null) {
             ProcessEntityState entityState = processEntity.getState();
             if (!(entityState instanceof TransientProcessEntityState)) {
@@ -142,12 +134,10 @@ public abstract class Repository<E, ID> {
 
         E entityFromStore = doSaveIfAbsent(id, entity);
         if (entityFromStore != null) {
-            processContext.takeEntityFromRepoAndPutInProcess(this.id, id,
-                    entityFromStore);
+            processContext.addEntityTakenFromRepo(this.id, id, entityFromStore);
         } else {
             processContext.addCreatedAggr(entity);
-            processContext.takeEntityFromRepoAndPutInProcess(this.id, id,
-                    entity);
+            processContext.addEntityTakenFromRepo(this.id, id, entity);
         }
         return entityFromStore;
     }
@@ -163,22 +153,18 @@ public abstract class Repository<E, ID> {
     protected abstract E saveIfAbsentToStore(ID id, E entity);
 
     public E remove(ID id) {
-        ProcessContext processContext = ThreadBoundProcessContextArray
-                .getProcessContext();
+        ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
         if (!processContext.isStarted()) {
-            throw new RuntimeException(
-                    "can not use repository without a process");
+            throw new RuntimeException("can not use repository without a process");
         }
-        ProcessEntity<E> processEntity = processContext.removeEntityInProcess(
-                this.id, id);
+        ProcessEntity<E> processEntity = processContext.removeEntityInProcess(this.id, id);
         if (processEntity != null) {
             return processEntity.getEntity();
         }
 
         E entityFromStore = doFindByIdForUpdate(id);
         if (entityFromStore != null) {
-            processContext.takeEntityFromRepoAndPutInProcessAsRemoved(this.id,
-                    id, entityFromStore);
+            processContext.takeEntityFromRepoAndPutInProcessAsRemoved(this.id, id, entityFromStore);
         }
         return entityFromStore;
 
@@ -258,8 +244,7 @@ public abstract class Repository<E, ID> {
 
                 @Override
                 public Object apply(Object[] t) {
-                    Unsafe.setByteFieldOfObject(t[0], idFieldOffset,
-                            ((Byte) t[1]).byteValue());
+                    Unsafe.setByteFieldOfObject(t[0], idFieldOffset, ((Byte) t[1]).byteValue());
                     return null;
                 }
 
@@ -269,8 +254,7 @@ public abstract class Repository<E, ID> {
 
                 @Override
                 public Object apply(Object[] t) {
-                    Unsafe.setShortFieldOfObject(t[0], idFieldOffset,
-                            ((Short) t[1]).shortValue());
+                    Unsafe.setShortFieldOfObject(t[0], idFieldOffset, ((Short) t[1]).shortValue());
                     return null;
                 }
 
@@ -280,8 +264,7 @@ public abstract class Repository<E, ID> {
 
                 @Override
                 public Object apply(Object[] t) {
-                    Unsafe.setCharFieldOfObject(t[0], idFieldOffset,
-                            ((Character) t[1]).charValue());
+                    Unsafe.setCharFieldOfObject(t[0], idFieldOffset, ((Character) t[1]).charValue());
                     return null;
                 }
 
@@ -291,8 +274,7 @@ public abstract class Repository<E, ID> {
 
                 @Override
                 public Object apply(Object[] t) {
-                    Unsafe.setIntFieldOfObject(t[0], idFieldOffset,
-                            ((Integer) t[1]).intValue());
+                    Unsafe.setIntFieldOfObject(t[0], idFieldOffset, ((Integer) t[1]).intValue());
                     return null;
                 }
 
@@ -302,8 +284,7 @@ public abstract class Repository<E, ID> {
 
                 @Override
                 public Object apply(Object[] t) {
-                    Unsafe.setFloatFieldOfObject(t[0], idFieldOffset,
-                            ((Float) t[1]).floatValue());
+                    Unsafe.setFloatFieldOfObject(t[0], idFieldOffset, ((Float) t[1]).floatValue());
                     return null;
                 }
 
@@ -313,8 +294,7 @@ public abstract class Repository<E, ID> {
 
                 @Override
                 public Object apply(Object[] t) {
-                    Unsafe.setLongFieldOfObject(t[0], idFieldOffset,
-                            ((Long) t[1]).longValue());
+                    Unsafe.setLongFieldOfObject(t[0], idFieldOffset, ((Long) t[1]).longValue());
                     return null;
                 }
 
@@ -324,8 +304,7 @@ public abstract class Repository<E, ID> {
 
                 @Override
                 public Object apply(Object[] t) {
-                    Unsafe.setDoubleFieldOfObject(t[0], idFieldOffset,
-                            ((Double) t[1]).doubleValue());
+                    Unsafe.setDoubleFieldOfObject(t[0], idFieldOffset, ((Double) t[1]).doubleValue());
                     return null;
                 }
 
@@ -335,8 +314,7 @@ public abstract class Repository<E, ID> {
 
                 @Override
                 public Object apply(Object[] t) {
-                    Unsafe.setBooleanFieldOfObject(t[0], idFieldOffset,
-                            ((Boolean) t[1]).booleanValue());
+                    Unsafe.setBooleanFieldOfObject(t[0], idFieldOffset, ((Boolean) t[1]).booleanValue());
                     return null;
                 }
 
