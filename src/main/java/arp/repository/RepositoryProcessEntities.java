@@ -7,6 +7,7 @@ import arp.process.CreatedProcessEntityState;
 import arp.process.ProcessEntity;
 import arp.process.RemovedProcessEntityState;
 import arp.process.TakenProcessEntityState;
+import arp.process.states.CreatedInProcState;
 import arp.process.states.TakenFromRepoState;
 import arp.repository.copy.EntityCopier;
 
@@ -59,15 +60,16 @@ public class RepositoryProcessEntities<I, E> {
         return entities.get(entityId);
     }
 
-    public void putEntityInProcess(I entityId, E entity) {
+    public void addNewEntity(I entityId, E entity) {
         ProcessEntity<E> processEntity = entities.get(entityId);
         if (processEntity == null) {
             processEntity = new ProcessEntity<>();
-            processEntity.setEntity(entity);
-            processEntity.setState(new CreatedProcessEntityState());
+            processEntity.setState(new CreatedInProcState());
             entities.put(entityId, processEntity);
-        } else {
-            processEntity.updateStateByPut();
+        }
+        processEntity.setEntity(entity);
+        if (!processEntity.isAvailable()) {
+            processEntity.changeStateByPut();
         }
     }
 

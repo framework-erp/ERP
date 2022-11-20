@@ -16,8 +16,8 @@ public class ProcessEntity<T> {
 		state = state.transferByTake();
 	}
 
-	public void updateStateByPut() {
-		state = state.put();
+	public void changeStateByPut() {
+		state = state.transferByPut();
 	}
 
 	public void updateStateByRemove() {
@@ -51,4 +51,5 @@ public class ProcessEntity<T> {
 	public boolean isAvailable() {
 		return state.isEntityAvailable();
 	}
+
 }

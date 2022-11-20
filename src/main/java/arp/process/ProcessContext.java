@@ -153,13 +153,13 @@ public class ProcessContext {
         entities.takeEntityFromRepoAndPutInProcessAsRemoved(entityId, entity);
     }
 
-    public <I, E> void putEntityInProcess(int repositoryId, I entityId, E entity) {
+    public <I, E> void addNewEntity(int repositoryId, I entityId, E entity) {
         RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
         if (entities == null) {
             entities = new RepositoryProcessEntities<>(repositoryId);
             processEntities.put(repositoryId, entities);
         }
-        entities.putEntityInProcess(entityId, entity);
+        entities.addNewEntity(entityId, entity);
     }
 
     public <I, E> ProcessEntity<E> putIfAbsentEntityInProcess(int repositoryId, I entityId, E entity) {
@@ -323,6 +323,18 @@ public class ProcessContext {
 
     public void setContextParametersTrace(List<Map<String, Object>> contextParametersTrace) {
         this.contextParametersTrace = contextParametersTrace;
+    }
+
+    public <ID, E> boolean entityAvailableInProcess(int repositoryId, ID entityId) {
+        RepositoryProcessEntities<ID, E> entities = (RepositoryProcessEntities<ID, E>) processEntities.get(repositoryId);
+        if (entities == null) {
+            return false;
+        }
+        ProcessEntity<E> processEntity = entities.takeEntity(entityId);
+        if (processEntity == null) {
+            return false;
+        }
+        return processEntity.isAvailable();
     }
 
 }

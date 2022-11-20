@@ -27,7 +27,9 @@ public abstract class Repository<E, ID> {
 
     private int id;
 
-    private Function<Object[], Object> setIdFunction = null;
+    private Function<Object, Object> getEntityIdFunction = null;
+
+    private Function<Object[], Object> setEntityIdFunction = null;
 
     private Map<ID, E> mockStore;
 
@@ -47,7 +49,16 @@ public abstract class Repository<E, ID> {
         mockStore = new HashMap<>();
     }
 
-    protected abstract ID getId(E entity);
+    private ID getId(E entity) {
+        if (getEntityIdFunction == null) {
+            try {
+                createGetEntityIdFunction(entity);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return (ID) getEntityIdFunction.apply(entity);
+    }
 
     public E take(ID id) {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
@@ -105,15 +116,15 @@ public abstract class Repository<E, ID> {
     }
 
     public void put(E entity) {
-
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-        if (!processContext.isStarted()) {
-            throw new RuntimeException("can not use repository without a process");
+        if (processContext == null) {
+            throw new RuntimeException("can not put to repository without a process");
         }
-
+        if (processContext.entityAvailableInProcess(this.id, id)) {
+            throw new RuntimeException("can not 'Put' since entity already exists");
+        }
         ID id = getId(entity);
-        processContext.putEntityInProcess(this.id, id, entity);
-
+        processContext.addNewEntity(this.id, id, entity);
     }
 
     public E putIfAbsent(E entity) {
@@ -219,13 +230,13 @@ public abstract class Repository<E, ID> {
     public E findByIdForUpdateOrCreateAndLock(ID id, E newEntity) {
         E entity = take(id);
         if (entity == null) {
-            if (setIdFunction == null) {
+            if (setEntityIdFunction == null) {
                 try {
-                    createSetIdFunction(newEntity);
+                    createSetEntityIdFunction(newEntity);
                 } catch (Exception e) {
                 }
             }
-            setIdFunction.apply(new Object[]{newEntity, id});
+            setEntityIdFunction.apply(new Object[]{newEntity, id});
             E existsEntity = putIfAbsent(newEntity);
             if (existsEntity != null) {
                 return existsEntity;
@@ -235,12 +246,101 @@ public abstract class Repository<E, ID> {
         return entity;
     }
 
-    private void createSetIdFunction(E newEntity) throws Exception {
-        Field idField = newEntity.getClass().getDeclaredField("id");
+    private void createGetEntityIdFunction(E entity) throws Exception {
+        Field idField = entity.getClass().getDeclaredField("id");
         long idFieldOffset = Unsafe.getFieldOffset(idField);
         Class<?> idFieldType = idField.getType();
         if (idFieldType.equals(byte.class)) {
-            setIdFunction = new Function<Object[], Object>() {
+            getEntityIdFunction = new Function<Object, Object>() {
+
+                @Override
+                public Object apply(Object t) {
+                    return Unsafe.getByteFieldOfObject(t, idFieldOffset);
+                }
+
+            };
+        } else if (idFieldType.equals(short.class)) {
+            getEntityIdFunction = new Function<Object, Object>() {
+
+                @Override
+                public Object apply(Object t) {
+                    return Unsafe.getShortFieldOfObject(t, idFieldOffset);
+                }
+
+            };
+        } else if (idFieldType.equals(char.class)) {
+            getEntityIdFunction = new Function<Object, Object>() {
+
+                @Override
+                public Object apply(Object t) {
+                    return Unsafe.getCharFieldOfObject(t, idFieldOffset);
+                }
+
+            };
+        } else if (idFieldType.equals(int.class)) {
+            getEntityIdFunction = new Function<Object, Object>() {
+
+                @Override
+                public Object apply(Object t) {
+                    return Unsafe.getIntFieldOfObject(t, idFieldOffset);
+                }
+
+            };
+        } else if (idFieldType.equals(float.class)) {
+            getEntityIdFunction = new Function<Object, Object>() {
+
+                @Override
+                public Object apply(Object t) {
+                    return Unsafe.getFloatFieldOfObject(t, idFieldOffset);
+                }
+
+            };
+        } else if (idFieldType.equals(long.class)) {
+            getEntityIdFunction = new Function<Object, Object>() {
+
+                @Override
+                public Object apply(Object t) {
+                    return Unsafe.getLongFieldOfObject(t, idFieldOffset);
+                }
+
+            };
+        } else if (idFieldType.equals(double.class)) {
+            getEntityIdFunction = new Function<Object, Object>() {
+
+                @Override
+                public Object apply(Object t) {
+                    return Unsafe.getDoubleFieldOfObject(t, idFieldOffset);
+                }
+
+            };
+        } else if (idFieldType.equals(boolean.class)) {
+            getEntityIdFunction = new Function<Object, Object>() {
+
+                @Override
+                public Object apply(Object t) {
+                    return Unsafe.getBooleanFieldOfObject(t, idFieldOffset);
+                }
+
+            };
+        } else {
+            getEntityIdFunction = new Function<Object, Object>() {
+
+                @Override
+                public Object apply(Object t) {
+                    return Unsafe.getObjectFieldOfObject(t, idFieldOffset);
+                }
+
+            };
+        }
+
+    }
+
+    private void createSetEntityIdFunction(E entity) throws Exception {
+        Field idField = entity.getClass().getDeclaredField("id");
+        long idFieldOffset = Unsafe.getFieldOffset(idField);
+        Class<?> idFieldType = idField.getType();
+        if (idFieldType.equals(byte.class)) {
+            setEntityIdFunction = new Function<Object[], Object>() {
 
                 @Override
                 public Object apply(Object[] t) {
@@ -250,7 +350,7 @@ public abstract class Repository<E, ID> {
 
             };
         } else if (idFieldType.equals(short.class)) {
-            setIdFunction = new Function<Object[], Object>() {
+            setEntityIdFunction = new Function<Object[], Object>() {
 
                 @Override
                 public Object apply(Object[] t) {
@@ -260,7 +360,7 @@ public abstract class Repository<E, ID> {
 
             };
         } else if (idFieldType.equals(char.class)) {
-            setIdFunction = new Function<Object[], Object>() {
+            setEntityIdFunction = new Function<Object[], Object>() {
 
                 @Override
                 public Object apply(Object[] t) {
@@ -270,7 +370,7 @@ public abstract class Repository<E, ID> {
 
             };
         } else if (idFieldType.equals(int.class)) {
-            setIdFunction = new Function<Object[], Object>() {
+            setEntityIdFunction = new Function<Object[], Object>() {
 
                 @Override
                 public Object apply(Object[] t) {
@@ -280,7 +380,7 @@ public abstract class Repository<E, ID> {
 
             };
         } else if (idFieldType.equals(float.class)) {
-            setIdFunction = new Function<Object[], Object>() {
+            setEntityIdFunction = new Function<Object[], Object>() {
 
                 @Override
                 public Object apply(Object[] t) {
@@ -290,7 +390,7 @@ public abstract class Repository<E, ID> {
 
             };
         } else if (idFieldType.equals(long.class)) {
-            setIdFunction = new Function<Object[], Object>() {
+            setEntityIdFunction = new Function<Object[], Object>() {
 
                 @Override
                 public Object apply(Object[] t) {
@@ -300,7 +400,7 @@ public abstract class Repository<E, ID> {
 
             };
         } else if (idFieldType.equals(double.class)) {
-            setIdFunction = new Function<Object[], Object>() {
+            setEntityIdFunction = new Function<Object[], Object>() {
 
                 @Override
                 public Object apply(Object[] t) {
@@ -310,7 +410,7 @@ public abstract class Repository<E, ID> {
 
             };
         } else if (idFieldType.equals(boolean.class)) {
-            setIdFunction = new Function<Object[], Object>() {
+            setEntityIdFunction = new Function<Object[], Object>() {
 
                 @Override
                 public Object apply(Object[] t) {
@@ -320,7 +420,7 @@ public abstract class Repository<E, ID> {
 
             };
         } else {
-            setIdFunction = new Function<Object[], Object>() {
+            setEntityIdFunction = new Function<Object[], Object>() {
 
                 @Override
                 public Object apply(Object[] t) {
