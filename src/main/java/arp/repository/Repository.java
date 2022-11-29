@@ -157,36 +157,13 @@ public abstract class Repository<E, ID> {
     }
 
     public E remove(ID id) {
-        ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-        if (!processContext.isStarted()) {
-            throw new RuntimeException("can not use repository without a process");
+        E entity = take( id);
+        if (entity!=null) {
+            ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
+            processContext.removeEntityInProcess(this.id,  id);
         }
-        ProcessEntity<E> processEntity = processContext.removeEntityInProcess(this.id, id);
-        if (processEntity != null) {
-            return processEntity.getEntity();
-        }
-
-        E entityFromStore = doFindByIdForUpdate(id);
-        if (entityFromStore != null) {
-            processContext.takeEntityFromRepoAndPutInProcessAsRemoved(this.id, id, entityFromStore);
-        }
-        return entityFromStore;
-
+        return entity;
     }
-
-    public void deleteEntities(Set<ID> ids) {
-
-        if (!mock) {
-            removeAllToStore(ids);
-        } else {
-            for (ID id : ids) {
-                mockStore.remove(id);
-            }
-        }
-
-    }
-
-    protected abstract void removeAllToStore(Set<ID> ids);
 
     public void updateEntities(Map<ID, E> entitiesToReturn) {
 

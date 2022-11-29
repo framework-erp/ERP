@@ -143,6 +143,14 @@ public class ProcessContext {
         return entities.getEntity(entityId);
     }
 
+    public<I, E> void removeEntityInProcess(int repositoryId, I entityId) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
+        if (entities == null) {
+            return;
+        }
+        entities.removeEntity(entityId);
+    }
+
     public <I, E> void addEntityTakenFromRepo(int repositoryId, I entityId, E entity) {
         RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
         if (entities == null) {
@@ -188,22 +196,6 @@ public class ProcessContext {
         } else {
             return processEntity;
         }
-    }
-
-    public <I, E> ProcessEntity<E> removeEntityInProcess(int repositoryId, I entityId) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
-        if (entities == null) {
-            return null;
-        }
-        ProcessEntity<E> processEntity = entities.findEntity(entityId);
-        if (processEntity == null) {
-            return null;
-        }
-        if (processEntity.getState() instanceof TransientProcessEntityState) {
-            return null;
-        }
-        processEntity.updateStateByRemove();
-        return processEntity;
     }
 
     public void processFaild() {

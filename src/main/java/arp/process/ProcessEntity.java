@@ -24,8 +24,8 @@ public class ProcessEntity<T> {
 		state = state.transferByPutIfAbsent();
 	}
 
-	public void updateStateByRemove() {
-		state = state.remove();
+	public void changeStateByRemove() {
+		state = state.transferByRemove();
 	}
 
 	public ProcessEntityState getState() {

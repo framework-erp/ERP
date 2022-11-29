@@ -77,6 +77,14 @@ public class RepositoryProcessEntities<I, E> {
         }
     }
 
+    public void removeEntity(I entityId) {
+        ProcessEntity<E> processEntity = entities.get(entityId);
+        if (processEntity == null) {
+            return ;
+        }
+        processEntity.changeStateByRemove();
+    }
+
     public int getRepositoryId() {
         return repositoryId;
     }
@@ -84,5 +92,6 @@ public class RepositoryProcessEntities<I, E> {
     public Map<I, ProcessEntity<E>> getEntities() {
         return entities;
     }
+
 
 }
