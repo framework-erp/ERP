@@ -127,41 +127,34 @@ public abstract class Repository<E, ID> {
         processContext.addNewEntity(this.id, id, entity);
     }
 
-    public E putIfAbsent(E entity) {
+    public PutIfAbsentResult<E> putIfAbsent(E entity) {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-        if (!processContext.isStarted()) {
-            throw new RuntimeException("can not use repository without a process");
+        if (processContext == null) {
+            throw new RuntimeException("can not put to repository without a process");
         }
 
         ID id = getId(entity);
-
-        ProcessEntity<E> processEntity = processContext.putIfAbsentEntityInProcess(this.id, id, entity);
+        //先要看过程中的，如果有可用的那就拿来做实际值，如果有但是不可用那就取用新值且新值覆盖老值
+        ProcessEntity<E> processEntity = processContext.getEntityInProcess(this.id, id);
         if (processEntity != null) {
-            ProcessEntityState entityState = processEntity.getState();
-            if (!(entityState instanceof TransientProcessEntityState)) {
-                return processEntity.getEntity();
+            processEntity.changeStateByPutIfAbsent();
+            if (processEntity.isAvailable()) {
+                return new PutIfAbsentResult(processEntity.getEntity(), false);
+            } else {
+                processEntity.setEntity(entity);
+                return new PutIfAbsentResult(entity, true);
             }
         }
 
-        E entityFromStore = doSaveIfAbsent(id, entity);
-        if (entityFromStore != null) {
-            processContext.addEntityTakenFromRepo(this.id, id, entityFromStore);
-        } else {
-            processContext.addCreatedAggr(entity);
-            processContext.addEntityTakenFromRepo(this.id, id, entity);
+        boolean ok = mutexes.newAndLock(id);
+        if (!ok) {
+            E actual = take(id);
+            return new PutIfAbsentResult(actual, false);
         }
-        return entityFromStore;
+        store.save(id, entity);
+        processContext.addEntityTakenFromRepo(this.id, id, entity);
+        return new PutIfAbsentResult(entity, true);
     }
-
-    private E doSaveIfAbsent(ID id, E entity) {
-        if (!mock) {
-            return saveIfAbsentToStore(id, entity);
-        } else {
-            return mockStore.putIfAbsent(id, entity);
-        }
-    }
-
-    protected abstract E saveIfAbsentToStore(ID id, E entity);
 
     public E remove(ID id) {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();

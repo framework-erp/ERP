@@ -20,6 +20,10 @@ public class ProcessEntity<T> {
 		state = state.transferByPut();
 	}
 
+	public void changeStateByPutIfAbsent() {
+		state = state.transferByPutIfAbsent();
+	}
+
 	public void updateStateByRemove() {
 		state = state.remove();
 	}

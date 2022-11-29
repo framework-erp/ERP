@@ -135,6 +135,14 @@ public class ProcessContext {
         return entities.copyEntity(entityId);
     }
 
+    public <I, E> E getEntityInProcess(int repositoryId, I entityId) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
+        if (entities == null) {
+            return null;
+        }
+        return entities.getEntity(entityId);
+    }
+
     public <I, E> void addEntityTakenFromRepo(int repositoryId, I entityId, E entity) {
         RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
         if (entities == null) {

@@ -49,11 +49,15 @@ public class RepositoryProcessEntities<I, E> {
     }
 
     public E copyEntity(I entityId) {
+        return EntityCopier.copy(getEntity(entityId));
+    }
+
+    public E getEntity(I entityId) {
         ProcessEntity<E> processEntity = entities.get(entityId);
         if (processEntity == null) {
             return null;
         }
-        return EntityCopier.copy(processEntity.getEntity());
+        return processEntity.getEntity();
     }
 
     public ProcessEntity<E> findEntity(I entityId) {
