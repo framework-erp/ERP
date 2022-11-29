@@ -157,10 +157,10 @@ public abstract class Repository<E, ID> {
     }
 
     public E remove(ID id) {
-        E entity = take( id);
-        if (entity!=null) {
+        E entity = take(id);
+        if (entity != null) {
             ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-            processContext.removeEntityInProcess(this.id,  id);
+            processContext.removeEntityInProcess(this.id, id);
         }
         return entity;
     }
@@ -197,21 +197,10 @@ public abstract class Repository<E, ID> {
 
     protected abstract void unlockAllToStore(Set<ID> ids);
 
-    public E findByIdForUpdateOrCreateAndLock(ID id, E newEntity) {
+    public E takeOrPutIfAbsent(ID id, E newEntity) {
         E entity = take(id);
         if (entity == null) {
-            if (setEntityIdFunction == null) {
-                try {
-                    createSetEntityIdFunction(newEntity);
-                } catch (Exception e) {
-                }
-            }
-            setEntityIdFunction.apply(new Object[]{newEntity, id});
-            E existsEntity = putIfAbsent(newEntity);
-            if (existsEntity != null) {
-                return existsEntity;
-            }
-            return newEntity;
+            return putIfAbsent(newEntity).getActual();
         }
         return entity;
     }
