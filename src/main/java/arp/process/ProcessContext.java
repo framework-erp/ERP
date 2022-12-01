@@ -45,19 +45,17 @@ public class ProcessContext {
 
     private boolean dontPublishWhenResultIsNull;
 
-    private String processDesc;
-
     private boolean publish;
 
-    private int processInfoId;
+    private String processName;
 
     private List<Map<String, Object>> contextParametersTrace = new ArrayList<>();
 
-    public void startProcess(int processInfoId) {
+    public void startProcess(String processName) {
         if (started) {
             throw new RuntimeException("can not start a process in another started process");
         }
-        this.processInfoId = processInfoId;
+        this.processName = processName;
         started = true;
         Unsafe.loadFence();
     }
