@@ -12,7 +12,6 @@ public class ProcessPublisher {
 			List<Object> processDeletedAggrs,
 			List<Object[]> processUpdatedAggrs, String processDesc,
 			boolean dontPublishWhenResultIsNull,
-			List<Map<String, Object>> contextParametersTrace,
 			long processFinishTime) {
 		if (messageSender == null) {
 			return;

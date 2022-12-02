@@ -4,6 +4,7 @@ import arp.process.ProcessEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface Store<E, ID> {
 
@@ -14,7 +15,7 @@ public interface Store<E, ID> {
 
     void save(ID id, E entity);
 
-    void saveAll(Map<ID, E> entitiesToInsert, Map<ID, ProcessEntity> entitiesToUpdate);
+    void saveAll(Map<Object, Object> entitiesToInsert, Map<Object, ProcessEntity> entitiesToUpdate);
 
-    void removeAll(List<ID> ids);
+    void removeAll(Set<Object> ids);
 }

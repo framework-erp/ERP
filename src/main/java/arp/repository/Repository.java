@@ -188,14 +188,10 @@ public abstract class Repository<E, ID> {
 
     protected abstract void saveAllToStore(Map<ID, E> entities);
 
-    public void returnEntities(Set<ID> ids) {
-        if (!mock) {
-            unlockAllToStore(ids);
-        } else {
-        }
+    public void releaseProcessEntity(Set<Object> ids) {
+        mutexes.unlockAll(ids);
     }
 
-    protected abstract void unlockAllToStore(Set<ID> ids);
 
     public E takeOrPutIfAbsent(ID id, E newEntity) {
         E entity = take(id);
@@ -390,5 +386,10 @@ public abstract class Repository<E, ID> {
             };
         }
 
+    }
+
+    public void flushProcessEntities(Map<Object, Object> entitiesToInsert, Map<Object, ProcessEntity> entitiesToUpdate, Set<Object> idsToRemoveEntity) {
+        store.saveAll(entitiesToInsert, entitiesToUpdate);
+        store.removeAll(idsToRemoveEntity);
     }
 }

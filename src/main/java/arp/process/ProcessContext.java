@@ -10,6 +10,9 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import arp.enhance.ProcessInfo;
+import arp.process.states.CreatedInProcState;
+import arp.process.states.TakenFromRepoState;
+import arp.process.states.ToRemoveInRepoState;
 import arp.repository.Repository;
 import arp.repository.RepositoryProcessEntities;
 import arp.util.Unsafe;
@@ -65,55 +68,45 @@ public class ProcessContext {
         try {
             flushProcessEntities();
         } catch (Exception e) {
-            try {
-                releaseAcquiredLocks();
-            } catch (Exception e1) {
-            }
-            clear();
-            started = false;
             throw new RuntimeException("flush process entities faild", e);
+        } finally {
+            try {
+                releaseProcessEntities();
+            } catch (Exception e) {
+                throw new RuntimeException("release process entities faild", e);
+            } finally {
+                clear();
+                started = false;
+            }
         }
-        try {
-            releaseAcquiredLocks();
-        } catch (Exception e) {
-        }
-        started = false;
     }
 
     private void flushProcessEntities() throws Exception {
-        for (RepositoryProcessEntities entities : processEntities.values()) {
-            Repository repository = Repository.getRepository(entities.getRepositoryId());
-            Map processEntities = entities.getEntities();
-            Map entitiesToCreate = new HashMap();
-            Map entitiesToUpdate = new HashMap();
-            Set idsToRemove = new HashSet();
+        for (RepositoryProcessEntities repoPes : processEntities.values()) {
+            Map processEntities = repoPes.getEntities();
+            Map<Object, Object> entitiesToInsert = new HashMap<>();
+            Map<Object, ProcessEntity> entitiesToUpdate = new HashMap<>();
+            Set<Object> idsToRemoveEntity = new HashSet<>();
 
             for (Object obj : processEntities.entrySet()) {
                 Entry entry = (Entry) obj;
                 Object id = entry.getKey();
                 ProcessEntity processEntity = (ProcessEntity) entry.getValue();
-                if (processEntity.getState() instanceof CreatedProcessEntityState) {
-                    entitiesToCreate.put(id, processEntity.getEntity());
+                if (processEntity.getState() instanceof CreatedInProcState) {
+                    entitiesToInsert.put(id, processEntity.getEntity());
                     createdAggrs.add(processEntity.getEntity());
-                } else if (processEntity.getState() instanceof TakenProcessEntityState) {
+                } else if (processEntity.getState() instanceof TakenFromRepoState) {
                     if (processEntity.changed()) {
-                        entitiesToUpdate.put(id, processEntity.getEntity());
+                        entitiesToUpdate.put(id, processEntity);
                         updatedAggrs.add(new Object[]{processEntity.getInitialEntitySnapshot(), processEntity.getEntity()});
                     }
-                } else if (processEntity.getState() instanceof RemovedProcessEntityState) {
-                    idsToRemove.add(id);
+                } else if (processEntity.getState() instanceof ToRemoveInRepoState) {
+                    idsToRemoveEntity.add(id);
                     deletedAggrs.add(processEntity.getEntity());
                 }
             }
-            if (!idsToRemove.isEmpty()) {
-                repository.deleteEntities(idsToRemove);
-            }
-            if (!entitiesToUpdate.isEmpty()) {
-                repository.updateEntities(entitiesToUpdate);
-            }
-            if (!entitiesToCreate.isEmpty()) {
-                repository.createEntities(entitiesToCreate);
-            }
+            Repository repository = Repository.getRepository(repoPes.getRepositoryId());
+            repository.flushProcessEntities(entitiesToInsert, entitiesToUpdate, idsToRemoveEntity);
         }
     }
 
@@ -141,7 +134,7 @@ public class ProcessContext {
         return entities.getEntity(entityId);
     }
 
-    public<I, E> void removeEntityInProcess(int repositoryId, I entityId) {
+    public <I, E> void removeEntityInProcess(int repositoryId, I entityId) {
         RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
         if (entities == null) {
             return;
@@ -198,7 +191,7 @@ public class ProcessContext {
 
     public void processFaild() {
         try {
-            releaseAcquiredLocks();
+            releaseProcessEntities();
         } catch (Exception e) {
         }
         clear();
@@ -213,29 +206,26 @@ public class ProcessContext {
         updatedAggrs.clear();
         result = null;
         dontPublishWhenResultIsNull = false;
-        processDesc = null;
         publish = false;
     }
 
-    private void releaseAcquiredLocks() throws Exception {
-        for (RepositoryProcessEntities entities : processEntities.values()) {
-            Repository repository = Repository.getRepository(entities.getRepositoryId());
+    private void releaseProcessEntities() throws Exception {
+        for (RepositoryProcessEntities repoPes : processEntities.values()) {
 
-            Map processEntities = entities.getEntities();
-            Set idsToUnlock = new HashSet();
+            Map processEntities = repoPes.getEntities();
+            Set<Object> ids = new HashSet<>();
 
             for (Object obj : processEntities.entrySet()) {
                 Entry entry = (Entry) obj;
                 Object id = entry.getKey();
                 ProcessEntity processEntity = (ProcessEntity) entry.getValue();
-                if (processEntity.getState() instanceof TakenProcessEntityState) {
-                    idsToUnlock.add(id);
-                } else if (processEntity.getState() instanceof RemovedProcessEntityState) {
-                    idsToUnlock.add(id);
+                if (processEntity.isAvailable()) {
+                    ids.add(id);
                 }
             }
 
-            repository.returnEntities(idsToUnlock);
+            Repository repository = Repository.getRepository(repoPes.getRepositoryId());
+            repository.releaseProcessEntity(ids);
 
         }
         for (AtomicInteger lock : singleEntityAcquiredLocks) {

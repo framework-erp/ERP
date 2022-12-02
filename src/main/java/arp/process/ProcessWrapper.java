@@ -14,18 +14,19 @@ public class ProcessWrapper {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
 		processContext.finishProcess();
-		if (processContext.isPublish()) {
-			ProcessPublisher.publish(processContext.getArguments(),
-					processContext.getResult(),
-					processContext.getCreatedAggrs(),
-					processContext.getDeletedAggrs(),
-					processContext.getUpdatedAggrs(),
-					processContext.getProcessDesc(),
-					processContext.isDontPublishWhenResultIsNull(),
-					processContext.buildContextParametersTrace(),
-					System.currentTimeMillis());
-		}
-		processContext.clear();
+	}
+
+	public static void publishProcess() {
+		ProcessContext processContext = ThreadBoundProcessContextArray
+				.getProcessContext();
+		ProcessPublisher.publish(processContext.getArguments(),
+				processContext.getResult(),
+				processContext.getCreatedAggrs(),
+				processContext.getDeletedAggrs(),
+				processContext.getUpdatedAggrs(),
+				processContext.getProcessDesc(),
+				processContext.isDontPublishWhenResultIsNull(),
+				System.currentTimeMillis());
 	}
 
 	public static void afterProcessFaild() {
