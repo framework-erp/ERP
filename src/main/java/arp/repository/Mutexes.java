@@ -18,4 +18,6 @@ public interface Mutexes<ID> {
     void unlockAll(Set<Object> ids );
 
     String getLockProcess();
+
+    void removeAll(Set<Object> ids);
 }

@@ -52,8 +52,6 @@ public class ProcessContext {
 
     private String processName;
 
-    private List<Map<String, Object>> contextParametersTrace = new ArrayList<>();
-
     public void startProcess(String processName) {
         if (started) {
             throw new RuntimeException("can not start a process in another started process");
@@ -169,26 +167,6 @@ public class ProcessContext {
         entities.addNewEntity(entityId, entity);
     }
 
-    public <I, E> ProcessEntity<E> putIfAbsentEntityInProcess(int repositoryId, I entityId, E entity) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
-        if (entities == null) {
-            return null;
-        }
-        ProcessEntity<E> processEntity = entities.findEntity(entityId);
-        if (processEntity == null) {
-            return null;
-        }
-        if (processEntity.getState() instanceof RemovedProcessEntityState) {
-            processEntity.setEntity(entity);
-            processEntity.updateStateByPut();
-            return processEntity;
-        } else if (processEntity.getState() instanceof TransientProcessEntityState) {
-            return null;
-        } else {
-            return processEntity;
-        }
-    }
-
     public void processFaild() {
         try {
             releaseProcessEntities();
@@ -253,10 +231,6 @@ public class ProcessContext {
         }
     }
 
-    public void addCreatedAggr(Object createdAggr) {
-        createdAggrs.add(createdAggr);
-    }
-
     public Object getResult() {
         return result;
     }
@@ -303,14 +277,6 @@ public class ProcessContext {
 
     public ProcessInfo getProcessInfo() {
         return processInfos[processInfoId];
-    }
-
-    public List<Map<String, Object>> getContextParametersTrace() {
-        return contextParametersTrace;
-    }
-
-    public void setContextParametersTrace(List<Map<String, Object>> contextParametersTrace) {
-        this.contextParametersTrace = contextParametersTrace;
     }
 
     public <ID, E> boolean entityAvailableInProcess(int repositoryId, ID entityId) {

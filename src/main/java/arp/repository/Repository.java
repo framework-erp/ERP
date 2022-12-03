@@ -31,10 +31,6 @@ public abstract class Repository<E, ID> {
 
     private Function<Object[], Object> setEntityIdFunction = null;
 
-    private Map<ID, E> mockStore;
-
-    protected boolean mock = false;
-
     public static Repository getRepository(int id) {
         return repositories[id];
     }
@@ -42,11 +38,6 @@ public abstract class Repository<E, ID> {
     protected Repository() {
         id = ids.incrementAndGet();
         repositories[id] = this;
-    }
-
-    protected void initAsMock() {
-        this.mock = true;
-        mockStore = new HashMap<>();
     }
 
     private ID getId(E entity) {
@@ -164,29 +155,6 @@ public abstract class Repository<E, ID> {
         }
         return entity;
     }
-
-    public void updateEntities(Map<ID, E> entitiesToReturn) {
-
-        if (!mock) {
-            updateAllToStore(entitiesToReturn);
-        } else {
-        }
-
-    }
-
-    protected abstract void updateAllToStore(Map<ID, E> entities);
-
-    public void createEntities(Map<ID, E> entitiesToCreate) {
-
-        if (!mock) {
-            saveAllToStore(entitiesToCreate);
-        } else {
-            mockStore.putAll(entitiesToCreate);
-        }
-
-    }
-
-    protected abstract void saveAllToStore(Map<ID, E> entities);
 
     public void releaseProcessEntity(Set<Object> ids) {
         mutexes.unlockAll(ids);
@@ -391,5 +359,6 @@ public abstract class Repository<E, ID> {
     public void flushProcessEntities(Map<Object, Object> entitiesToInsert, Map<Object, ProcessEntity> entitiesToUpdate, Set<Object> idsToRemoveEntity) {
         store.saveAll(entitiesToInsert, entitiesToUpdate);
         store.removeAll(idsToRemoveEntity);
+        mutexes.removeAll(idsToRemoveEntity);
     }
 }
