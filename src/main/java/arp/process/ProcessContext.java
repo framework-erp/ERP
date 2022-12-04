@@ -9,10 +9,12 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import arp.AppContext;
 import arp.enhance.ProcessInfo;
 import arp.process.states.CreatedInProcState;
 import arp.process.states.TakenFromRepoState;
 import arp.process.states.ToRemoveInRepoState;
+import arp.repository.InnerRepository;
 import arp.repository.Repository;
 import arp.repository.RepositoryProcessEntities;
 import arp.util.Unsafe;
@@ -34,7 +36,7 @@ public class ProcessContext {
 
     private boolean started;
 
-    private Map<Integer, RepositoryProcessEntities<?, ?>> processEntities = new HashMap<>();
+    private Map<String, RepositoryProcessEntities<?, ?>> processEntities = new HashMap<>();
 
     private List<AtomicInteger> singleEntityAcquiredLocks = new ArrayList<>();
 
@@ -103,66 +105,57 @@ public class ProcessContext {
                     deletedAggrs.add(processEntity.getEntity());
                 }
             }
-            Repository repository = Repository.getRepository(repoPes.getRepositoryId());
+            InnerRepository repository = AppContext.getRepository(repoPes.getAggType());
             repository.flushProcessEntities(entitiesToInsert, entitiesToUpdate, idsToRemoveEntity);
         }
     }
 
-    public <I, E> ProcessEntity<E> takeEntityInProcess(int repositoryId, I entityId) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
+    public <I, E> ProcessEntity<E> takeEntityInProcess(String aggType, I entityId) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(aggType);
         if (entities == null) {
             return null;
         }
         return entities.takeEntity(entityId);
     }
 
-    public <I, E> E copyEntityInProcess(int repositoryId, I entityId) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
+    public <I, E> E copyEntityInProcess(String aggType, I entityId) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(aggType);
         if (entities == null) {
             return null;
         }
         return entities.copyEntity(entityId);
     }
 
-    public <I, E> E getEntityInProcess(int repositoryId, I entityId) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
+    public <I, E> E getEntityInProcess(String aggType, I entityId) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(aggType);
         if (entities == null) {
             return null;
         }
         return entities.getEntity(entityId);
     }
 
-    public <I, E> void removeEntityInProcess(int repositoryId, I entityId) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
+    public <I, E> void removeEntityInProcess(String aggType, I entityId) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(aggType);
         if (entities == null) {
             return;
         }
         entities.removeEntity(entityId);
     }
 
-    public <I, E> void addEntityTakenFromRepo(int repositoryId, I entityId, E entity) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
+    public <I, E> void addEntityTakenFromRepo(String aggType, I entityId, E entity) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(aggType);
         if (entities == null) {
-            entities = new RepositoryProcessEntities<>(repositoryId);
-            processEntities.put(repositoryId, entities);
+            entities = new RepositoryProcessEntities<>(aggType);
+            processEntities.put(aggType, entities);
         }
         entities.addEntityTaken(entityId, entity);
     }
 
-    public <I, E> void takeEntityFromRepoAndPutInProcessAsRemoved(int repositoryId, I entityId, E entity) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
+    public <I, E> void addNewEntity(String aggType, I entityId, E entity) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(aggType);
         if (entities == null) {
-            entities = new RepositoryProcessEntities<>(repositoryId);
-            processEntities.put(repositoryId, entities);
-        }
-        entities.takeEntityFromRepoAndPutInProcessAsRemoved(entityId, entity);
-    }
-
-    public <I, E> void addNewEntity(int repositoryId, I entityId, E entity) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryId);
-        if (entities == null) {
-            entities = new RepositoryProcessEntities<>(repositoryId);
-            processEntities.put(repositoryId, entities);
+            entities = new RepositoryProcessEntities<>(aggType);
+            processEntities.put(aggType, entities);
         }
         entities.addNewEntity(entityId, entity);
     }
@@ -202,7 +195,7 @@ public class ProcessContext {
                 }
             }
 
-            Repository repository = Repository.getRepository(repoPes.getRepositoryId());
+            InnerRepository repository =AppContext.getRepository(repoPes.getAggType());
             repository.releaseProcessEntity(ids);
 
         }
@@ -279,8 +272,8 @@ public class ProcessContext {
         return processInfos[processInfoId];
     }
 
-    public <ID, E> boolean entityAvailableInProcess(int repositoryId, ID entityId) {
-        RepositoryProcessEntities<ID, E> entities = (RepositoryProcessEntities<ID, E>) processEntities.get(repositoryId);
+    public <ID, E> boolean entityAvailableInProcess(String aggType, ID entityId) {
+        RepositoryProcessEntities<ID, E> entities = (RepositoryProcessEntities<ID, E>) processEntities.get(aggType);
         if (entities == null) {
             return false;
         }
