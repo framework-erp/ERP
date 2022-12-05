@@ -15,7 +15,6 @@ import arp.process.states.CreatedInProcState;
 import arp.process.states.TakenFromRepoState;
 import arp.process.states.ToRemoveInRepoState;
 import arp.repository.InnerRepository;
-import arp.repository.Repository;
 import arp.repository.RepositoryProcessEntities;
 import arp.util.Unsafe;
 
@@ -216,14 +215,6 @@ public class ProcessContext {
         this.dontPublishWhenResultIsNull = dontPublishWhenResultIsNull;
     }
 
-    public void recordProcessDesc(String clsName, String mthName, String processName) {
-        if (!processName.trim().isEmpty()) {
-            processDesc = processName;
-        } else {
-            processDesc = clsName + "." + mthName;
-        }
-    }
-
     public Object getResult() {
         return result;
     }
@@ -232,8 +223,8 @@ public class ProcessContext {
         return dontPublishWhenResultIsNull;
     }
 
-    public String getProcessDesc() {
-        return processDesc;
+    public String getProcessName() {
+        return processName;
     }
 
     public boolean isPublish() {

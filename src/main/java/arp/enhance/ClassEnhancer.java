@@ -416,19 +416,6 @@ public class ClassEnhancer {
 											Type.getType(boolean.class)), false);
 
 							if (processInfo.isPublish()) {
-								visitLdcInsn(processInfo.getClsName());
-								visitLdcInsn(mthName);
-								visitLdcInsn(processInfo.getProcessName());
-								visitMethodInsn(Opcodes.INVOKESTATIC, Type
-										.getInternalName(ProcessWrapper.class),
-										"recordProcessDesc",
-										Type.getMethodDescriptor(
-												Type.getType(void.class),
-												Type.getType(String.class),
-												Type.getType(String.class),
-												Type.getType(String.class)),
-										false);
-
 								if (processInfo.isDontPublishWhenResultIsNull()) {
 									visitInsn(Opcodes.ICONST_1);
 								} else {
@@ -461,14 +448,14 @@ public class ClassEnhancer {
 								}
 
 							}
-							push(processInfo.getId());
+							visitLdcInsn(processInfo.getClsName()+"."+processInfo.getMthName());
 							visitMethodInsn(
 									Opcodes.INVOKESTATIC,
 									Type.getInternalName(ProcessWrapper.class),
 									"beforeProcessStart",
 									Type.getMethodDescriptor(
 											Type.getType(void.class),
-											Type.getType(int.class)), false);
+											Type.getType(String.class)), false);
 
 							lTryBlockStart = new Label();
 							lTryBlockEnd = new Label();

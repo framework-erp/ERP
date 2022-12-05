@@ -24,7 +24,7 @@ public class ProcessWrapper {
 				processContext.getCreatedAggrs(),
 				processContext.getDeletedAggrs(),
 				processContext.getUpdatedAggrs(),
-				processContext.getProcessDesc(),
+				processContext.getProcessName(),
 				processContext.isDontPublishWhenResultIsNull(),
 				System.currentTimeMillis());
 	}
