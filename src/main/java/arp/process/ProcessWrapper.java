@@ -35,19 +35,6 @@ public class ProcessWrapper {
 		processContext.processFaild();
 	}
 
-	public static void setPublish(boolean publish) {
-		ProcessContext processContext = ThreadBoundProcessContextArray
-				.getProcessContext();
-		processContext.setPublish(publish);
-	}
-
-	public static void recordProcessDesc(String clsName, String mthName,
-			String processName) {
-		ProcessContext processContext = ThreadBoundProcessContextArray
-				.getProcessContext();
-		processContext.recordProcessDesc(clsName, mthName, processName);
-	}
-
 	public static void recordProcessResult(Object result) {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();

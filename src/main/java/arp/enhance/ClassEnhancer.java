@@ -403,19 +403,6 @@ public class ClassEnhancer {
 								+ "@" + mthDesc);
 						if (processInfo != null) {
 							if (processInfo.isPublish()) {
-								visitInsn(Opcodes.ICONST_1);
-							} else {
-								visitInsn(Opcodes.ICONST_0);
-							}
-							visitMethodInsn(
-									Opcodes.INVOKESTATIC,
-									Type.getInternalName(ProcessWrapper.class),
-									"setPublish",
-									Type.getMethodDescriptor(
-											Type.getType(void.class),
-											Type.getType(boolean.class)), false);
-
-							if (processInfo.isPublish()) {
 								if (processInfo.isDontPublishWhenResultIsNull()) {
 									visitInsn(Opcodes.ICONST_1);
 								} else {
@@ -501,6 +488,9 @@ public class ClassEnhancer {
 											false);
 
 								}
+								visitMethodInsn(Opcodes.INVOKESTATIC,
+										Type.getInternalName(ProcessWrapper.class),
+										"publishProcess", "()V", false);
 							}
 
 							visitMethodInsn(Opcodes.INVOKESTATIC,

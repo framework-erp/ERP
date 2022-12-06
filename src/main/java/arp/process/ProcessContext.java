@@ -49,8 +49,6 @@ public class ProcessContext {
 
     private boolean dontPublishWhenResultIsNull;
 
-    private boolean publish;
-
     private String processName;
 
     public void startProcess(String processName) {
@@ -227,14 +225,6 @@ public class ProcessContext {
         return processName;
     }
 
-    public boolean isPublish() {
-        return publish;
-    }
-
-    public void setPublish(boolean publish) {
-        this.publish = publish;
-    }
-
     public void recordProcessArgument(Object argument) {
         arguments.add(argument);
     }
@@ -257,10 +247,6 @@ public class ProcessContext {
 
     public int getProcessInfoId() {
         return processInfoId;
-    }
-
-    public ProcessInfo getProcessInfo() {
-        return processInfos[processInfoId];
     }
 
     public <ID, E> boolean entityAvailableInProcess(String aggType, ID entityId) {
