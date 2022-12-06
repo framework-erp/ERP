@@ -11,7 +11,5 @@ public @interface Process {
 
 	boolean dontPublishWhenResultIsNull() default false;
 
-	String name() default "";
-
 	String listening() default "";
 }
