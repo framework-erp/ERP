@@ -174,7 +174,6 @@ public class ProcessContext {
         updatedAggrs.clear();
         result = null;
         dontPublishWhenResultIsNull = false;
-        publish = false;
     }
 
     private void releaseProcessEntities() throws Exception {
@@ -243,10 +242,6 @@ public class ProcessContext {
 
     public List<Object> getDeletedAggrs() {
         return deletedAggrs;
-    }
-
-    public int getProcessInfoId() {
-        return processInfoId;
     }
 
     public <ID, E> boolean entityAvailableInProcess(String aggType, ID entityId) {

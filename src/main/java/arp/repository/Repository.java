@@ -19,7 +19,7 @@ import java.util.function.Function;
  * @param <E>  实体类型
  * @param <ID> ID类型
  */
-public abstract class Repository<E, ID> {
+public class Repository<E, ID> {
     private String aggType;
 
     private Store<E, ID> store;
@@ -29,7 +29,7 @@ public abstract class Repository<E, ID> {
 
     private Function<Object[], Object> setEntityIdFunction = null;
 
-    protected Repository(Store<E, ID> store, Mutexes<ID> mutexes) {
+    public Repository(Store<E, ID> store, Mutexes<ID> mutexes) {
         Type genType = getClass().getGenericSuperclass();
         Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
         AppContext.registerRepository(paramsType.getTypeName(), store, mutexes);
@@ -61,7 +61,7 @@ public abstract class Repository<E, ID> {
             }
         }
 
-        int lockRslt = mutexes.lock(id);
+        int lockRslt = mutexes.lock(id, processContext.getProcessName());
         E existsEntity;
         if (lockRslt == -1) {
             //检查entity存在且补锁
@@ -72,14 +72,14 @@ public abstract class Repository<E, ID> {
             boolean ok = mutexes.newAndLock(id);
             if (!ok) {
                 //补锁不成功那就是有人抢先补锁，那么这里就需要再去获得锁了
-                lockRslt = mutexes.lock(id);
+                lockRslt = mutexes.lock(id, processContext.getProcessName());
                 if (lockRslt == 0) {
-                    throw new CanNotAcquireLockException(mutexes.getLockProcess());
+                    throw new CanNotAcquireLockException(mutexes.getLockProcess(id));
                 }
             }
         } else {
             if (lockRslt == 0) {
-                throw new CanNotAcquireLockException(mutexes.getLockProcess());
+                throw new CanNotAcquireLockException(mutexes.getLockProcess(id));
             }
             existsEntity = find(id);
             if (existsEntity == null) {
