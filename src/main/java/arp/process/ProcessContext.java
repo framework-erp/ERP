@@ -15,6 +15,7 @@ import arp.process.states.CreatedInProcState;
 import arp.process.states.TakenFromRepoState;
 import arp.process.states.ToRemoveInRepoState;
 import arp.repository.InnerRepository;
+import arp.repository.InnerSingletonRepository;
 import arp.repository.RepositoryProcessEntities;
 import arp.util.Unsafe;
 
@@ -37,7 +38,7 @@ public class ProcessContext {
 
     private Map<String, RepositoryProcessEntities<?, ?>> processEntities = new HashMap<>();
 
-    private List<AtomicInteger> singleEntityAcquiredLocks = new ArrayList<>();
+    private List<String> singletonTypes = new ArrayList<>();
 
     private List<Object> arguments = new ArrayList<>();
 
@@ -195,13 +196,14 @@ public class ProcessContext {
             repository.releaseProcessEntity(ids);
 
         }
-        for (AtomicInteger lock : singleEntityAcquiredLocks) {
-            lock.set(0);
+        for (String type : singletonTypes) {
+            InnerSingletonRepository repository = AppContext.getSingletonRepository(type);
+            repository.releaseProcessEntity();
         }
     }
 
-    public void addSingleEntityAcquiredLock(AtomicInteger lock) {
-        singleEntityAcquiredLocks.add(lock);
+    public void addEntityTakenFromSingletonRepo(String aggType) {
+        singletonTypes.add(aggType);
     }
 
     public void recordProcessResult(Object result) {

@@ -1,12 +1,7 @@
 package test.arp.core;
 
-import arp.repository.MemRepository;
+
+import arp.repository.impl.MemRepository;
 
 public class TestEntityRepository extends MemRepository<TestEntity, Integer> {
-
-	@Override
-	protected Integer getId(TestEntity entity) {
-		return entity.getId();
-	}
-
 }

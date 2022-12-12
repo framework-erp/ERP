@@ -26,7 +26,6 @@ public class ProcessPublisher {
 		msg.setProcessCreatedAggrs(processCreatedAggrs);
 		msg.setProcessDeletedAggrs(processDeletedAggrs);
 		msg.setProcessUpdatedAggrs(processUpdatedAggrs);
-		msg.setContextParametersTrace(contextParametersTrace);
 		msg.setProcessFinishTime(processFinishTime);
 		try {
 			messageSender.send(msg);

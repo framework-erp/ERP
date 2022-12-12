@@ -32,7 +32,10 @@ public class Repository<E, ID> {
     public Repository(Store<E, ID> store, Mutexes<ID> mutexes) {
         Type genType = getClass().getGenericSuperclass();
         Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
-        AppContext.registerRepository(paramsType.getTypeName(), store, mutexes);
+        aggType = paramsType.getTypeName();
+        this.store = store;
+        this.mutexes = mutexes;
+        AppContext.registerRepository(aggType, store, mutexes);
     }
 
     private ID getId(E entity) {
