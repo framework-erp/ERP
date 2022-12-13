@@ -26,6 +26,18 @@ public class TestService {
     }
 
     @Process
+    public TestEntity takeAndWait(int id,long waitMs) {
+        TestEntity entity = testEntityRepository.take(id);
+        entity.setiValue(1);
+        try {
+            Thread.sleep(waitMs);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return entity;
+    }
+
+    @Process
     public void f3(int id, int iValue) {
         TestEntity entity = new TestEntity();
         entity.setId(id);
