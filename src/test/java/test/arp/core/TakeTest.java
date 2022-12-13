@@ -18,8 +18,12 @@ public class TakeTest {
 
         TestService service = new TestService();
         TestEntity entity1 = service.f1(1);
-        Thread t = new Thread(new TakeAndWaitWorker(service));
-        t.start();
+        Thread t1 = new Thread(new TakeAndWaitWorker(service));
+        Thread t2 = new Thread(new TakeAndWaitWorker(service));
+        Thread t3 = new Thread(new TakeAndWaitWorker(service));
+        t1.start();
+        t2.start();
+        t3.start();
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {

@@ -72,7 +72,7 @@ public class Repository<E, ID> {
             if (existsEntity == null) {
                 return null;
             }
-            boolean ok = mutexes.newAndLock(id);
+            boolean ok = mutexes.newAndLock(id, processContext.getProcessName());
             if (!ok) {
                 //补锁不成功那就是有人抢先补锁，那么这里就需要再去获得锁了
                 lockRslt = mutexes.lock(id, processContext.getProcessName());
@@ -135,7 +135,7 @@ public class Repository<E, ID> {
             }
         }
 
-        boolean ok = mutexes.newAndLock(id);
+        boolean ok = mutexes.newAndLock(id, processContext.getProcessName());
         if (!ok) {
             E actual = take(id);
             return new PutIfAbsentResult(actual, false);

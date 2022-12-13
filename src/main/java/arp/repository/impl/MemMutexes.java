@@ -9,23 +9,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MemMutexes<ID> implements Mutexes<ID> {
 
-    private Map<ID, AtomicInteger> locks = new ConcurrentHashMap<>();
-
-    private Map<ID, String> lockProcessNames = new ConcurrentHashMap<>();
+    private Map<ID, MemMutex> mutexes = new ConcurrentHashMap<>();
 
     @Override
     public boolean exists(ID id) {
-        return locks.containsKey(id);
+        return mutexes.containsKey(id);
     }
 
     @Override
     public int lock(ID id, String processName) {
-        if (!locks.containsKey(id)) {
+        if (!mutexes.containsKey(id)) {
             return -1;
         }
-        AtomicInteger lock = locks.get(id);
-        if (lock.compareAndSet(0, 1)) {
-            lockProcessNames.put(id, processName);
+        MemMutex mutex = mutexes.get(id);
+        if (mutex.lock(processName)) {
             return 1;
         } else {
             return 0;
@@ -33,31 +30,31 @@ public class MemMutexes<ID> implements Mutexes<ID> {
     }
 
     @Override
-    public boolean newAndLock(ID id) {
-        AtomicInteger lock = new AtomicInteger(1);
-        AtomicInteger loaded = locks.putIfAbsent(id, lock);
+    public boolean newAndLock(ID id, String processName) {
+        MemMutex mutex = new MemMutex(processName);
+        MemMutex loaded = mutexes.putIfAbsent(id, mutex);
         return loaded == null;
     }
 
     @Override
     public void unlockAll(Set<Object> ids) {
         for (Object id : ids) {
-            AtomicInteger lock = locks.get(id);
-            if (lock != null) {
-                lock.set(0);
+            MemMutex mutex = mutexes.get(id);
+            if (mutex != null) {
+                mutex.unlock();
             }
         }
     }
 
     @Override
     public String getLockProcess(ID id) {
-        return lockProcessNames.get(id);
+        return mutexes.get(id).getLockProcess();
     }
 
     @Override
     public void removeAll(Set<Object> ids) {
         for (Object id : ids) {
-            locks.remove(id);
+            mutexes.remove(id);
         }
     }
 }
