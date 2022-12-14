@@ -32,7 +32,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 
 import arp.ARP;
-import arp.process.Process;
+import arp.annotation.Process;
 import arp.process.ProcessContext;
 import arp.process.ProcessWrapper;
 import arp.process.ThreadBoundProcessContextArray;

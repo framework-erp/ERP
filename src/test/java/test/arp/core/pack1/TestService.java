@@ -5,7 +5,7 @@ import arp.repository.PutIfAbsentResult;
 import test.arp.core.F4Result;
 import test.arp.core.TestEntity;
 import test.arp.core.TestEntityRepository;
-import arp.process.Process;
+import arp.annotation.Process;
 
 import java.util.concurrent.locks.LockSupport;
 

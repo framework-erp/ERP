@@ -19,12 +19,7 @@ public class ProcessWrapper {
 	public static void publishProcess() {
 		ProcessContext processContext = ThreadBoundProcessContextArray
 				.getProcessContext();
-		ProcessPublisher.publish(processContext.getArguments(),
-				processContext.getResult(),
-				processContext.getCreatedAggrs(),
-				processContext.getDeletedAggrs(),
-				processContext.getUpdatedAggrs(),
-				processContext.getProcessName(),
+		ProcessPublisher.publish(processContext.buildProcess(),
 				processContext.isDontPublishWhenResultIsNull(),
 				System.currentTimeMillis());
 	}

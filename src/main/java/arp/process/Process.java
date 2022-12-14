@@ -1,15 +1,64 @@
 package arp.process;
 
-import static java.lang.annotation.ElementType.METHOD;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.lang.annotation.Target;
+/**
+ * 完整描述过程的标准数据结构
+ */
+public class Process {
+    private List<Object> arguments;
+    private Object result;
+    private List<Object> createdAggrs;
+    private List<Object> deletedAggrs;
+    private List<Object[]> updatedAggrs;
+    private String name;
 
-@Target(METHOD)
-public @interface Process {
+    public List<Object> getArguments() {
+        return arguments;
+    }
 
-	boolean publish() default false;
+    public void setArguments(List<Object> arguments) {
+        this.arguments = arguments;
+    }
 
-	boolean dontPublishWhenResultIsNull() default false;
+    public Object getResult() {
+        return result;
+    }
 
-	String listening() default "";
+    public void setResult(Object result) {
+        this.result = result;
+    }
+
+    public List<Object> getCreatedAggrs() {
+        return createdAggrs;
+    }
+
+    public void setCreatedAggrs(List<Object> createdAggrs) {
+        this.createdAggrs = createdAggrs;
+    }
+
+    public List<Object> getDeletedAggrs() {
+        return deletedAggrs;
+    }
+
+    public void setDeletedAggrs(List<Object> deletedAggrs) {
+        this.deletedAggrs = deletedAggrs;
+    }
+
+    public List<Object[]> getUpdatedAggrs() {
+        return updatedAggrs;
+    }
+
+    public void setUpdatedAggrs(List<Object[]> updatedAggrs) {
+        this.updatedAggrs = updatedAggrs;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

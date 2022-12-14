@@ -21,19 +21,6 @@ import arp.util.Unsafe;
 
 public class ProcessContext {
 
-    private static ProcessInfo[] processInfos;
-
-    public static void setProcessInfos(List<ProcessInfo> processInfoList) {
-        processInfos = new ProcessInfo[processInfoList.size()];
-        for (ProcessInfo processInfo : processInfoList) {
-            processInfos[processInfo.getId()] = processInfo;
-        }
-    }
-
-    public static ProcessInfo getProcessInfo(int processInfoId) {
-        return processInfos[processInfoId];
-    }
-
     private boolean started;
 
     private Map<String, RepositoryProcessEntities<?, ?>> processEntities = new HashMap<>();
@@ -192,7 +179,7 @@ public class ProcessContext {
                 }
             }
 
-            InnerRepository repository =AppContext.getRepository(repoPes.getAggType());
+            InnerRepository repository = AppContext.getRepository(repoPes.getAggType());
             repository.releaseProcessEntity(ids);
 
         }
@@ -214,36 +201,12 @@ public class ProcessContext {
         this.dontPublishWhenResultIsNull = dontPublishWhenResultIsNull;
     }
 
-    public Object getResult() {
-        return result;
-    }
-
     public boolean isDontPublishWhenResultIsNull() {
         return dontPublishWhenResultIsNull;
     }
 
-    public String getProcessName() {
-        return processName;
-    }
-
     public void recordProcessArgument(Object argument) {
         arguments.add(argument);
-    }
-
-    public List<Object> getArguments() {
-        return arguments;
-    }
-
-    public List<Object[]> getUpdatedAggrs() {
-        return updatedAggrs;
-    }
-
-    public List<Object> getCreatedAggrs() {
-        return createdAggrs;
-    }
-
-    public List<Object> getDeletedAggrs() {
-        return deletedAggrs;
     }
 
     public <ID, E> boolean entityAvailableInProcess(String aggType, ID entityId) {
@@ -256,6 +219,21 @@ public class ProcessContext {
             return false;
         }
         return processEntity.isAvailable();
+    }
+
+    public String getProcessName() {
+        return processName;
+    }
+
+    public Process buildProcess() {
+        Process process = new Process();
+        process.setName(processName);
+        process.setArguments(new ArrayList<>(arguments));
+        process.setCreatedAggrs(new ArrayList<>(createdAggrs));
+        process.setUpdatedAggrs(new ArrayList<>(updatedAggrs));
+        process.setDeletedAggrs(new ArrayList<>(deletedAggrs));
+        process.setResult(result);
+        return process;
     }
 
 }

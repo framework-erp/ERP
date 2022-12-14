@@ -15,20 +15,17 @@ public class ARP {
 
 	public static void start(String... pkgs) throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
-		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 	}
 
 	public static void start(ProcessMessageSender messageSender, String... pkgs)
 			throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
-		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 		ProcessPublisher.messageSender = messageSender;
 	}
 
 	public static void start(ProcessMessageReceiver messageReceiver,
 			String... pkgs) throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
-		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 		messageConsumer = new ProcessListenerMessageConsumer(messageReceiver);
 		messageConsumer.start();
 	}
@@ -37,7 +34,6 @@ public class ARP {
 			ProcessMessageReceiver messageReceiver, String... pkgs)
 			throws Exception {
 		ClassParseResult parseResult = ClassEnhancer.parseAndEnhance(pkgs);
-		ProcessContext.setProcessInfos(parseResult.getProcessInfoList());
 		ProcessPublisher.messageSender = messageSender;
 		messageConsumer = new ProcessListenerMessageConsumer(messageReceiver);
 		messageConsumer.start();
