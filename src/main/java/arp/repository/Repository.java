@@ -7,10 +7,6 @@ import arp.util.Unsafe;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
@@ -77,12 +73,12 @@ public class Repository<E, ID> {
                 //补锁不成功那就是有人抢先补锁，那么这里就需要再去获得锁了
                 lockRslt = mutexes.lock(id, processContext.getProcessName());
                 if (lockRslt == 0) {
-                    throw new CanNotAcquireLockException(mutexes.getLockProcess(id));
+                    throw new TakeEntityException(mutexes.getLockProcess(id));
                 }
             }
         } else {
             if (lockRslt == 0) {
-                throw new CanNotAcquireLockException(mutexes.getLockProcess(id));
+                throw new TakeEntityException(mutexes.getLockProcess(id));
             }
             existsEntity = find(id);
             if (existsEntity == null) {

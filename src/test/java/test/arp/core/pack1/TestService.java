@@ -1,10 +1,13 @@
 package test.arp.core.pack1;
 
+import arp.repository.TakeEntityException;
 import arp.repository.PutIfAbsentResult;
 import test.arp.core.F4Result;
 import test.arp.core.TestEntity;
 import test.arp.core.TestEntityRepository;
 import arp.process.Process;
+
+import java.util.concurrent.locks.LockSupport;
 
 public class TestService {
 
@@ -26,7 +29,7 @@ public class TestService {
     }
 
     @Process
-    public TestEntity takeAndWait(int id,long waitMs) {
+    public TestEntity takeAndWait(int id, long waitMs) {
         TestEntity entity = testEntityRepository.take(id);
         entity.setiValue(1);
         try {
@@ -45,8 +48,29 @@ public class TestService {
         testEntityRepository.put(entity);
     }
 
-    @Process
     public F4Result f4(int id1, int id2, int value) {
+        int counter = 300;
+        do {
+            try {
+                return df4(id1, id2, value);
+            } catch (TakeEntityException e) {
+                if (counter > 200) {
+                    --counter;
+                } else if (counter > 100) {
+                    --counter;
+                    Thread.yield();
+                } else if (counter > 0) {
+                    --counter;
+                    LockSupport.parkNanos(1L);
+                } else {
+                    throw e;
+                }
+            }
+        } while (true);
+    }
+
+    @Process
+    public F4Result df4(int id1, int id2, int value) {
         TestEntity entity1 = testEntityRepository.take(id1);
         entity1.setiValue(entity1.getiValue() - value);
         TestEntity entity2 = testEntityRepository.take(id2);
