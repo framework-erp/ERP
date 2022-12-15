@@ -1,6 +1,5 @@
 package arp.repository;
 
-import arp.process.publish.ProcessMessageReceiver;
 
 public class ViewCachedRepositorySynchronizer {
 //

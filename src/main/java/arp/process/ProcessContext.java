@@ -7,10 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import arp.AppContext;
-import arp.enhance.ProcessInfo;
 import arp.process.states.CreatedInProcState;
 import arp.process.states.TakenFromRepoState;
 import arp.process.states.ToRemoveInRepoState;
@@ -35,14 +33,13 @@ public class ProcessContext {
     private List<Object> deletedAggrs = new ArrayList<>();
     private List<Object[]> updatedAggrs = new ArrayList<>();
 
-    private boolean dontPublishWhenResultIsNull;
-
     private String processName;
 
     public void startProcess(String processName) {
         if (started) {
             throw new RuntimeException("can not start a process in another started process");
         }
+        clear();
         this.processName = processName;
         started = true;
         Unsafe.loadFence();
@@ -60,7 +57,6 @@ public class ProcessContext {
             } catch (Exception e) {
                 throw new RuntimeException("release process entities faild", e);
             } finally {
-                clear();
                 started = false;
             }
         }
@@ -150,7 +146,6 @@ public class ProcessContext {
             releaseProcessEntities();
         } catch (Exception e) {
         }
-        clear();
         started = false;
     }
 
@@ -161,7 +156,6 @@ public class ProcessContext {
         deletedAggrs.clear();
         updatedAggrs.clear();
         result = null;
-        dontPublishWhenResultIsNull = false;
     }
 
     private void releaseProcessEntities() throws Exception {
@@ -195,14 +189,6 @@ public class ProcessContext {
 
     public void recordProcessResult(Object result) {
         this.result = result;
-    }
-
-    public void setDontPublishWhenResultIsNull(boolean dontPublishWhenResultIsNull) {
-        this.dontPublishWhenResultIsNull = dontPublishWhenResultIsNull;
-    }
-
-    public boolean isDontPublishWhenResultIsNull() {
-        return dontPublishWhenResultIsNull;
     }
 
     public void recordProcessArgument(Object argument) {

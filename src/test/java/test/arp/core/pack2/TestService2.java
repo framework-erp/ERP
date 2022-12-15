@@ -42,7 +42,7 @@ public class TestService2 {
         return new F4Result(entity1, entity2);
     }
 
-    @Process(publish = true)
+    @Process
     public void f5(long l1, int l2) {
     }
 
