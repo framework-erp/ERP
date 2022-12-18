@@ -7,6 +7,9 @@ public class ResolvedClass {
 	private Map<String, ProcessInfo> processInfos;
 	private byte[] classBytes;
 
+	public ResolvedClass(){
+	}
+
 	public ResolvedClass(String name, Map<String, ProcessInfo> processInfos,
 			byte[] classBytes) {
 		this.name = name;

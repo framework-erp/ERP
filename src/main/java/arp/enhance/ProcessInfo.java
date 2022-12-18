@@ -1,7 +1,6 @@
 package arp.enhance;
 
 public class ProcessInfo {
-    private int id;
     private String clsName;
     private String mthName;
     private String mthDesc;
@@ -13,14 +12,6 @@ public class ProcessInfo {
         this.clsName = clsName;
         this.mthName = mthName;
         this.mthDesc = mthDesc;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getClsName() {

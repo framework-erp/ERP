@@ -50,8 +50,6 @@ public class ClassEnhancer {
                 processInfoList.addAll(map.values());
             }
 
-            generateProcessInfoId(processInfoList);
-
             for (ResolvedClass rc : resolvedClasses) {
                 enhanceProcess(rc, enhancedClassBytes);
             }
@@ -63,20 +61,6 @@ public class ClassEnhancer {
             return result;
         }
         return null;
-    }
-
-    private static void generateProcessInfoId(List<ProcessInfo> processInfoList) {
-        Collections.sort(processInfoList, new Comparator<ProcessInfo>() {
-
-            @Override
-            public int compare(ProcessInfo o1, ProcessInfo o2) {
-                return (o1.getMthName() + "@" + o1.getMthDesc()).compareTo((o2.getMthName() + "@" + o2.getMthDesc()));
-            }
-
-        });
-        for (int i = 0; i < processInfoList.size(); i++) {
-            processInfoList.get(i).setId(i);
-        }
     }
 
     private static void parseClassesForPackage(String pkg, List<ResolvedClass> resolvedClasses) throws Exception {
