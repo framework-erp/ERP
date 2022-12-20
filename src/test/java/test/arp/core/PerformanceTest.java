@@ -12,11 +12,7 @@ public class PerformanceTest {
 
 	public static void main(String[] args) {
 
-		try {
-			ARP.start("test.arp.core");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		ARP.useAnnotation();
 
 		TestService service = new TestService();
 

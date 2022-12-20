@@ -1,6 +1,5 @@
-package arp.enhance;
+package arp.annotation;
 
-import arp.annotation.Process;
 import arp.process.ProcessWrapper;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AdviceAdapter;
@@ -19,7 +18,6 @@ public class ProcessesClassLoader extends ClassLoader {
     }
 
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        System.out.println(name);
         try {
             //系统初始和jdk的
             Class<?> cls = getParent().loadClass(name);
@@ -28,10 +26,12 @@ public class ProcessesClassLoader extends ClassLoader {
             }
         } catch (ClassNotFoundException e) {
         }
+        //框架依赖的
         if (name.startsWith("org.objectweb.")) {
             return super.loadClass(name, resolve);
         }
-        if (name.startsWith("arp.enhance.")) {
+        //此处依赖的
+        if (name.startsWith("arp.annotation.")) {
             return super.loadClass(name, resolve);
         }
         String path = name.replace('.', '/') + ".class";
@@ -42,13 +42,22 @@ public class ProcessesClassLoader extends ClassLoader {
             ResolvedClass rc = parseProcess(bytes);
             if (rc != null) {
                 byte[] enhancedBytes = enhanceProcess(rc);
-                Class<?> cls = defineClass(rc.getName(),enhancedBytes,0,enhancedBytes.length);
-                return cls;
+                return loadClass(rc,enhancedBytes);
             }
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return super.loadClass(name, resolve);
+    }
+
+    private Class<?>  loadClass(ResolvedClass rc, byte[] enhancedBytes) throws Exception{
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        Class clCls = Class.forName("java.lang.ClassLoader");
+        java.lang.reflect.Method method = clCls.getDeclaredMethod("defineClass", new Class[]{String.class, byte[].class, int.class, int.class});
+        method.setAccessible(true);
+        Object[] argArray = new Object[]{rc.getName(), enhancedBytes, new Integer(0), new Integer(enhancedBytes.length)};
+        Class<?> cls = (Class<?>) method.invoke(cl, argArray);
+        method.setAccessible(false);
+        return cls;
     }
 
     private static byte[] enhanceProcess(ResolvedClass resolvedClass) {

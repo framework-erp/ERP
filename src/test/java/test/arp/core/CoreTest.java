@@ -12,12 +12,7 @@ public class CoreTest {
 
 	@Test
 	public void test() {
-		try {
-			ARP.start("test.arp.core.pack1", "test.arp.core.pack2");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
+		ARP.useAnnotation();
 		TestService service = new TestService();
 		TestEntity entity1 = service.f1(1);
 		assertEquals(1, entity1.getId());

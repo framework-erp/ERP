@@ -1,4 +1,4 @@
-package arp.enhance;
+package arp.annotation;
 
 public class ProcessInfo {
     private String clsName;
