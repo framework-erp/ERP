@@ -13,7 +13,7 @@ public class ProcessWrapper {
         processContext.finishProcess();
     }
 
-    public static void afterProcessFaild() {
+    public static void afterProcessFailed() {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
         processContext.processFaild();
     }

@@ -109,7 +109,7 @@ public class ProcessesClassLoader extends ClassLoader {
                             mark(lTryBlockEnd);
                             catchException(lTryBlockStart, lTryBlockEnd, null);
 
-                            visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessWrapper.class), "afterProcessFaild", "()V", false);
+                            visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessWrapper.class), "afterProcessFailed", "()V", false);
 
                             throwException();
 

@@ -96,7 +96,7 @@ public class ProcessContext {
         if (entities == null) {
             return null;
         }
-        return entities.takeEntity(entityId);
+        return entities.takeProcessEntity(entityId);
     }
 
     public <I, E> E copyEntityInProcess(String aggType, I entityId) {
@@ -200,7 +200,7 @@ public class ProcessContext {
         if (entities == null) {
             return false;
         }
-        ProcessEntity<E> processEntity = entities.takeEntity(entityId);
+        ProcessEntity<E> processEntity = entities.getProcessEntity(entityId);
         if (processEntity == null) {
             return false;
         }

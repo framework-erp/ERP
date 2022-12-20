@@ -26,13 +26,19 @@ public class RepositoryProcessEntities<I, E> {
         entities.put(entityId, processEntity);
     }
 
-    public ProcessEntity<E> takeEntity(I entityId) {
+    public ProcessEntity<E> takeProcessEntity(I entityId) {
         ProcessEntity<E> processEntity = entities.get(entityId);
         if (processEntity == null) {
             return null;
         }
-        if (processEntity.isAvailable()) {
-            processEntity.changeStateByTake();
+        processEntity.changeStateByTake();
+        return processEntity;
+    }
+
+    public ProcessEntity<E> getProcessEntity(I entityId) {
+        ProcessEntity<E> processEntity = entities.get(entityId);
+        if (processEntity == null) {
+            return null;
         }
         return processEntity;
     }
@@ -58,18 +64,18 @@ public class RepositoryProcessEntities<I, E> {
         if (processEntity == null) {
             processEntity = new ProcessEntity<>();
             processEntity.setState(new CreatedInProcState());
+            processEntity.setEntity(entity);
             entities.put(entityId, processEntity);
+            return;
         }
         processEntity.setEntity(entity);
-        if (!processEntity.isAvailable()) {
-            processEntity.changeStateByPut();
-        }
+        processEntity.changeStateByPut();
     }
 
     public void removeEntity(I entityId) {
         ProcessEntity<E> processEntity = entities.get(entityId);
         if (processEntity == null) {
-            return ;
+            return;
         }
         processEntity.changeStateByRemove();
     }

@@ -6,7 +6,7 @@ package arp.process.states;
 public class TransientInProcState implements ProcessEntityState{
     @Override
     public ProcessEntityState transferByTake() {
-        return new ErrorState();
+        return this;
     }
 
     @Override
