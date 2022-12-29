@@ -211,6 +211,10 @@ public class ProcessContext {
         return processName;
     }
 
+    public boolean isStarted() {
+        return started;
+    }
+
     public Process buildProcess() {
         Process process = new Process();
         process.setName(processName);

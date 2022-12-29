@@ -47,7 +47,7 @@ public class Repository<E, ID> {
 
     public E take(ID id) {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-        if (processContext == null) {
+        if (processContext == null || !processContext.isStarted()) {
             throw new RuntimeException("can not take from repository without a process");
         }
 
@@ -102,7 +102,7 @@ public class Repository<E, ID> {
 
     public void put(E entity) {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-        if (processContext == null) {
+        if (processContext == null || !processContext.isStarted()) {
             throw new RuntimeException("can not put to repository without a process");
         }
         ID id = getId(entity);
@@ -114,7 +114,7 @@ public class Repository<E, ID> {
 
     public PutIfAbsentResult<E> putIfAbsent(E entity) {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-        if (processContext == null) {
+        if (processContext == null || !processContext.isStarted()) {
             throw new RuntimeException("can not put to repository without a process");
         }
 

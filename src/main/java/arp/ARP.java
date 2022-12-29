@@ -1,8 +1,10 @@
 package arp;
 
 import arp.annotation.ProcessesClassLoader;
+import arp.process.ProcessWrapper;
 
 import java.lang.reflect.Field;
+import java.util.concurrent.Callable;
 
 public class ARP {
     public static void useAnnotation() {
@@ -25,6 +27,18 @@ public class ARP {
             parentField.set(cl, new ProcessesClassLoader((ClassLoader) parent));
         } catch (IllegalAccessException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static<V> V go(String processName, Callable<V> process) {
+        ProcessWrapper.beforeProcessStart(processName);
+        try {
+            V v = process.call();
+            ProcessWrapper.afterProcessFinish();
+            return v;
+        } catch (Exception e) {
+            ProcessWrapper.afterProcessFailed();
+            throw new RuntimeException(e);
         }
     }
 }
