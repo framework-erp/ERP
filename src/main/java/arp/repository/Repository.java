@@ -11,13 +11,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
- * 仓库是存放聚合的地方，聚合只会通过它的id来获取。
+ * 仓库是存放实体的地方，实体只会通过它的id来获取。
  *
  * @param <E>  实体类型
  * @param <ID> ID类型
  */
 public class Repository<E, ID> {
-    private String aggType;
+    private String entityType;
 
     private Store<E, ID> store;
     private Mutexes<ID> mutexes;
@@ -27,10 +27,10 @@ public class Repository<E, ID> {
     public Repository(Store<E, ID> store, Mutexes<ID> mutexes) {
         Type genType = getClass().getGenericSuperclass();
         Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
-        aggType = paramsType.getTypeName();
+        entityType = paramsType.getTypeName();
         this.store = store;
         this.mutexes = mutexes;
-        AppContext.registerRepository(aggType, store, mutexes);
+        AppContext.registerRepository(entityType, store, mutexes);
     }
 
     private ID getId(E entity) {
@@ -50,7 +50,7 @@ public class Repository<E, ID> {
             throw new RuntimeException("can not take from repository without a process");
         }
 
-        ProcessEntity<E> processEntity = processContext.takeEntityInProcess(aggType, id);
+        ProcessEntity<E> processEntity = processContext.takeEntityInProcess(entityType, id);
         if (processEntity != null) {
             if (processEntity.isAvailable()) {
                 return processEntity.getEntity();
@@ -84,14 +84,14 @@ public class Repository<E, ID> {
                 return null;
             }
         }
-        processContext.addEntityTakenFromRepo(aggType, id, existsEntity);
+        processContext.addEntityTakenFromRepo(entityType, id, existsEntity);
         return existsEntity;
     }
 
     public E find(ID id) {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
         if (processContext != null) {
-            E entity = processContext.copyEntityInProcess(aggType, id);
+            E entity = processContext.copyEntityInProcess(entityType, id);
             if (entity != null) {
                 return entity;
             }
@@ -105,10 +105,10 @@ public class Repository<E, ID> {
             throw new RuntimeException("can not put to repository without a process");
         }
         ID id = getId(entity);
-        if (processContext.entityAvailableInProcess(aggType, id)) {
+        if (processContext.entityAvailableInProcess(entityType, id)) {
             throw new RuntimeException("can not 'Put' since entity already exists");
         }
-        processContext.addNewEntity(aggType, id, entity);
+        processContext.addNewEntity(entityType, id, entity);
     }
 
     public PutIfAbsentResult<E> putIfAbsent(E entity) {
@@ -119,7 +119,7 @@ public class Repository<E, ID> {
 
         ID id = getId(entity);
         //先要看过程中的，如果有可用的那就拿来做实际值，如果有但是不可用那就取用新值且新值覆盖老值
-        ProcessEntity<E> processEntity = processContext.getEntityInProcess(aggType, id);
+        ProcessEntity<E> processEntity = processContext.getEntityInProcess(entityType, id);
         if (processEntity != null) {
             processEntity.changeStateByPutIfAbsent();
             if (processEntity.isAvailable()) {
@@ -136,7 +136,7 @@ public class Repository<E, ID> {
             return new PutIfAbsentResult(actual, false);
         }
         store.save(id, entity);
-        processContext.addEntityTakenFromRepo(aggType, id, entity);
+        processContext.addEntityTakenFromRepo(entityType, id, entity);
         return new PutIfAbsentResult(entity, true);
     }
 
@@ -144,7 +144,7 @@ public class Repository<E, ID> {
         E entity = take(id);
         if (entity != null) {
             ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-            processContext.removeEntityInProcess(aggType, id);
+            processContext.removeEntityInProcess(entityType, id);
         }
         return entity;
     }

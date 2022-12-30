@@ -1,6 +1,9 @@
 package arp;
 
-import arp.repository.*;
+import arp.repository.InnerRepository;
+import arp.repository.InnerSingletonRepository;
+import arp.repository.Mutexes;
+import arp.repository.Store;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,19 +13,19 @@ public class AppContext {
     private static Map<String, InnerRepository> repositories = new HashMap<>();
     private static Map<String, InnerSingletonRepository> singletonRepositories = new HashMap<>();
 
-    public static void registerRepository(String aggType, Store store, Mutexes mutexes) {
-        repositories.put(aggType, new InnerRepository(store, mutexes));
+    public static void registerRepository(String entityType, Store store, Mutexes mutexes) {
+        repositories.put(entityType, new InnerRepository(store, mutexes));
     }
 
-    public static InnerRepository getRepository(String aggType) {
-        return repositories.get(aggType);
+    public static InnerRepository getRepository(String entityType) {
+        return repositories.get(entityType);
     }
 
-    public static void registerSingletonRepository(String aggType, AtomicInteger lock) {
-        singletonRepositories.put(aggType, new InnerSingletonRepository(lock));
+    public static void registerSingletonRepository(String entityType, AtomicInteger lock) {
+        singletonRepositories.put(entityType, new InnerSingletonRepository(lock));
     }
 
-    public static InnerSingletonRepository getSingletonRepository(String aggType) {
-        return singletonRepositories.get(aggType);
+    public static InnerSingletonRepository getSingletonRepository(String entityType) {
+        return singletonRepositories.get(entityType);
     }
 }

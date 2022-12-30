@@ -1,25 +1,32 @@
 package arp.process;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 完整描述过程的标准数据结构
  */
 public class Process {
-    private List<Object> arguments;
-    private Object result;
-    private List<Object> createdAggrs;
-    private List<Object> deletedAggrs;
-    private List<Object[]> updatedAggrs;
     private String name;
+    private List<Object> argumentList;
+    private Object result;
+    private List<Object> createdEntityList;
+    private List<Object> deletedEntityList;
+    private List<Object[]> updatedEntityList;
 
-    public List<Object> getArguments() {
-        return arguments;
+    public String getName() {
+        return name;
     }
 
-    public void setArguments(List<Object> arguments) {
-        this.arguments = arguments;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<Object> getArgumentList() {
+        return argumentList;
+    }
+
+    public void setArgumentList(List<Object> argumentList) {
+        this.argumentList = argumentList;
     }
 
     public Object getResult() {
@@ -30,35 +37,27 @@ public class Process {
         this.result = result;
     }
 
-    public List<Object> getCreatedAggrs() {
-        return createdAggrs;
+    public List<Object> getCreatedEntityList() {
+        return createdEntityList;
     }
 
-    public void setCreatedAggrs(List<Object> createdAggrs) {
-        this.createdAggrs = createdAggrs;
+    public void setCreatedEntityList(List<Object> createdEntityList) {
+        this.createdEntityList = createdEntityList;
     }
 
-    public List<Object> getDeletedAggrs() {
-        return deletedAggrs;
+    public List<Object> getDeletedEntityList() {
+        return deletedEntityList;
     }
 
-    public void setDeletedAggrs(List<Object> deletedAggrs) {
-        this.deletedAggrs = deletedAggrs;
+    public void setDeletedEntityList(List<Object> deletedEntityList) {
+        this.deletedEntityList = deletedEntityList;
     }
 
-    public List<Object[]> getUpdatedAggrs() {
-        return updatedAggrs;
+    public List<Object[]> getUpdatedEntityList() {
+        return updatedEntityList;
     }
 
-    public void setUpdatedAggrs(List<Object[]> updatedAggrs) {
-        this.updatedAggrs = updatedAggrs;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public void setUpdatedEntityList(List<Object[]> updatedEntityList) {
+        this.updatedEntityList = updatedEntityList;
     }
 }

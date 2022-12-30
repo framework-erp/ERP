@@ -1,24 +1,24 @@
 package arp.repository;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import arp.process.ProcessEntity;
 import arp.process.states.CreatedInProcState;
 import arp.process.states.TakenFromRepoState;
 import arp.repository.copy.EntityCopier;
 
-public class RepositoryProcessEntities<I, E> {
+import java.util.HashMap;
+import java.util.Map;
 
-    private String aggType;
+public class RepositoryProcessEntities<ID, E> {
 
-    private Map<I, ProcessEntity<E>> entities = new HashMap<>();
+    private String entityType;
 
-    public RepositoryProcessEntities(String aggType) {
-        this.aggType = aggType;
+    private Map<ID, ProcessEntity<E>> entities = new HashMap<>();
+
+    public RepositoryProcessEntities(String entityType) {
+        this.entityType = entityType;
     }
 
-    public void addEntityTaken(I entityId, E entity) {
+    public void addEntityTaken(ID entityId, E entity) {
         ProcessEntity<E> processEntity = new ProcessEntity<>();
         processEntity.setInitialEntitySnapshot(EntityCopier.copy(entity));
         processEntity.setEntity(entity);
@@ -26,7 +26,7 @@ public class RepositoryProcessEntities<I, E> {
         entities.put(entityId, processEntity);
     }
 
-    public ProcessEntity<E> takeProcessEntity(I entityId) {
+    public ProcessEntity<E> takeProcessEntity(ID entityId) {
         ProcessEntity<E> processEntity = entities.get(entityId);
         if (processEntity == null) {
             return null;
@@ -35,7 +35,7 @@ public class RepositoryProcessEntities<I, E> {
         return processEntity;
     }
 
-    public ProcessEntity<E> getProcessEntity(I entityId) {
+    public ProcessEntity<E> getProcessEntity(ID entityId) {
         ProcessEntity<E> processEntity = entities.get(entityId);
         if (processEntity == null) {
             return null;
@@ -43,11 +43,11 @@ public class RepositoryProcessEntities<I, E> {
         return processEntity;
     }
 
-    public E copyEntity(I entityId) {
+    public E copyEntity(ID entityId) {
         return EntityCopier.copy(getEntity(entityId));
     }
 
-    public E getEntity(I entityId) {
+    public E getEntity(ID entityId) {
         ProcessEntity<E> processEntity = entities.get(entityId);
         if (processEntity == null) {
             return null;
@@ -55,11 +55,11 @@ public class RepositoryProcessEntities<I, E> {
         return processEntity.getEntity();
     }
 
-    public ProcessEntity<E> findEntity(I entityId) {
+    public ProcessEntity<E> findEntity(ID entityId) {
         return entities.get(entityId);
     }
 
-    public void addNewEntity(I entityId, E entity) {
+    public void addNewEntity(ID entityId, E entity) {
         ProcessEntity<E> processEntity = entities.get(entityId);
         if (processEntity == null) {
             processEntity = new ProcessEntity<>();
@@ -72,7 +72,7 @@ public class RepositoryProcessEntities<I, E> {
         processEntity.changeStateByPut();
     }
 
-    public void removeEntity(I entityId) {
+    public void removeEntity(ID entityId) {
         ProcessEntity<E> processEntity = entities.get(entityId);
         if (processEntity == null) {
             return;
@@ -80,11 +80,11 @@ public class RepositoryProcessEntities<I, E> {
         processEntity.changeStateByRemove();
     }
 
-    public String getAggType() {
-        return aggType;
+    public String getEntityType() {
+        return entityType;
     }
 
-    public Map<I, ProcessEntity<E>> getEntities() {
+    public Map<ID, ProcessEntity<E>> getEntities() {
         return entities;
     }
 
