@@ -1,13 +1,14 @@
 package arp.repository;
 
 import arp.AppContext;
-import arp.process.*;
+import arp.process.ProcessContext;
+import arp.process.ProcessEntity;
+import arp.process.ThreadBoundProcessContextArray;
 import arp.util.Unsafe;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.function.Function;
 
 /**
  * 仓库是存放聚合的地方，聚合只会通过它的id来获取。
@@ -21,9 +22,7 @@ public class Repository<E, ID> {
     private Store<E, ID> store;
     private Mutexes<ID> mutexes;
 
-    private Function<Object, Object> getEntityIdFunction = null;
-
-    private Function<Object[], Object> setEntityIdFunction = null;
+    private EntityIdGetter entityIdGetter = null;
 
     public Repository(Store<E, ID> store, Mutexes<ID> mutexes) {
         Type genType = getClass().getGenericSuperclass();
@@ -35,14 +34,14 @@ public class Repository<E, ID> {
     }
 
     private ID getId(E entity) {
-        if (getEntityIdFunction == null) {
+        if (entityIdGetter == null) {
             try {
-                createGetEntityIdFunction(entity);
+                createEntityIdGetter(entity);
             } catch (Exception e) {
                 return null;
             }
         }
-        return (ID) getEntityIdFunction.apply(entity);
+        return (ID) entityIdGetter.getId(entity);
     }
 
     public E take(ID id) {
@@ -158,191 +157,52 @@ public class Repository<E, ID> {
         return entity;
     }
 
-    private void createGetEntityIdFunction(E entity) throws Exception {
+    private void createEntityIdGetter(E entity) throws Exception {
         Field idField = entity.getClass().getDeclaredField("id");
         long idFieldOffset = Unsafe.getFieldOffset(idField);
         Class<?> idFieldType = idField.getType();
         if (idFieldType.equals(byte.class)) {
-            getEntityIdFunction = new Function<Object, Object>() {
-
-                @Override
-                public Object apply(Object t) {
-                    return Unsafe.getByteFieldOfObject(t, idFieldOffset);
-                }
-
+            entityIdGetter = (e) -> {
+                return Unsafe.getByteFieldOfObject(e, idFieldOffset);
             };
         } else if (idFieldType.equals(short.class)) {
-            getEntityIdFunction = new Function<Object, Object>() {
-
-                @Override
-                public Object apply(Object t) {
-                    return Unsafe.getShortFieldOfObject(t, idFieldOffset);
-                }
-
+            entityIdGetter = (e) -> {
+                return Unsafe.getShortFieldOfObject(e, idFieldOffset);
             };
         } else if (idFieldType.equals(char.class)) {
-            getEntityIdFunction = new Function<Object, Object>() {
-
-                @Override
-                public Object apply(Object t) {
-                    return Unsafe.getCharFieldOfObject(t, idFieldOffset);
-                }
-
+            entityIdGetter = (e) -> {
+                return Unsafe.getCharFieldOfObject(e, idFieldOffset);
             };
         } else if (idFieldType.equals(int.class)) {
-            getEntityIdFunction = new Function<Object, Object>() {
-
-                @Override
-                public Object apply(Object t) {
-                    return Unsafe.getIntFieldOfObject(t, idFieldOffset);
-                }
-
+            entityIdGetter = (e) -> {
+                return Unsafe.getIntFieldOfObject(e, idFieldOffset);
             };
         } else if (idFieldType.equals(float.class)) {
-            getEntityIdFunction = new Function<Object, Object>() {
-
-                @Override
-                public Object apply(Object t) {
-                    return Unsafe.getFloatFieldOfObject(t, idFieldOffset);
-                }
-
+            entityIdGetter = (e) -> {
+                return Unsafe.getFloatFieldOfObject(e, idFieldOffset);
             };
         } else if (idFieldType.equals(long.class)) {
-            getEntityIdFunction = new Function<Object, Object>() {
-
-                @Override
-                public Object apply(Object t) {
-                    return Unsafe.getLongFieldOfObject(t, idFieldOffset);
-                }
-
+            entityIdGetter = (e) -> {
+                return Unsafe.getLongFieldOfObject(e, idFieldOffset);
             };
         } else if (idFieldType.equals(double.class)) {
-            getEntityIdFunction = new Function<Object, Object>() {
-
-                @Override
-                public Object apply(Object t) {
-                    return Unsafe.getDoubleFieldOfObject(t, idFieldOffset);
-                }
-
+            entityIdGetter = (e) -> {
+                return Unsafe.getDoubleFieldOfObject(e, idFieldOffset);
             };
         } else if (idFieldType.equals(boolean.class)) {
-            getEntityIdFunction = new Function<Object, Object>() {
-
-                @Override
-                public Object apply(Object t) {
-                    return Unsafe.getBooleanFieldOfObject(t, idFieldOffset);
-                }
-
+            entityIdGetter = (e) -> {
+                return Unsafe.getBooleanFieldOfObject(e, idFieldOffset);
             };
         } else {
-            getEntityIdFunction = new Function<Object, Object>() {
-
-                @Override
-                public Object apply(Object t) {
-                    return Unsafe.getObjectFieldOfObject(t, idFieldOffset);
-                }
-
+            entityIdGetter = (e) -> {
+                return Unsafe.getObjectFieldOfObject(e, idFieldOffset);
             };
         }
 
     }
 
-    private void createSetEntityIdFunction(E entity) throws Exception {
-        Field idField = entity.getClass().getDeclaredField("id");
-        long idFieldOffset = Unsafe.getFieldOffset(idField);
-        Class<?> idFieldType = idField.getType();
-        if (idFieldType.equals(byte.class)) {
-            setEntityIdFunction = new Function<Object[], Object>() {
+}
 
-                @Override
-                public Object apply(Object[] t) {
-                    Unsafe.setByteFieldOfObject(t[0], idFieldOffset, ((Byte) t[1]).byteValue());
-                    return null;
-                }
-
-            };
-        } else if (idFieldType.equals(short.class)) {
-            setEntityIdFunction = new Function<Object[], Object>() {
-
-                @Override
-                public Object apply(Object[] t) {
-                    Unsafe.setShortFieldOfObject(t[0], idFieldOffset, ((Short) t[1]).shortValue());
-                    return null;
-                }
-
-            };
-        } else if (idFieldType.equals(char.class)) {
-            setEntityIdFunction = new Function<Object[], Object>() {
-
-                @Override
-                public Object apply(Object[] t) {
-                    Unsafe.setCharFieldOfObject(t[0], idFieldOffset, ((Character) t[1]).charValue());
-                    return null;
-                }
-
-            };
-        } else if (idFieldType.equals(int.class)) {
-            setEntityIdFunction = new Function<Object[], Object>() {
-
-                @Override
-                public Object apply(Object[] t) {
-                    Unsafe.setIntFieldOfObject(t[0], idFieldOffset, ((Integer) t[1]).intValue());
-                    return null;
-                }
-
-            };
-        } else if (idFieldType.equals(float.class)) {
-            setEntityIdFunction = new Function<Object[], Object>() {
-
-                @Override
-                public Object apply(Object[] t) {
-                    Unsafe.setFloatFieldOfObject(t[0], idFieldOffset, ((Float) t[1]).floatValue());
-                    return null;
-                }
-
-            };
-        } else if (idFieldType.equals(long.class)) {
-            setEntityIdFunction = new Function<Object[], Object>() {
-
-                @Override
-                public Object apply(Object[] t) {
-                    Unsafe.setLongFieldOfObject(t[0], idFieldOffset, ((Long) t[1]).longValue());
-                    return null;
-                }
-
-            };
-        } else if (idFieldType.equals(double.class)) {
-            setEntityIdFunction = new Function<Object[], Object>() {
-
-                @Override
-                public Object apply(Object[] t) {
-                    Unsafe.setDoubleFieldOfObject(t[0], idFieldOffset, ((Double) t[1]).doubleValue());
-                    return null;
-                }
-
-            };
-        } else if (idFieldType.equals(boolean.class)) {
-            setEntityIdFunction = new Function<Object[], Object>() {
-
-                @Override
-                public Object apply(Object[] t) {
-                    Unsafe.setBooleanFieldOfObject(t[0], idFieldOffset, ((Boolean) t[1]).booleanValue());
-                    return null;
-                }
-
-            };
-        } else {
-            setEntityIdFunction = new Function<Object[], Object>() {
-
-                @Override
-                public Object apply(Object[] t) {
-                    Unsafe.setObjectFieldOfObject(t[0], idFieldOffset, t[1]);
-                    return null;
-                }
-
-            };
-        }
-
-    }
-
+interface EntityIdGetter {
+    Object getId(Object entity);
 }
