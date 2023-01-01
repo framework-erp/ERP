@@ -1,6 +1,5 @@
-package erp.repository;
+package erp.process;
 
-import erp.process.ProcessEntity;
 import erp.process.states.CreatedInProcState;
 import erp.process.states.TakenFromRepoState;
 import erp.repository.copy.EntityCopier;
