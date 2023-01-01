@@ -1,10 +1,10 @@
 package test.arp.core.pack2;
 
-import arp.repository.PutIfAbsentResult;
+import erp.repository.PutIfAbsentResult;
 import test.arp.core.F4Result;
 import test.arp.core.TestEntity;
 import test.arp.core.TestEntityRepository;
-import arp.annotation.Process;
+import erp.annotation.Process;
 
 public class TestService2 {
 

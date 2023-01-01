@@ -1,6 +1,6 @@
 package test.arp.core;
 
-import arp.ARP;
+import erp.ERP;
 import org.junit.Test;
 import test.arp.core.pack1.TestService;
 
@@ -10,7 +10,7 @@ import test.arp.core.pack1.TestService;
 public class TakeTest {
     @Test
     public void test() throws java.lang.IllegalAccessException {
-        ARP.useAnnotation();
+        ERP.useAnnotation();
         TestService service = new TestService();
         TestEntity entity1 = service.f1(1);
         Thread t1 = new Thread(new TakeAndWaitWorker(service));
