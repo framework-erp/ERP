@@ -90,7 +90,7 @@ public class Repository<E, ID> {
 
     public E find(ID id) {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-        if (processContext != null) {
+        if (processContext != null && processContext.isStarted()) {
             E entity = processContext.copyEntityInProcess(entityType, id);
             if (entity != null) {
                 return entity;

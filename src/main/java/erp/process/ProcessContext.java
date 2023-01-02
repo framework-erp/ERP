@@ -85,6 +85,14 @@ public class ProcessContext {
         }
     }
 
+    public <I, E> ProcessEntity<E> getEntityInProcess(String entityType, I entityId) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(entityType);
+        if (entities == null) {
+            return null;
+        }
+        return entities.getProcessEntity(entityId);
+    }
+
     public <I, E> ProcessEntity<E> takeEntityInProcess(String entityType, I entityId) {
         RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(entityType);
         if (entities == null) {
@@ -99,14 +107,6 @@ public class ProcessContext {
             return null;
         }
         return entities.copyEntity(entityId);
-    }
-
-    public <I, E> E getEntityInProcess(String entityType, I entityId) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(entityType);
-        if (entities == null) {
-            return null;
-        }
-        return entities.getEntity(entityId);
     }
 
     public <I, E> void removeEntityInProcess(String entityType, I entityId) {
