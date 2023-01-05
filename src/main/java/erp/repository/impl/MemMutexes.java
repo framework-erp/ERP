@@ -11,11 +11,6 @@ public class MemMutexes<ID> implements Mutexes<ID> {
     private Map<ID, MemMutex> mutexes = new ConcurrentHashMap<>();
 
     @Override
-    public boolean exists(ID id) {
-        return mutexes.containsKey(id);
-    }
-
-    @Override
     public int lock(ID id, String processName) {
         if (!mutexes.containsKey(id)) {
             return -1;

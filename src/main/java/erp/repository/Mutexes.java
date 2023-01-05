@@ -3,8 +3,6 @@ package erp.repository;
 import java.util.Set;
 
 public interface Mutexes<ID> {
-    boolean exists(ID id);
-
     /**
      * -1:锁不存在 0:锁失败 1:锁成功
      */
