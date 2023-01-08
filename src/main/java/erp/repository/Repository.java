@@ -16,11 +16,11 @@ import java.lang.reflect.Type;
  * @param <E>  实体类型
  * @param <ID> ID类型
  */
-public class Repository<E, ID> {
-    private String entityType;
+public abstract class Repository<E, ID> {
+    protected String entityType;
 
-    private Store<E, ID> store;
-    private Mutexes<ID> mutexes;
+    protected Store<E, ID> store;
+    protected Mutexes<ID> mutexes;
 
     private EntityIdGetter entityIdGetter = null;
 
@@ -33,7 +33,7 @@ public class Repository<E, ID> {
         AppContext.registerRepository(entityType, store, mutexes);
     }
 
-    private ID getId(E entity) {
+    protected ID getId(E entity) {
         if (entityIdGetter == null) {
             try {
                 createEntityIdGetter(entity);

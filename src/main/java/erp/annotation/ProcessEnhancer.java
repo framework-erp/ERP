@@ -78,6 +78,10 @@ public class ProcessEnhancer {
                             @Override
                             public FileVisitResult visitFile(Path file,
                                                              BasicFileAttributes attrs) throws IOException {
+                                String fileName = file.getFileName().toString();
+                                if (!fileName.endsWith(".class")) {
+                                    return FileVisitResult.CONTINUE;
+                                }
                                 byte[] bytes = Files.readAllBytes(file);
                                 ResolvedClass rc = parseProcess(bytes);
                                 if (rc != null) {
