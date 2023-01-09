@@ -19,7 +19,7 @@ public class MemStore<E, ID> implements Store<E, ID> {
     }
 
     @Override
-    public void save(ID id, E entity) {
+    public void insert(ID id, E entity) {
         if (data.containsKey(id)) {
             throw new RuntimeException("can not 'Save' since entity already exists");
         }

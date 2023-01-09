@@ -12,7 +12,7 @@ public interface Store<E, ID> {
      */
     E load(ID id);
 
-    void save(ID id, E entity);
+    void insert(ID id, E entity);
 
     void saveAll(Map<Object, Object> entitiesToInsert, Map<Object, ProcessEntity> entitiesToUpdate);
 

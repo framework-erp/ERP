@@ -142,7 +142,7 @@ public abstract class Repository<E, ID> {
             E actual = take(id);
             return new PutIfAbsentResult(actual, false);
         }
-        store.save(id, entity);
+        store.insert(id, entity);
         processContext.addEntityTakenFromRepo(entityType, id, entity);
         return new PutIfAbsentResult(entity, true);
     }
