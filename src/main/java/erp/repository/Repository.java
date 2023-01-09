@@ -24,13 +24,20 @@ public abstract class Repository<E, ID> {
 
     private EntityIdGetter entityIdGetter = null;
 
-    public Repository(Store<E, ID> store, Mutexes<ID> mutexes) {
+    protected Repository(Store<E, ID> store, Mutexes<ID> mutexes) {
         Type genType = getClass().getGenericSuperclass();
         Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
         entityType = paramsType.getTypeName();
         this.store = store;
         this.mutexes = mutexes;
         AppContext.registerRepository(entityType, store, mutexes);
+    }
+
+    public Repository(Store<E, ID> store, Mutexes<ID> mutexes, Class<E> entityType) {
+        this.entityType = entityType.getName();
+        this.store = store;
+        this.mutexes = mutexes;
+        AppContext.registerRepository(this.entityType, store, mutexes);
     }
 
     protected ID getId(E entity) {
