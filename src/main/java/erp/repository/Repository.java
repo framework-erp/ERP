@@ -156,14 +156,6 @@ public abstract class Repository<E, ID> {
         return entity;
     }
 
-    public E takeOrPutIfAbsent(ID id, E newEntity) {
-        E entity = take(id);
-        if (entity == null) {
-            return putIfAbsent(newEntity).getActual();
-        }
-        return entity;
-    }
-
     private void createEntityIdGetter(E entity) throws Exception {
         Field idField = entity.getClass().getDeclaredField("id");
         long idFieldOffset = Unsafe.getFieldOffset(idField);

@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * 保存的是一个不存在于某个集合当中的独立的实体。只在内存中，如需从数据库加载初始数据，则在系统启动时完成加载
+ * 保存的是一个不存在于某个集合当中的单例的实体。只在内存中，如需从数据库加载初始数据，则在系统启动时完成加载
  */
 public class SingletonRepository<T> {
 
