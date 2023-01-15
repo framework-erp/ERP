@@ -118,7 +118,11 @@ public abstract class Repository<E, ID> {
         processContext.addNewEntity(entityType, id, entity);
     }
 
-    public PutIfAbsentResult<E> putIfAbsent(E entity) {
+    /**
+     * @param entity
+     * @return 已存在的实体，或者null，如果之前并没有存在这个实体
+     */
+    public E putIfAbsent(E entity) {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
         if (processContext == null || !processContext.isStarted()) {
             throw new RuntimeException("can not put to repository without a process");
@@ -130,21 +134,21 @@ public abstract class Repository<E, ID> {
         if (processEntity != null) {
             processEntity.changeStateByPutIfAbsent();
             if (processEntity.isAvailable()) {
-                return new PutIfAbsentResult(processEntity.getEntity(), false);
+                return processEntity.getEntity();
             } else {
                 processEntity.setEntity(entity);
-                return new PutIfAbsentResult(entity, true);
+                return null;
             }
         }
 
         boolean ok = mutexes.newAndLock(id, processContext.getProcessName());
         if (!ok) {
-            E actual = take(id);
-            return new PutIfAbsentResult(actual, false);
+            E exists = take(id);
+            return exists;
         }
         store.insert(id, entity);
         processContext.addEntityTakenFromRepo(entityType, id, entity);
-        return new PutIfAbsentResult(entity, true);
+        return null;
     }
 
     public E remove(ID id) {

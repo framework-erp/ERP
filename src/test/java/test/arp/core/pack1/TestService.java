@@ -1,11 +1,10 @@
 package test.arp.core.pack1;
 
+import erp.annotation.Process;
 import erp.repository.TakeEntityException;
-import erp.repository.PutIfAbsentResult;
 import test.arp.core.F4Result;
 import test.arp.core.TestEntity;
 import test.arp.core.TestEntityRepository;
-import erp.annotation.Process;
 
 import java.util.concurrent.locks.LockSupport;
 
@@ -17,8 +16,11 @@ public class TestService {
     public TestEntity f1(int id) {
         TestEntity entity = new TestEntity();
         entity.setId(id);
-        PutIfAbsentResult<TestEntity> rslt = testEntityRepository.putIfAbsent(entity);
-        return rslt.getActual();
+        TestEntity exists = testEntityRepository.putIfAbsent(entity);
+        if (exists != null) {
+            return exists;
+        }
+        return entity;
     }
 
     @Process

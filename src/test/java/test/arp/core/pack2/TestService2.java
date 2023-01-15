@@ -1,10 +1,9 @@
 package test.arp.core.pack2;
 
-import erp.repository.PutIfAbsentResult;
+import erp.annotation.Process;
 import test.arp.core.F4Result;
 import test.arp.core.TestEntity;
 import test.arp.core.TestEntityRepository;
-import erp.annotation.Process;
 
 public class TestService2 {
 
@@ -14,8 +13,11 @@ public class TestService2 {
     public TestEntity f1(int id) {
         TestEntity entity = new TestEntity();
         entity.setId(id);
-        PutIfAbsentResult<TestEntity> rslt = testEntityRepository.putIfAbsent(entity);
-        return rslt.getActual();
+        TestEntity exists = testEntityRepository.putIfAbsent(entity);
+        if (exists != null) {
+            return exists;
+        }
+        return entity;
     }
 
     @Process
