@@ -151,6 +151,23 @@ public abstract class Repository<E, ID> {
         return null;
     }
 
+    /**
+     * @param id
+     * @param newEntity
+     * @return 实际值
+     */
+    public E takeOrPutIfAbsent(ID id, E newEntity) {
+        E entity = take(id);
+        if (entity != null) {
+            return entity;
+        }
+        E exists = putIfAbsent(newEntity);
+        if (exists != null) {
+            return exists;
+        }
+        return newEntity;
+    }
+
     public E remove(ID id) {
         E entity = take(id);
         if (entity != null) {
