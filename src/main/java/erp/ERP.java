@@ -1,7 +1,10 @@
 package erp;
 
 import erp.annotation.ProcessEnhancer;
+import erp.process.Process;
+import erp.process.ProcessContext;
 import erp.process.ProcessWrapper;
+import erp.process.ThreadBoundProcessContextArray;
 
 import java.util.concurrent.Callable;
 
@@ -21,6 +24,14 @@ public class ERP {
             ProcessWrapper.afterProcessFailed();
             throw new RuntimeException(e);
         }
+    }
+
+    public static Process getProcess() {
+        ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
+        if (processContext == null) {
+            return null;
+        }
+        return processContext.buildProcess();
     }
 
 
