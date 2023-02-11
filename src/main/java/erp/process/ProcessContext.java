@@ -162,7 +162,7 @@ public class ProcessContext {
                 Entry entry = (Entry) obj;
                 Object id = entry.getKey();
                 ProcessEntity processEntity = (ProcessEntity) entry.getValue();
-                if (processEntity.isAvailable()) {
+                if (processEntity.isAddByTake()) {
                     ids.add(id);
                 }
             }

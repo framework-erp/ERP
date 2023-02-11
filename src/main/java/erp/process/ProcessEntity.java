@@ -56,4 +56,7 @@ public class ProcessEntity<T> {
         return state.isEntityAvailable();
     }
 
+    public boolean isAddByTake() {
+        return state.isAddByTake();
+    }
 }
