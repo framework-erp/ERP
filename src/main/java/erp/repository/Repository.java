@@ -24,6 +24,9 @@ public abstract class Repository<E, ID> {
 
     private EntityIdGetter entityIdGetter = null;
 
+    public Repository() {
+    }
+
     protected Repository(Store<E, ID> store, Mutexes<ID> mutexes) {
         Type genType = getClass().getGenericSuperclass();
         Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
@@ -221,6 +224,29 @@ public abstract class Repository<E, ID> {
 
     }
 
+    public String getEntityType() {
+        return entityType;
+    }
+
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
+    }
+
+    public Store<E, ID> getStore() {
+        return store;
+    }
+
+    public void setStore(Store<E, ID> store) {
+        this.store = store;
+    }
+
+    public Mutexes<ID> getMutexes() {
+        return mutexes;
+    }
+
+    public void setMutexes(Mutexes<ID> mutexes) {
+        this.mutexes = mutexes;
+    }
 }
 
 interface EntityIdGetter {
