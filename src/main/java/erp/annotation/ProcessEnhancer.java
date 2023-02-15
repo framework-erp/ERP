@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
@@ -19,102 +20,109 @@ public class ProcessEnhancer {
 
     public static void scanAndEnhanceProcess() {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        Class clc = cl.getClass();
-        while (clc != null) {
-            try {
-                Field ucpField = clc.getDeclaredField("ucp");
-                ucpField.setAccessible(true);
-                Object ucp = null;
+        URL[] urls = null;
+        if (cl instanceof URLClassLoader) {
+            urls = ((URLClassLoader) cl).getURLs();
+        } else {
+            Class clc = cl.getClass();
+            while (clc != null) {
                 try {
-                    ucp = ucpField.get(cl);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException("can not get ucp.", e);
-                }
-                Method getURLs = null;
-                try {
-                    getURLs = ucp.getClass().getDeclaredMethod("getURLs");
-                } catch (NoSuchMethodException e) {
-                    throw new RuntimeException("can not getDeclaredMethod getURLs.", e);
-                }
-                URL[] urls = new URL[0];
-                try {
-                    urls = (URL[]) getURLs.invoke(ucp);
-                } catch (Exception e) {
-                    throw new RuntimeException("can not invoke getURLs.", e);
-                }
-                for (URL url : urls) {
-                    if (url.toString().endsWith(".jar") || url.toString().endsWith(".jar!/")) {
-                        continue;
-                    }
-                    URI uri = null;
+                    Field ucpField = clc.getDeclaredField("ucp");
+                    ucpField.setAccessible(true);
+                    Object ucp = null;
                     try {
-                        uri = url.toURI();
-                    } catch (URISyntaxException e) {
-                        throw new RuntimeException("can not toURI.", e);
+                        ucp = ucpField.get(cl);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException("can not get ucp.", e);
                     }
-                    FileSystem zipfs = null;
-                    Path rootPath = null;
-                    String uriStr = uri.toString();
-                    if (uriStr.contains("jar:file:")) {// jar
-                        int idx = uriStr.indexOf(".jar");
-                        String zipFilePath = uriStr.substring(0, idx) + ".jar";
-                        String pathInFile = uriStr.substring(idx + ".jar".length())
-                                .replaceAll("!", "");
-                        try {
-                            URI zipFile = URI.create(zipFilePath);
-                            Map<String, String> env = new HashMap<>();
-                            env.put("create", "true");
-                            zipfs = FileSystems.newFileSystem(zipFile, env);
-                            rootPath = zipfs.getPath(pathInFile);
-                        } catch (Exception e) {
-                            throw new RuntimeException("zipFile error.", e);
-                        }
-                    } else {
-                        rootPath = Paths.get(uri);
+                    Method getURLs = null;
+                    try {
+                        getURLs = ucp.getClass().getDeclaredMethod("getURLs");
+                    } catch (NoSuchMethodException e) {
+                        throw new RuntimeException("can not getDeclaredMethod getURLs.", e);
                     }
                     try {
-                        Files.walkFileTree(rootPath, new SimpleFileVisitor<Path>() {
-
-                            @Override
-                            public FileVisitResult visitFile(Path file,
-                                                             BasicFileAttributes attrs) throws IOException {
-                                String fileName = file.getFileName().toString();
-                                if (!fileName.endsWith(".class")) {
-                                    return FileVisitResult.CONTINUE;
-                                }
-                                byte[] bytes = Files.readAllBytes(file);
-                                ResolvedClass rc = parseProcess(bytes);
-                                if (rc != null) {
-                                    byte[] enhancedBytes = enhanceProcess(rc);
-                                    try {
-                                        loadClass(rc, enhancedBytes);
-                                    } catch (Exception e) {
-                                        throw new RuntimeException("can not loadClass.", e);
-                                    }
-                                }
-                                return FileVisitResult.CONTINUE;
-                            }
-
-                        });
-                    } catch (IOException e) {
-                        throw new RuntimeException("can not walkFileTree.", e);
+                        urls = (URL[]) getURLs.invoke(ucp);
+                        break;
+                    } catch (Exception e) {
+                        throw new RuntimeException("can not invoke getURLs.", e);
                     }
-                    if (zipfs != null) {
-                        try {
-                            zipfs.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
+                } catch (NoSuchFieldException e) {
+                    clc = clc.getSuperclass();
+                    continue;
                 }
-                return;
-            } catch (NoSuchFieldException e) {
-                clc = clc.getSuperclass();
-                continue;
             }
         }
-        throw new RuntimeException("can not find ucp.");
+        if (urls == null) {
+            throw new RuntimeException("can not find urls.");
+        }
+        for (URL url : urls) {
+            if (url.toString().endsWith(".jar") || url.toString().endsWith(".jar!/")) {
+                continue;
+            }
+            URI uri = null;
+            try {
+                uri = url.toURI();
+            } catch (URISyntaxException e) {
+                throw new RuntimeException("can not toURI.", e);
+            }
+            FileSystem zipfs = null;
+            Path rootPath = null;
+            String uriStr = uri.toString();
+            if (uriStr.contains("jar:file:")) {// jar
+                int idx = uriStr.indexOf(".jar");
+                String zipFilePath = uriStr.substring(0, idx) + ".jar";
+                String pathInFile = uriStr.substring(idx + ".jar".length())
+                        .replaceAll("!", "");
+                try {
+                    URI zipFile = URI.create(zipFilePath);
+                    Map<String, String> env = new HashMap<>();
+                    env.put("create", "true");
+                    zipfs = FileSystems.newFileSystem(zipFile, env);
+                    rootPath = zipfs.getPath(pathInFile);
+                } catch (Exception e) {
+                    throw new RuntimeException("zipFile error.", e);
+                }
+            } else {
+                rootPath = Paths.get(uri);
+            }
+            try {
+                Files.walkFileTree(rootPath, new SimpleFileVisitor<Path>() {
+
+                    @Override
+                    public FileVisitResult visitFile(Path file,
+                                                     BasicFileAttributes attrs) throws IOException {
+                        String fileName = file.getFileName().toString();
+                        if (!fileName.endsWith(".class")) {
+                            return FileVisitResult.CONTINUE;
+                        }
+                        byte[] bytes = Files.readAllBytes(file);
+                        ResolvedClass rc = parseProcess(bytes);
+                        if (rc != null) {
+                            byte[] enhancedBytes = enhanceProcess(rc);
+                            try {
+                                loadClass(rc, enhancedBytes);
+                            } catch (Exception e) {
+                                throw new RuntimeException("can not loadClass.", e);
+                            }
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                });
+            } catch (IOException e) {
+                throw new RuntimeException("can not walkFileTree.", e);
+            }
+            if (zipfs != null) {
+                try {
+                    zipfs.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
     }
 
     private static void loadClass(ResolvedClass rc, byte[] enhancedBytes) throws Exception {
