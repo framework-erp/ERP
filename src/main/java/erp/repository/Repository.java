@@ -24,10 +24,6 @@ public abstract class Repository<E, ID> {
 
     private EntityIdGetter entityIdGetter = null;
 
-    protected Repository() {
-        this(null, null);
-    }
-
     protected Repository(Store<E, ID> store, Mutexes<ID> mutexes) {
         Type genType = getClass().getGenericSuperclass();
         Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
