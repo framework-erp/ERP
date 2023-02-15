@@ -24,7 +24,8 @@ public abstract class Repository<E, ID> {
 
     private EntityIdGetter entityIdGetter = null;
 
-    public Repository() {
+    protected Repository() {
+        this(null, null);
     }
 
     protected Repository(Store<E, ID> store, Mutexes<ID> mutexes) {
