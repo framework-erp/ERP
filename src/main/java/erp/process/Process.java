@@ -1,6 +1,7 @@
 package erp.process;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 完整描述过程的标准数据结构
@@ -9,9 +10,9 @@ public class Process {
     private String name;
     private List<Object> argumentList;
     private Object result;
-    private List<Object> createdEntityList;
-    private List<Object> deletedEntityList;
-    private List<Object[]> updatedEntityList;
+    private List<Map> createdEntityList;
+    private List<Map> deletedEntityList;
+    private List<Map> updatedEntityList;
 
     public String getName() {
         return name;
@@ -37,27 +38,27 @@ public class Process {
         this.result = result;
     }
 
-    public List<Object> getCreatedEntityList() {
+    public List<Map> getCreatedEntityList() {
         return createdEntityList;
     }
 
-    public void setCreatedEntityList(List<Object> createdEntityList) {
+    public void setCreatedEntityList(List<Map> createdEntityList) {
         this.createdEntityList = createdEntityList;
     }
 
-    public List<Object> getDeletedEntityList() {
+    public List<Map> getDeletedEntityList() {
         return deletedEntityList;
     }
 
-    public void setDeletedEntityList(List<Object> deletedEntityList) {
+    public void setDeletedEntityList(List<Map> deletedEntityList) {
         this.deletedEntityList = deletedEntityList;
     }
 
-    public List<Object[]> getUpdatedEntityList() {
+    public List<Map> getUpdatedEntityList() {
         return updatedEntityList;
     }
 
-    public void setUpdatedEntityList(List<Object[]> updatedEntityList) {
+    public void setUpdatedEntityList(List<Map> updatedEntityList) {
         this.updatedEntityList = updatedEntityList;
     }
 }

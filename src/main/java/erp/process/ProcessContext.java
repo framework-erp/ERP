@@ -25,9 +25,9 @@ public class ProcessContext {
 
     private Object result;
 
-    private List<Object> createdEntityList = new ArrayList<>();
-    private List<Object> deletedEntityList = new ArrayList<>();
-    private List<Object[]> updatedEntityList = new ArrayList<>();
+    private List<Map> createdEntityList = new ArrayList<>();
+    private List<Map> deletedEntityList = new ArrayList<>();
+    private List<Map> updatedEntityList = new ArrayList<>();
 
     public void startProcess(String processName) {
         if (started) {
@@ -69,15 +69,25 @@ public class ProcessContext {
                 ProcessEntity processEntity = (ProcessEntity) entry.getValue();
                 if (processEntity.getState() instanceof CreatedInProcState) {
                     entitiesToInsert.put(id, processEntity.getEntity());
-                    createdEntityList.add(processEntity.getEntity());
+                    createdEntityList.add(new HashMap() {{
+                        put("type", repoPes.getEntityType());
+                        put("entity", processEntity.getEntity());
+                    }});
                 } else if (processEntity.getState() instanceof TakenFromRepoState) {
                     if (processEntity.changed()) {
                         entitiesToUpdate.put(id, processEntity);
-                        updatedEntityList.add(new Object[]{processEntity.getInitialEntitySnapshot(), processEntity.getEntity()});
+                        updatedEntityList.add(new HashMap() {{
+                            put("type", repoPes.getEntityType());
+                            put("originalEntity", processEntity.getInitialEntitySnapshot());
+                            put("updatedEntity", processEntity.getEntity());
+                        }});
                     }
                 } else if (processEntity.getState() instanceof ToRemoveInRepoState) {
                     idsToRemoveEntity.add(id);
-                    deletedEntityList.add(processEntity.getEntity());
+                    deletedEntityList.add(new HashMap() {{
+                        put("type", repoPes.getEntityType());
+                        put("entity", processEntity.getEntity());
+                    }});
                 }
             }
             InnerRepository repository = AppContext.getRepository(repoPes.getEntityType());
