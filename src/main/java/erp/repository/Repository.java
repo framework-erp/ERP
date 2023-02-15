@@ -33,8 +33,8 @@ public abstract class Repository<E, ID> {
         AppContext.registerRepository(entityType, store, mutexes);
     }
 
-    public Repository(Store<E, ID> store, Mutexes<ID> mutexes, Class<E> entityType) {
-        this.entityType = entityType.getName();
+    public Repository(Store<E, ID> store, Mutexes<ID> mutexes, String entityType) {
+        this.entityType = entityType;
         this.store = store;
         this.mutexes = mutexes;
         AppContext.registerRepository(this.entityType, store, mutexes);
