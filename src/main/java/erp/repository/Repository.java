@@ -147,7 +147,7 @@ public abstract class Repository<E, ID> {
             return exists;
         }
         store.insert(id, entity);
-        processContext.addEntityTakenFromRepo(entityType, id, entity);
+        processContext.addEntityCreatedAndTakenFromRepo(entityType, id, entity);
         return null;
     }
 

@@ -6,6 +6,7 @@ import erp.process.states.TakenFromRepoState;
 import erp.process.states.ToRemoveInRepoState;
 import erp.repository.InnerRepository;
 import erp.repository.InnerSingletonRepository;
+import erp.repository.copy.EntityCopier;
 import erp.util.Unsafe;
 
 import java.util.*;
@@ -144,6 +145,14 @@ public class ProcessContext {
             processEntities.put(entityType, entities);
         }
         entities.addNewEntity(entityId, entity);
+    }
+
+    public <I, E> void addEntityCreatedAndTakenFromRepo(String entityType, I entityId, E entity) {
+        Map map = new HashMap(2);
+        map.put("type", entityType);
+        map.put("entity", EntityCopier.copy(entity));
+        createdEntityList.add(map);
+        addEntityTakenFromRepo(entityType, entityId, entity);
     }
 
     public void processFaild() {
