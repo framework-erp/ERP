@@ -69,30 +69,31 @@ public class ProcessContext {
                 ProcessEntity processEntity = (ProcessEntity) entry.getValue();
                 if (processEntity.getState() instanceof CreatedInProcState) {
                     entitiesToInsert.put(id, processEntity.getEntity());
-                    createdEntityList.add(new HashMap() {{
-                        put("type", repoPes.getEntityType());
-                        put("entity", processEntity.getEntity());
-                    }});
+                    Map map = new HashMap(2);
+                    map.put("type", repoPes.getEntityType());
+                    map.put("entity", processEntity.getEntity());
+                    createdEntityList.add(map);
                 } else if (processEntity.getState() instanceof TakenFromRepoState) {
                     if (processEntity.changed()) {
                         entitiesToUpdate.put(id, processEntity);
-                        updatedEntityList.add(new HashMap() {{
-                            put("type", repoPes.getEntityType());
-                            put("originalEntity", processEntity.getInitialEntitySnapshot());
-                            put("updatedEntity", processEntity.getEntity());
-                        }});
+                        Map map = new HashMap(3);
+                        map.put("type", repoPes.getEntityType());
+                        map.put("originalEntity", processEntity.getInitialEntitySnapshot());
+                        map.put("updatedEntity", processEntity.getEntity());
+                        updatedEntityList.add(map);
                     }
                 } else if (processEntity.getState() instanceof ToRemoveInRepoState) {
                     idsToRemoveEntity.add(id);
-                    deletedEntityList.add(new HashMap() {{
-                        put("type", repoPes.getEntityType());
-                        put("entity", processEntity.getEntity());
-                    }});
+                    Map map = new HashMap(2);
+                    map.put("type", repoPes.getEntityType());
+                    map.put("entity", processEntity.getEntity());
+                    deletedEntityList.add(map);
                 }
             }
             InnerRepository repository = AppContext.getRepository(repoPes.getEntityType());
             repository.flushProcessEntities(entitiesToInsert, entitiesToUpdate, idsToRemoveEntity);
         }
+
     }
 
     public <I, E> ProcessEntity<E> getEntityInProcess(String entityType, I entityId) {
