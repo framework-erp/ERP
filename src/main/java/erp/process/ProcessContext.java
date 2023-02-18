@@ -193,6 +193,9 @@ public class ProcessContext {
     }
 
     public void recordProcessResult(Object result) {
+        if (result == null) {
+            return;
+        }
         this.result = new TypedResult(result.getClass().getName(), result);
     }
 
