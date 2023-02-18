@@ -1,7 +1,6 @@
-package erp.process;
+package erp.process.definition;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 完整描述过程的标准数据结构
@@ -10,9 +9,9 @@ public class Process {
     private String name;
     private List<Object> argumentList;
     private Object result;
-    private List<Map> createdEntityList;
-    private List<Map> deletedEntityList;
-    private List<Map> updatedEntityList;
+    private List<TypedEntity> createdEntityList;
+    private List<TypedEntity> deletedEntityList;
+    private List<TypedEntityUpdate> entityUpdateList;
 
     public String getName() {
         return name;
@@ -38,27 +37,28 @@ public class Process {
         this.result = result;
     }
 
-    public List<Map> getCreatedEntityList() {
+    public List<TypedEntity> getCreatedEntityList() {
         return createdEntityList;
     }
 
-    public void setCreatedEntityList(List<Map> createdEntityList) {
+    public void setCreatedEntityList(List<TypedEntity> createdEntityList) {
         this.createdEntityList = createdEntityList;
     }
 
-    public List<Map> getDeletedEntityList() {
+    public List<TypedEntity> getDeletedEntityList() {
         return deletedEntityList;
     }
 
-    public void setDeletedEntityList(List<Map> deletedEntityList) {
+    public void setDeletedEntityList(List<TypedEntity> deletedEntityList) {
         this.deletedEntityList = deletedEntityList;
     }
 
-    public List<Map> getUpdatedEntityList() {
-        return updatedEntityList;
+    public List<TypedEntityUpdate> getEntityUpdateList() {
+        return entityUpdateList;
     }
 
-    public void setUpdatedEntityList(List<Map> updatedEntityList) {
-        this.updatedEntityList = updatedEntityList;
+    public void setEntityUpdateList(List<TypedEntityUpdate> entityUpdateList) {
+        this.entityUpdateList = entityUpdateList;
     }
+    
 }

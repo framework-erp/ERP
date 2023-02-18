@@ -1,10 +1,10 @@
 package erp;
 
 import erp.annotation.ProcessEnhancer;
-import erp.process.Process;
 import erp.process.ProcessContext;
 import erp.process.ProcessWrapper;
 import erp.process.ThreadBoundProcessContextArray;
+import erp.process.definition.Process;
 
 import java.util.concurrent.Callable;
 

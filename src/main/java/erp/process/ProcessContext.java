@@ -1,6 +1,10 @@
 package erp.process;
 
 import erp.AppContext;
+import erp.process.definition.Process;
+import erp.process.definition.TypedEntity;
+import erp.process.definition.TypedEntityUpdate;
+import erp.process.definition.TypedResult;
 import erp.process.states.CreatedInProcState;
 import erp.process.states.TakenFromRepoState;
 import erp.process.states.ToRemoveInRepoState;
@@ -24,11 +28,11 @@ public class ProcessContext {
 
     private List<Object> argumentList = new ArrayList<>();
 
-    private Object result;
+    private TypedResult result;
 
-    private List<Map> createdEntityList = new ArrayList<>();
-    private List<Map> deletedEntityList = new ArrayList<>();
-    private List<Map> updatedEntityList = new ArrayList<>();
+    private List<TypedEntity> createdEntityList = new ArrayList<>();
+    private List<TypedEntity> deletedEntityList = new ArrayList<>();
+    private List<TypedEntityUpdate> entityUpdateList = new ArrayList<>();
 
     public void startProcess(String processName) {
         if (started) {
@@ -70,25 +74,15 @@ public class ProcessContext {
                 ProcessEntity processEntity = (ProcessEntity) entry.getValue();
                 if (processEntity.getState() instanceof CreatedInProcState) {
                     entitiesToInsert.put(id, processEntity.getEntity());
-                    Map map = new HashMap(2);
-                    map.put("type", repoPes.getEntityType());
-                    map.put("entity", processEntity.getEntity());
-                    createdEntityList.add(map);
+                    createdEntityList.add(new TypedEntity(repoPes.getEntityType(), processEntity.getEntity()));
                 } else if (processEntity.getState() instanceof TakenFromRepoState) {
                     if (processEntity.changed()) {
                         entitiesToUpdate.put(id, processEntity);
-                        Map map = new HashMap(3);
-                        map.put("type", repoPes.getEntityType());
-                        map.put("originalEntity", processEntity.getInitialEntitySnapshot());
-                        map.put("updatedEntity", processEntity.getEntity());
-                        updatedEntityList.add(map);
+                        entityUpdateList.add(new TypedEntityUpdate(repoPes.getEntityType(), processEntity.getInitialEntitySnapshot(), processEntity.getEntity()));
                     }
                 } else if (processEntity.getState() instanceof ToRemoveInRepoState) {
                     idsToRemoveEntity.add(id);
-                    Map map = new HashMap(2);
-                    map.put("type", repoPes.getEntityType());
-                    map.put("entity", processEntity.getEntity());
-                    deletedEntityList.add(map);
+                    deletedEntityList.add(new TypedEntity(repoPes.getEntityType(), processEntity.getEntity()));
                 }
             }
             InnerRepository repository = AppContext.getRepository(repoPes.getEntityType());
@@ -148,10 +142,7 @@ public class ProcessContext {
     }
 
     public <I, E> void addEntityCreatedAndTakenFromRepo(String entityType, I entityId, E entity) {
-        Map map = new HashMap(2);
-        map.put("type", entityType);
-        map.put("entity", EntityCopier.copy(entity));
-        createdEntityList.add(map);
+        createdEntityList.add(new TypedEntity(entityType, EntityCopier.copy(entity)));
         addEntityTakenFromRepo(entityType, entityId, entity);
     }
 
@@ -168,7 +159,7 @@ public class ProcessContext {
         argumentList.clear();
         createdEntityList.clear();
         deletedEntityList.clear();
-        updatedEntityList.clear();
+        entityUpdateList.clear();
         result = null;
     }
 
@@ -202,7 +193,7 @@ public class ProcessContext {
     }
 
     public void recordProcessResult(Object result) {
-        this.result = result;
+        this.result = new TypedResult(result.getClass().getName(), result);
     }
 
     public void recordProcessArgument(Object argument) {
@@ -234,7 +225,7 @@ public class ProcessContext {
         process.setName(processName);
         process.setArgumentList(new ArrayList<>(argumentList));
         process.setCreatedEntityList(new ArrayList<>(createdEntityList));
-        process.setUpdatedEntityList(new ArrayList<>(updatedEntityList));
+        process.setEntityUpdateList(new ArrayList<>(entityUpdateList));
         process.setDeletedEntityList(new ArrayList<>(deletedEntityList));
         process.setResult(result);
         return process;
