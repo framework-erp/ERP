@@ -5,13 +5,13 @@ import erp.repository.InnerSingletonRepository;
 import erp.repository.Mutexes;
 import erp.repository.Store;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AppContext {
-    private static Map<String, InnerRepository> repositories = new HashMap<>();
-    private static Map<String, InnerSingletonRepository> singletonRepositories = new HashMap<>();
+    private static Map<String, InnerRepository> repositories = new ConcurrentHashMap<>();
+    private static Map<String, InnerSingletonRepository> singletonRepositories = new ConcurrentHashMap<>();
 
     public static void registerRepository(String entityType, Store store, Mutexes mutexes) {
         repositories.put(entityType, new InnerRepository(store, mutexes));
