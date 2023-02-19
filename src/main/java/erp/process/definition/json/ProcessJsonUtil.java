@@ -7,9 +7,9 @@ import java.util.regex.Pattern;
 
 public class ProcessJsonUtil {
 
-    private static Pattern createdEntityListPattern = Pattern.compile("\\{.*?\"name\".*?\"argumentList\".*?\"result\".*?\"createdEntityList\":\\[(.*?)],\"deletedEntityList\":");
-    private static Pattern deletedEntityListPattern = Pattern.compile("\\{.*?\"name\".*?\"argumentList\".*?\"result\".*?\"deletedEntityList\":\\[(.*?)],\"entityUpdateList\":");
-    private static Pattern entityUpdateListPattern = Pattern.compile("\\{.*?\"name\".*?\"argumentList\".*?\"result\".*?\"entityUpdateList\":\\[(.*?)]\\}$");
+    private static Pattern createdEntityListPattern = Pattern.compile("\\{.*?\"name\":.*?\"createdEntityList\":\\[(.*?)],\"deletedEntityList\":");
+    private static Pattern deletedEntityListPattern = Pattern.compile("\\{.*?\"name\":.*?\"deletedEntityList\":\\[(.*?)],\"entityUpdateList\":");
+    private static Pattern entityUpdateListPattern = Pattern.compile("\\{.*?\"name\":.*?\"entityUpdateList\":\\[(.*?)]\\}$");
     private static Pattern typedEntityPattern = Pattern.compile("\\{\"type\":\"(.*?)\",\"entity\":(.*?)\\}$");
     private static Pattern typedEntityUpdatePattern = Pattern.compile("\\{\"type\":\"(.*?)\",\"originalEntity\":(\\{.*?\\}),\"updatedEntity\":(.*?)\\}$");
 
