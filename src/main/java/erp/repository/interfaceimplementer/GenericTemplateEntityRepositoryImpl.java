@@ -2,7 +2,7 @@ package erp.repository.interfaceimplementer;
 
 import erp.repository.Repository;
 
-public class GenericTemplateEntityRepositoryImpl implements GenericTemplateEntityRepository<TemplateEntityImpl, Object> {
+public class GenericTemplateEntityRepositoryImpl implements GenericTemplateEntityRepository<TemplateEntityImpl, Integer> {
 
     private Repository underlyingRepository;
 
@@ -11,12 +11,12 @@ public class GenericTemplateEntityRepositoryImpl implements GenericTemplateEntit
     }
 
     @Override
-    public TemplateEntityImpl take(Object id) {
+    public TemplateEntityImpl take(Integer id) {
         return (TemplateEntityImpl) underlyingRepository.take(id);
     }
 
     @Override
-    public TemplateEntityImpl find(Object id) {
+    public TemplateEntityImpl find(Integer id) {
         return (TemplateEntityImpl) underlyingRepository.find(id);
     }
 
@@ -31,12 +31,12 @@ public class GenericTemplateEntityRepositoryImpl implements GenericTemplateEntit
     }
 
     @Override
-    public TemplateEntityImpl takeOrPutIfAbsent(Object id, TemplateEntityImpl newEntity) {
+    public TemplateEntityImpl takeOrPutIfAbsent(Integer id, TemplateEntityImpl newEntity) {
         return (TemplateEntityImpl) underlyingRepository.takeOrPutIfAbsent(id, newEntity);
     }
 
     @Override
-    public TemplateEntityImpl remove(Object id) {
+    public TemplateEntityImpl remove(Integer id) {
         return (TemplateEntityImpl) underlyingRepository.remove(id);
     }
 }
