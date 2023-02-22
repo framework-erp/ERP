@@ -18,6 +18,7 @@ import java.lang.reflect.Type;
  */
 public abstract class Repository<E, ID> {
     protected String entityType;
+    protected String idType;
 
     protected Store<E, ID> store;
     protected Mutexes<ID> mutexes;
@@ -28,6 +29,11 @@ public abstract class Repository<E, ID> {
         Type genType = getClass().getGenericSuperclass();
         Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
         entityType = paramsType.getTypeName();
+        try {
+            createEntityIdGetter((Class<?>) paramsType);
+        } catch (Exception e) {
+            throw new RuntimeException("createEntityIdGetter error", e);
+        }
         this.store = store;
         this.mutexes = mutexes;
         AppContext.registerRepository(entityType, store, mutexes);
@@ -35,19 +41,17 @@ public abstract class Repository<E, ID> {
 
     public Repository(Store<E, ID> store, Mutexes<ID> mutexes, String entityType) {
         this.entityType = entityType;
+        try {
+            createEntityIdGetter(Class.forName(entityType));
+        } catch (Exception e) {
+            throw new RuntimeException("createEntityIdGetter error", e);
+        }
         this.store = store;
         this.mutexes = mutexes;
         AppContext.registerRepository(this.entityType, store, mutexes);
     }
 
     protected ID getId(E entity) {
-        if (entityIdGetter == null) {
-            try {
-                createEntityIdGetter(entity);
-            } catch (Exception e) {
-                return null;
-            }
-        }
         return (ID) entityIdGetter.getId(entity);
     }
 
@@ -177,10 +181,11 @@ public abstract class Repository<E, ID> {
         return entity;
     }
 
-    private void createEntityIdGetter(E entity) throws Exception {
-        Field idField = entity.getClass().getDeclaredField("id");
+    private void createEntityIdGetter(Class<?> entityClass) throws Exception {
+        Field idField = entityClass.getDeclaredField("id");
         long idFieldOffset = Unsafe.getFieldOffset(idField);
         Class<?> idFieldType = idField.getType();
+        idType = idFieldType.getName();
         if (idFieldType.equals(byte.class)) {
             entityIdGetter = (e) -> {
                 return Unsafe.getByteFieldOfObject(e, idFieldOffset);
@@ -223,6 +228,10 @@ public abstract class Repository<E, ID> {
 
     public String getEntityType() {
         return entityType;
+    }
+
+    public String getIdType() {
+        return idType;
     }
 
     public void setEntityType(String entityType) {
