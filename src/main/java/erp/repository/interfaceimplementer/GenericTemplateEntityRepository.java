@@ -1,6 +1,6 @@
 package erp.repository.interfaceimplementer;
 
-public interface GenericTemplateEntityRepository<T extends TemplateEntity, ID> {
+interface GenericTemplateEntityRepository<T extends TemplateEntity, ID> {
     T take(ID id);
 
     T find(ID id);

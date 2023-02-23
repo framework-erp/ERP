@@ -2,7 +2,7 @@ package erp.repository.interfaceimplementer;
 
 import erp.repository.Repository;
 
-public class GenericTemplateEntityRepositoryImpl implements GenericTemplateEntityRepository<TemplateEntityImpl, Integer> {
+class GenericTemplateEntityRepositoryImpl implements GenericTemplateEntityRepository<TemplateEntityImpl, Integer> {
 
     private Repository underlyingRepository;
 

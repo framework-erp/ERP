@@ -1,6 +1,6 @@
 package erp.repository.interfaceimplementer;
 
-public interface TemplateEntityImplRepository {
+interface TemplateEntityImplRepository {
     TemplateEntityImpl take(Integer id);
 
     TemplateEntityImpl find(Integer id);

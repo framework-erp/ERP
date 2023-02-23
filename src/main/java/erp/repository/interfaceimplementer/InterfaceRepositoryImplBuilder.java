@@ -19,7 +19,7 @@ public class InterfaceRepositoryImplBuilder {
         if (itfTypeInstanceMap.containsKey(itfType.getName())) {
             return (I) itfTypeInstanceMap.get(itfType.getName());
         }
-        String newTypeClsName = "erp.repository.generated." + itfType.getSimpleName() + "_implemented_by_" + underlyingRepository.getClass().getSimpleName();
+        String newTypeClsName = "erp.repository.generated." + itfType.getSimpleName() + "Impl_with_underlying_" + underlyingRepository.getClass().getSimpleName();
         defineClass(itfType, underlyingRepository.getEntityType(), underlyingRepository.getIdType(), newTypeClsName);
         Constructor constructor = null;
         try {
@@ -154,7 +154,7 @@ public class InterfaceRepositoryImplBuilder {
                     signature = signature.replaceAll(templateEntityTypeDesc, entityTypeDesc)
                             .replaceAll(templateIdTypeDesc, idTypeDesc);
                 }
-                super.visit(version, access, name, signature, superName, interfaces);
+                super.visit(version, 33, name, signature, superName, interfaces);
             }
 
             @Override
