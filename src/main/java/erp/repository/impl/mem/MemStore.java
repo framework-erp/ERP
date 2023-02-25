@@ -1,4 +1,4 @@
-package erp.repository.impl;
+package erp.repository.impl.mem;
 
 import erp.process.ProcessEntity;
 import erp.repository.Store;

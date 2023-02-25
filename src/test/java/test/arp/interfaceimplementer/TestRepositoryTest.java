@@ -1,7 +1,7 @@
 package test.arp.interfaceimplementer;
 
 import erp.ERP;
-import erp.repository.impl.MemRepository;
+import erp.repository.impl.mem.MemRepository;
 import erp.repository.interfaceimplementer.InterfaceRepositoryImplBuilder;
 import org.junit.Test;
 
