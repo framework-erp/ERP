@@ -48,4 +48,9 @@ public class TestService2 {
     public void f5(long l1, int l2) {
     }
 
+    @Process
+    public int f6() {
+        return 1;
+    }
+
 }

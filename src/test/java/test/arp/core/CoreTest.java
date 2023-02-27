@@ -41,6 +41,8 @@ public class CoreTest {
         entity21.setiValue(2);
         assertEquals(2, entity21.getiValue());
 
+        service2.f6();
+
     }
 
 }

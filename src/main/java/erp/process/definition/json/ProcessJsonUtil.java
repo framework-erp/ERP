@@ -7,11 +7,32 @@ import java.util.regex.Pattern;
 
 public class ProcessJsonUtil {
 
+    private static Pattern processNamePattern = Pattern.compile("\\{.*?\"name\":\"(.*?)\",");
     private static Pattern createdEntityListPattern = Pattern.compile("\\{.*?\"name\":.*?\"createdEntityList\":\\[(.*?)],\"deletedEntityList\":");
     private static Pattern deletedEntityListPattern = Pattern.compile("\\{.*?\"name\":.*?\"deletedEntityList\":\\[(.*?)],\"entityUpdateList\":");
     private static Pattern entityUpdateListPattern = Pattern.compile("\\{.*?\"name\":.*?\"entityUpdateList\":\\[(.*?)]\\}$");
     private static Pattern typedEntityPattern = Pattern.compile("\\{\"type\":\"(.*?)\",\"entity\":(.*?)\\}$");
     private static Pattern typedEntityUpdatePattern = Pattern.compile("\\{\"type\":\"(.*?)\",\"originalEntity\":(\\{.*?\\}),\"updatedEntity\":(.*?)\\}$");
+    private static Pattern typedResultPattern = Pattern.compile("\\{.*?\"name\":.*?\"result\":\\{\"type\":\"(.*?)\",\"result\":(.*?)\\},\"createdEntityList\":");
+
+    public static String getProcessName(String processJson) {
+        Matcher processNameMatcher = processNamePattern.matcher(processJson);
+        processNameMatcher.find();
+        String processName = processNameMatcher.group(1);
+        return processName;
+    }
+
+    public static TypedResultJson getProcessResult(String processJson) {
+        Matcher processResultMatcher = typedResultPattern.matcher(processJson);
+        boolean found = processResultMatcher.find();
+        if (!found) {
+            return null;
+        }
+        TypedResultJson resultJson = new TypedResultJson();
+        resultJson.setType(processResultMatcher.group(1));
+        resultJson.setResultJson(processResultMatcher.group(2));
+        return resultJson;
+    }
 
     public static List<TypedEntityJson> getCreatedEntityListJson(String processJson) {
         Matcher createdEntityListMatcher = createdEntityListPattern.matcher(processJson);
