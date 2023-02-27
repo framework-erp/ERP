@@ -8,7 +8,7 @@ import java.util.List;
 public class Process {
     private String name;
     private List<Object> argumentList;
-    private Object result;
+    private TypedResult result;
     private List<TypedEntity> createdEntityList;
     private List<TypedEntity> deletedEntityList;
     private List<TypedEntityUpdate> entityUpdateList;
@@ -29,11 +29,11 @@ public class Process {
         this.argumentList = argumentList;
     }
 
-    public Object getResult() {
+    public TypedResult getResult() {
         return result;
     }
 
-    public void setResult(Object result) {
+    public void setResult(TypedResult result) {
         this.result = result;
     }
 
@@ -60,5 +60,5 @@ public class Process {
     public void setEntityUpdateList(List<TypedEntityUpdate> entityUpdateList) {
         this.entityUpdateList = entityUpdateList;
     }
-    
+
 }
