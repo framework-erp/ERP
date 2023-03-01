@@ -45,4 +45,8 @@ public class MemStore<E, ID> implements Store<E, ID> {
             data.remove(id);
         }
     }
+
+    public Set<ID> getIdSet() {
+        return data.keySet();
+    }
 }
