@@ -17,14 +17,22 @@ public abstract class DTOProxyStore<E, DTO, ID> implements Store<E, ID> {
 
     @Override
     public E load(ID id) {
-        return toEntity(dtoStore.load(id));
+        DTO dto = dtoStore.load(id);
+        if (dto == null) {
+            return null;
+        }
+        return toEntity(dto);
     }
 
     protected abstract E toEntity(DTO load);
 
     @Override
     public void insert(ID id, E entity) {
-        dtoStore.insert(id, toDTO(entity));
+        DTO dto = null;
+        if (entity != null) {
+            dto = toDTO(entity);
+        }
+        dtoStore.insert(id, dto);
     }
 
     protected abstract DTO toDTO(E entity);
