@@ -14,23 +14,29 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class SingletonRepository<T> {
 
-    public SingletonRepository() {
+    private String entityType;
+
+    private T entity;
+
+    private AtomicInteger lock = new AtomicInteger();
+
+    public SingletonRepository(Class<T> entityClass) {
+        entityType = entityClass.getName();
+        AppContext.registerSingletonRepository(entityType, lock);
+    }
+
+    public SingletonRepository(T entity) {
+        this((Class<T>) entity.getClass());
+        this.entity = entity;
+    }
+
+    protected SingletonRepository() {
         Type genType = getClass().getGenericSuperclass();
         Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
         entityType = paramsType.getTypeName();
         AppContext.registerSingletonRepository(entityType, lock);
     }
 
-    public SingletonRepository(T entity) {
-        this();
-        this.entity = entity;
-    }
-
-    private String entityType;
-
-    private T entity;
-
-    private AtomicInteger lock = new AtomicInteger();
 
     public T get() {
         return entity;
