@@ -5,17 +5,10 @@ import erp.repository.Repository;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.HashMap;
-import java.util.Map;
 
 public class InterfaceRepositoryImplBuilder {
 
-    private static Map<String, Object> itfTypeInstanceMap = new HashMap<>();
-
     public static synchronized <I> I build(Class<I> itfType, Repository underlyingRepository) {
-        if (itfTypeInstanceMap.containsKey(itfType.getName())) {
-            return (I) itfTypeInstanceMap.get(itfType.getName());
-        }
 
         I instance = (I) Proxy.newProxyInstance(underlyingRepository.getClass().getClassLoader(), new Class[]{itfType},
                 new InvocationHandler() {
@@ -41,7 +34,7 @@ public class InterfaceRepositoryImplBuilder {
                         }
                     }
                 });
-        itfTypeInstanceMap.put(itfType.getName(), instance);
+        
         return instance;
     }
 
