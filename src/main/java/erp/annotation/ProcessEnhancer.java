@@ -141,7 +141,7 @@ public class ProcessEnhancer {
         Map<String, Object> clsInfoMap = new HashMap<>();
         Map<String, ProcessInfo> processInfos = new HashMap<>();
         final ResolvedClass rc = new ResolvedClass();
-        cr.accept(new ClassVisitor(Opcodes.ASM5, cw) {
+        cr.accept(new ClassVisitor(Opcodes.ASM9, cw) {
 
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 clsInfoMap.put("name", name.replace('/', '.'));
@@ -155,7 +155,7 @@ public class ProcessEnhancer {
                     return super.visitMethod(access, mthName, mthDesc, signature, exceptions);
                 }
                 Type[] argumentTypes = Type.getArgumentTypes(mthDesc);
-                return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(access, mthName, mthDesc, signature, exceptions), access, mthName, mthDesc) {
+                return new AdviceAdapter(Opcodes.ASM9, super.visitMethod(access, mthName, mthDesc, signature, exceptions), access, mthName, mthDesc) {
                     private boolean isProcess;
                     private ProcessInfo processInfo = null;
 
@@ -198,7 +198,7 @@ public class ProcessEnhancer {
         Map<String, ProcessInfo> processInfos = resolvedClass.getProcessInfos();
         ClassReader cr = new ClassReader(resolvedClass.getClassBytes());
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cr.accept(new ClassVisitor(Opcodes.ASM5, cw) {
+        cr.accept(new ClassVisitor(Opcodes.ASM9, cw) {
 
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 super.visit(version, access, name, signature, superName, interfaces);
@@ -208,7 +208,7 @@ public class ProcessEnhancer {
             public MethodVisitor visitMethod(int access, String mthName, String mthDesc, String signature, String[] exceptions) {
                 Type[] argumentTypes = Type.getArgumentTypes(mthDesc);
                 String returnTypeDesc = mthDesc.substring(mthDesc.indexOf(")") + 1);
-                return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(access, mthName, mthDesc, signature, exceptions), access, mthName, mthDesc) {
+                return new AdviceAdapter(Opcodes.ASM9, super.visitMethod(access, mthName, mthDesc, signature, exceptions), access, mthName, mthDesc) {
 
                     private Label lTryBlockStart;
                     private Label lTryBlockEnd;
