@@ -20,7 +20,7 @@
 这样的复杂技术细节，需要做的仅仅是给方法加上  **@Process** 注解，ARP就会为你照顾一切技术细节。
 
 值得一提的是，这里的订单仓库 “orderRepository” 不需要花心思去开发，ARP有一个内置的内存仓库
-“erp.repository.impl.mem.MemRepository”，也提供了仓库的[mongodb实现](https://github.com/framework-erp/ERP-mongodb.git)
+“erp.repository.impl.mem.MemRepository”，此外也提供了仓库的[mongodb实现](https://github.com/framework-erp/ERP-mongodb.git)
 
 ### HelloWorld：
 TODO
