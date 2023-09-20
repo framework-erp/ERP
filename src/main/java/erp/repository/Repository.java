@@ -182,7 +182,25 @@ public abstract class Repository<E, ID> {
     }
 
     private void createEntityIdGetter(Class<?> entityClass) throws Exception {
-        Field idField = entityClass.getDeclaredField("id");
+
+        //取名称为“id”的field作为id field，如果不存在 “id” field，那么取第一个field作为id field
+        Field idField = null;
+        Field[] fields = entityClass.getDeclaredFields();
+        for (Field field : fields) {
+            if (field.getName().equals("id")) {
+                idField = field;
+                break;
+            }
+        }
+        if (idField == null) {
+            if (fields.length > 0) {
+                idField = fields[0];
+            } else {
+                throw new RuntimeException("can not find id field in entity class " + entityClass.getName());
+            }
+        }
+
+
         long idFieldOffset = Unsafe.getFieldOffset(idField);
         Class<?> idFieldType = idField.getType();
         idType = idFieldType.getName();
