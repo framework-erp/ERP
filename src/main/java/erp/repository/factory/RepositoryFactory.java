@@ -1,4 +1,4 @@
-package erp.repository.interfaceimplementer;
+package erp.repository.factory;
 
 import erp.repository.Repository;
 
@@ -6,9 +6,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-public class InterfaceRepositoryImplBuilder {
+public class RepositoryFactory {
 
-    public static synchronized <I> I build(Class<I> itfType, Repository underlyingRepository) {
+    public static synchronized <I> I newInstance(Class<I> itfType, Repository underlyingRepository) {
 
         I instance = (I) Proxy.newProxyInstance(underlyingRepository.getClass().getClassLoader(), new Class[]{itfType},
                 new InvocationHandler() {
@@ -34,7 +34,7 @@ public class InterfaceRepositoryImplBuilder {
                         }
                     }
                 });
-        
+
         return instance;
     }
 

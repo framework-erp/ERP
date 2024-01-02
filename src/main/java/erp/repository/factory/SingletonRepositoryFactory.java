@@ -1,4 +1,4 @@
-package erp.repository.interfaceimplementer;
+package erp.repository.factory;
 
 import erp.repository.SingletonRepository;
 
@@ -6,9 +6,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-public class InterfaceSingletonRepositoryImplBuilder {
+public class SingletonRepositoryFactory {
 
-    public static synchronized <I> I build(Class<I> itfType, SingletonRepository underlyingRepository) {
+    public static synchronized <I> I newInstance(Class<I> itfType, SingletonRepository underlyingRepository) {
 
         I instance = (I) Proxy.newProxyInstance(underlyingRepository.getClass().getClassLoader(), new Class[]{itfType},
                 new InvocationHandler() {
