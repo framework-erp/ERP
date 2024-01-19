@@ -18,7 +18,7 @@ import java.lang.reflect.Type;
  */
 public abstract class Repository<E, ID> {
     protected String entityType;
-    protected String idType;
+    protected String entityIDField;
 
     protected Store<E, ID> store;
     protected Mutexes<ID> mutexes;
@@ -201,9 +201,9 @@ public abstract class Repository<E, ID> {
         }
 
 
+        entityIDField = idField.getName();
         long idFieldOffset = Unsafe.getFieldOffset(idField);
         Class<?> idFieldType = idField.getType();
-        idType = idFieldType.getName();
         if (idFieldType.equals(byte.class)) {
             entityIdGetter = (e) -> {
                 return Unsafe.getByteFieldOfObject(e, idFieldOffset);
@@ -248,8 +248,8 @@ public abstract class Repository<E, ID> {
         return entityType;
     }
 
-    public String getIdType() {
-        return idType;
+    public String getEntityIDField() {
+        return entityIDField;
     }
 
     public void setEntityType(String entityType) {
