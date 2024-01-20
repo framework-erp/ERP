@@ -7,7 +7,8 @@ import java.util.List;
 
 public class MemRepository<E, ID> extends Repository<E, ID> {
     protected MemRepository() {
-        super(new MemStore<>(), new MemMutexes<>());
+        this.store = new MemStore<>();
+        this.mutexes = new MemMutexes<>();
     }
 
     public MemRepository(Class<E> entityType) {
