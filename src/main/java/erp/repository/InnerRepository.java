@@ -9,21 +9,19 @@ import java.util.Set;
  * 对内的仓库操作集合
  */
 public class InnerRepository {
-    private Store store;
-    private Mutexes mutexes;
+    private Repository repository;
 
-    public InnerRepository(Store store, Mutexes mutexes) {
-        this.store = store;
-        this.mutexes = mutexes;
+    public InnerRepository(Repository repository) {
+        this.repository = repository;
     }
 
     public void flushProcessEntities(Map<Object, Object> entitiesToInsert, Map<Object, ProcessEntity> entitiesToUpdate, Set<Object> idsToRemoveEntity) {
-        store.saveAll(entitiesToInsert, entitiesToUpdate);
-        store.removeAll(idsToRemoveEntity);
-        mutexes.removeAll(idsToRemoveEntity);
+        repository.store.saveAll(entitiesToInsert, entitiesToUpdate);
+        repository.store.removeAll(idsToRemoveEntity);
+        repository.mutexes.removeAll(idsToRemoveEntity);
     }
 
     public void releaseProcessEntity(Set<Object> ids) {
-        mutexes.unlockAll(ids);
+        repository.mutexes.unlockAll(ids);
     }
 }

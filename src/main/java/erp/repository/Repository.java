@@ -36,7 +36,7 @@ public abstract class Repository<E, ID> {
         }
         this.store = store;
         this.mutexes = mutexes;
-        AppContext.registerRepository(entityType, store, mutexes);
+        AppContext.registerRepository(this);
     }
 
     public Repository(Store<E, ID> store, Mutexes<ID> mutexes, String entityType) {
@@ -48,7 +48,7 @@ public abstract class Repository<E, ID> {
         }
         this.store = store;
         this.mutexes = mutexes;
-        AppContext.registerRepository(this.entityType, store, mutexes);
+        AppContext.registerRepository(this);
     }
 
     protected ID getId(E entity) {
