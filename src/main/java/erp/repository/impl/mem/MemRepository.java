@@ -12,7 +12,9 @@ public class MemRepository<E, ID> extends Repository<E, ID> {
     }
 
     public MemRepository(Class<E> entityType) {
-        super(new MemStore<>(), new MemMutexes<>(), entityType.getName());
+        super(entityType.getName());
+        this.store = new MemStore<>();
+        this.mutexes = new MemMutexes<>();
     }
 
     public List<ID> queryAllIds() {

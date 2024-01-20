@@ -37,15 +37,13 @@ public abstract class Repository<E, ID> {
         AppContext.registerRepository(this);
     }
 
-    public Repository(Store<E, ID> store, Mutexes<ID> mutexes, String entityType) {
+    public Repository(String entityType) {
         this.entityType = entityType;
         try {
             createEntityIdGetter(Class.forName(entityType));
         } catch (Exception e) {
             throw new RuntimeException("createEntityIdGetter error", e);
         }
-        this.store = store;
-        this.mutexes = mutexes;
         AppContext.registerRepository(this);
     }
 
