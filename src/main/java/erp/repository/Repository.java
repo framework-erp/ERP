@@ -25,7 +25,7 @@ public abstract class Repository<E, ID> {
 
     private EntityIdGetter entityIdGetter = null;
 
-    protected Repository(Store<E, ID> store, Mutexes<ID> mutexes) {
+    protected Repository() {
         Type genType = getClass().getGenericSuperclass();
         Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
         entityType = paramsType.getTypeName();
@@ -34,8 +34,6 @@ public abstract class Repository<E, ID> {
         } catch (Exception e) {
             throw new RuntimeException("createEntityIdGetter error", e);
         }
-        this.store = store;
-        this.mutexes = mutexes;
         AppContext.registerRepository(this);
     }
 
