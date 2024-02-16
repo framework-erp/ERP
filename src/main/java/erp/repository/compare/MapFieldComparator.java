@@ -1,12 +1,12 @@
 package erp.repository.compare;
 
+import erp.util.Unsafe;
+
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import erp.util.Unsafe;
 
 public class MapFieldComparator extends BaseFieldComparator {
 
@@ -40,9 +40,29 @@ public class MapFieldComparator extends BaseFieldComparator {
                                 return false;
                             }
                         } else {
-                            if (!EntityComparator.equals(value,
-                                    hmAnother.get(key))) {
+                            Class<?> valueClass = e.getValue().getClass();
+                            Class<?> anotherValueClass = hmAnother.get(key).getClass();
+                            if (!valueClass.equals(anotherValueClass)) {
                                 return false;
+                            }
+                            if (Object.class.equals(valueClass)
+                                    || Byte.class.equals(valueClass)
+                                    || Short.class.equals(valueClass)
+                                    || Integer.class.equals(valueClass)
+                                    || Long.class.equals(valueClass)
+                                    || Float.class.equals(valueClass)
+                                    || Double.class.equals(valueClass)
+                                    || Boolean.class.equals(valueClass)
+                                    || Character.class.equals(valueClass)
+                                    || String.class.equals(valueClass)
+                                    || Enum.class.equals(valueClass)) {
+                                if (!value.equals(hmAnother.get(key))) {
+                                    return false;
+                                }
+                            } else {
+                                if (!EntityComparator.equals(value, hmAnother.get(key))) {
+                                    return false;
+                                }
                             }
                         }
                     }
