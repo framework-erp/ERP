@@ -1,14 +1,9 @@
 package erp.repository.compare;
 
+import erp.util.ClassUtil;
+
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class EntityComparator {
@@ -38,7 +33,7 @@ public class EntityComparator {
     }
 
     private static FieldComparator[] buildFieldComparators(Class<?> cls) {
-        Field[] fields = cls.getDeclaredFields();
+        Field[] fields = ClassUtil.getAllFields(cls);
         FieldComparator[] comparators = new FieldComparator[fields.length];
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];

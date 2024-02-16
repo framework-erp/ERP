@@ -1,17 +1,11 @@
 package erp.repository.copy;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
+import erp.util.ClassUtil;
 import erp.util.Unsafe;
+
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class EntityCopier {
 
@@ -40,7 +34,7 @@ public class EntityCopier {
     }
 
     private static FieldCopier[] buildFieldCopiers(Class<?> cls) {
-        Field[] fields = cls.getDeclaredFields();
+        Field[] fields = ClassUtil.getAllFields(cls);
         FieldCopier[] copiers = new FieldCopier[fields.length];
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
