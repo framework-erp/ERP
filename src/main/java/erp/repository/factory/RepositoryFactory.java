@@ -22,13 +22,11 @@ public class RepositoryFactory {
                             underlyingRepository.put(args[0]);
                             return null;
                         } else if ("putIfAbsent".equals(method.getName())) {
-                            underlyingRepository.putIfAbsent(args[0]);
-                            return null;
+                            return underlyingRepository.putIfAbsent(args[0]);
                         } else if ("takeOrPutIfAbsent".equals(method.getName())) {
                             return underlyingRepository.takeOrPutIfAbsent(args[0], args[1]);
                         } else if ("remove".equals(method.getName())) {
-                            underlyingRepository.remove(args[0]);
-                            return null;
+                            return underlyingRepository.remove(args[0]);
                         } else {
                             throw new UnsupportedOperationException(method.getName());
                         }
