@@ -64,6 +64,7 @@ public class SingletonRepository<T> {
         int counter = 200;
         do {
             if (lock.compareAndSet(0, 1)) {
+                acquireLockThreadId = Thread.currentThread().getId();
                 processContext.addEntityTakenFromSingletonRepo(entityType);
                 return;
             }
