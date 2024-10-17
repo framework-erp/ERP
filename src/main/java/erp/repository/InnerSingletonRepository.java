@@ -1,18 +1,16 @@
 package erp.repository;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * 对内的独立实体仓库操作集合
  */
 public class InnerSingletonRepository {
-    private AtomicInteger lock;
+    private SingletonRepository singletonRepository;
 
-    public InnerSingletonRepository(AtomicInteger lock) {
-        this.lock = lock;
+    public InnerSingletonRepository(SingletonRepository singletonRepository) {
+        this.singletonRepository = singletonRepository;
     }
 
     public void releaseProcessEntity() {
-        lock.set(0);
+        singletonRepository.releaseLock();
     }
 }

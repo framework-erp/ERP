@@ -20,9 +20,11 @@ public class SingletonRepository<T> {
 
     private AtomicInteger lock = new AtomicInteger();
 
+    private long acquireLockThreadId = -1;
+
     public SingletonRepository(Class<T> entityClass) {
         entityType = entityClass.getName();
-        AppContext.registerSingletonRepository(entityType, lock);
+        AppContext.registerSingletonRepository(entityType, this);
     }
 
     public SingletonRepository(T entity) {
@@ -34,7 +36,7 @@ public class SingletonRepository<T> {
         Type genType = getClass().getGenericSuperclass();
         Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
         entityType = paramsType.getTypeName();
-        AppContext.registerSingletonRepository(entityType, lock);
+        AppContext.registerSingletonRepository(entityType, this);
     }
 
 
@@ -56,6 +58,9 @@ public class SingletonRepository<T> {
     }
 
     private void acquireLock(ProcessContext processContext) {
+        if (Thread.currentThread().getId() == acquireLockThreadId) {
+            return;
+        }
         int counter = 200;
         do {
             if (lock.compareAndSet(0, 1)) {
@@ -73,5 +78,11 @@ public class SingletonRepository<T> {
             }
         } while (true);
     }
+
+    public void releaseLock() {
+        lock.set(0);
+        acquireLockThreadId = -1;
+    }
+
 
 }

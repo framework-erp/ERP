@@ -3,10 +3,10 @@ package erp;
 import erp.repository.InnerRepository;
 import erp.repository.InnerSingletonRepository;
 import erp.repository.Repository;
+import erp.repository.SingletonRepository;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class AppContext {
     private static Map<String, InnerRepository> repositories = new ConcurrentHashMap<>();
@@ -20,8 +20,8 @@ public class AppContext {
         return repositories.get(entityType);
     }
 
-    public static void registerSingletonRepository(String entityType, AtomicInteger lock) {
-        singletonRepositories.put(entityType, new InnerSingletonRepository(lock));
+    public static void registerSingletonRepository(String entityType, SingletonRepository singletonRepository) {
+        singletonRepositories.put(entityType, new InnerSingletonRepository(singletonRepository));
     }
 
     public static InnerSingletonRepository getSingletonRepository(String entityType) {
