@@ -2,13 +2,14 @@ package erp.repository.factory;
 
 import erp.repository.Repository;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 
 public class RepositoryFactory {
 
     public static synchronized <I> I newInstance(Class<I> itfType, Repository underlyingRepository) {
+
+        //验证itfType中的实体的类型是否和underlyingRepository中的实体类型一致
+        verifyEntityType(itfType, underlyingRepository);
 
         I instance = (I) Proxy.newProxyInstance(underlyingRepository.getClass().getClassLoader(), new Class[]{itfType},
                 new InvocationHandler() {
@@ -34,6 +35,36 @@ public class RepositoryFactory {
                 });
 
         return instance;
+    }
+
+    private static <I> void verifyEntityType(Class<I> itfType, Repository underlyingRepository) {
+        String underlyingRepositoryEntityType = underlyingRepository.getEntityType();
+        try {
+            // 获取put方法
+            Method putMethod = itfType.getMethod("put", Class.forName(underlyingRepositoryEntityType));
+            return;
+        } catch (NoSuchMethodException e) {
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        Type[] genericInterfaces = itfType.getGenericInterfaces();
+        for (Type genericInterface : genericInterfaces) {
+            if (genericInterface instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) genericInterface;
+                // 获取泛型参数
+                Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                for (Type actualTypeArgument : actualTypeArguments) {
+                    if (actualTypeArgument instanceof Class) {
+                        Class<?> clazz = (Class<?>) actualTypeArgument;
+                        if (clazz.getName().equals(underlyingRepositoryEntityType)) {
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        throw new RuntimeException("The entity type of the repository is not compatible with the entity type of the interface");
     }
 
 }
