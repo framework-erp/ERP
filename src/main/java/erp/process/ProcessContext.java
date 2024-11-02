@@ -24,7 +24,7 @@ public class ProcessContext {
 
     private Map<String, RepositoryProcessEntities<?, ?>> processEntities = new HashMap<>();
 
-    private List<String> singletonTypes = new ArrayList<>();
+    private List<String> singletonRepositoryNameList = new ArrayList<>();
 
     private List<Object> argumentList = new ArrayList<>();
 
@@ -74,76 +74,76 @@ public class ProcessContext {
                 ProcessEntity processEntity = (ProcessEntity) entry.getValue();
                 if (processEntity.getState() instanceof CreatedInProcState) {
                     entitiesToInsert.put(id, processEntity.getEntity());
-                    createdEntityList.add(new TypedEntity(repoPes.getEntityType(), processEntity.getEntity()));
+                    createdEntityList.add(new TypedEntity(processEntity.getEntity(), repoPes.getRepositoryName()));
                 } else if (processEntity.getState() instanceof TakenFromRepoState) {
                     if (processEntity.changed()) {
                         entitiesToUpdate.put(id, processEntity);
-                        entityUpdateList.add(new TypedEntityUpdate(repoPes.getEntityType(), processEntity.getInitialEntitySnapshot(), processEntity.getEntity()));
+                        entityUpdateList.add(new TypedEntityUpdate(processEntity.getInitialEntitySnapshot(), processEntity.getEntity(), repoPes.getRepositoryName()));
                     }
                 } else if (processEntity.getState() instanceof ToRemoveInRepoState) {
                     idsToRemoveEntity.add(id);
-                    deletedEntityList.add(new TypedEntity(repoPes.getEntityType(), processEntity.getEntity()));
+                    deletedEntityList.add(new TypedEntity(processEntity.getEntity(), repoPes.getRepositoryName()));
                 }
             }
-            InnerRepository repository = AppContext.getRepository(repoPes.getEntityType());
+            InnerRepository repository = AppContext.getRepository(repoPes.getRepositoryName());
             repository.flushProcessEntities(entitiesToInsert, entitiesToUpdate, idsToRemoveEntity);
         }
 
     }
 
-    public <I, E> ProcessEntity<E> getEntityInProcess(String entityType, I entityId) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(entityType);
+    public <I, E> ProcessEntity<E> getEntityInProcess(String repositoryName, I entityId) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryName);
         if (entities == null) {
             return null;
         }
         return entities.getProcessEntity(entityId);
     }
 
-    public <I, E> ProcessEntity<E> takeEntityInProcess(String entityType, I entityId) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(entityType);
+    public <I, E> ProcessEntity<E> takeEntityInProcess(String repositoryName, I entityId) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryName);
         if (entities == null) {
             return null;
         }
         return entities.takeProcessEntity(entityId);
     }
 
-    public <I, E> E copyEntityInProcess(String entityType, I entityId) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(entityType);
+    public <I, E> E copyEntityInProcess(String repositoryName, I entityId) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryName);
         if (entities == null) {
             return null;
         }
         return entities.copyEntity(entityId);
     }
 
-    public <I, E> void removeEntityInProcess(String entityType, I entityId) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(entityType);
+    public <I, E> void removeEntityInProcess(String repositoryName, I entityId) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryName);
         if (entities == null) {
             return;
         }
         entities.removeEntity(entityId);
     }
 
-    public <I, E> void addEntityTakenFromRepo(String entityType, I entityId, E entity) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(entityType);
+    public <I, E> void addEntityTakenFromRepo(String repositoryName, I entityId, E entity) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryName);
         if (entities == null) {
-            entities = new RepositoryProcessEntities<>(entityType);
-            processEntities.put(entityType, entities);
+            entities = new RepositoryProcessEntities<>(repositoryName);
+            processEntities.put(repositoryName, entities);
         }
         entities.addEntityTaken(entityId, entity);
     }
 
-    public <I, E> void addNewEntity(String entityType, I entityId, E entity) {
-        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(entityType);
+    public <I, E> void addNewEntity(String repositoryName, I entityId, E entity) {
+        RepositoryProcessEntities<I, E> entities = (RepositoryProcessEntities<I, E>) processEntities.get(repositoryName);
         if (entities == null) {
-            entities = new RepositoryProcessEntities<>(entityType);
-            processEntities.put(entityType, entities);
+            entities = new RepositoryProcessEntities<>(repositoryName);
+            processEntities.put(repositoryName, entities);
         }
         entities.addNewEntity(entityId, entity);
     }
 
-    public <I, E> void addEntityCreatedAndTakenFromRepo(String entityType, I entityId, E entity) {
-        createdEntityList.add(new TypedEntity(entityType, EntityCopier.copy(entity)));
-        addEntityTakenFromRepo(entityType, entityId, entity);
+    public <I, E> void addEntityCreatedAndTakenFromRepo(String repositoryName, I entityId, E entity) {
+        createdEntityList.add(new TypedEntity(EntityCopier.copy(entity), repositoryName));
+        addEntityTakenFromRepo(repositoryName, entityId, entity);
     }
 
     public void processFaild() {
@@ -178,18 +178,18 @@ public class ProcessContext {
                 }
             }
 
-            InnerRepository repository = AppContext.getRepository(repoPes.getEntityType());
+            InnerRepository repository = AppContext.getRepository(repoPes.getRepositoryName());
             repository.releaseProcessEntity(ids);
 
         }
-        for (String type : singletonTypes) {
-            InnerSingletonRepository repository = AppContext.getSingletonRepository(type);
+        for (String name : singletonRepositoryNameList) {
+            InnerSingletonRepository repository = AppContext.getSingletonRepository(name);
             repository.releaseProcessEntity();
         }
     }
 
-    public void addEntityTakenFromSingletonRepo(String entityType) {
-        singletonTypes.add(entityType);
+    public void addEntityTakenFromSingletonRepo(String repositoryName) {
+        singletonRepositoryNameList.add(repositoryName);
     }
 
     public void recordProcessResult(Object result) {
@@ -203,8 +203,8 @@ public class ProcessContext {
         argumentList.add(argument);
     }
 
-    public <ID, E> boolean entityAvailableInProcess(String entityType, ID entityId) {
-        RepositoryProcessEntities<ID, E> entities = (RepositoryProcessEntities<ID, E>) processEntities.get(entityType);
+    public <ID, E> boolean entityAvailableInProcess(String repositoryName, ID entityId) {
+        RepositoryProcessEntities<ID, E> entities = (RepositoryProcessEntities<ID, E>) processEntities.get(repositoryName);
         if (entities == null) {
             return false;
         }

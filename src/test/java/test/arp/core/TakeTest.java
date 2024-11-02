@@ -11,7 +11,9 @@ public class TakeTest {
     @Test
     public void test() throws java.lang.IllegalAccessException {
         ERP.useAnnotation();
+        TestEntityRepository testEntityRepository = new TestEntityRepository();
         TestService service = new TestService();
+        service.setTestEntityRepository(testEntityRepository);
         TestEntity entity1 = service.f1(1);
         Thread t1 = new Thread(new TakeAndWaitWorker(service));
         Thread t2 = new Thread(new TakeAndWaitWorker(service));

@@ -11,8 +11,8 @@ public class ProcessJsonUtil {
     private static Pattern createdEntityListPattern = Pattern.compile("\\{.*?\"name\":.*?\"createdEntityList\":\\[(.*?)],\"deletedEntityList\":");
     private static Pattern deletedEntityListPattern = Pattern.compile("\\{.*?\"name\":.*?\"deletedEntityList\":\\[(.*?)],\"entityUpdateList\":");
     private static Pattern entityUpdateListPattern = Pattern.compile("\\{.*?\"name\":.*?\"entityUpdateList\":\\[(.*?)]\\}$");
-    private static Pattern typedEntityPattern = Pattern.compile("\\{\"type\":\"(.*?)\",\"entity\":(.*?)\\}$");
-    private static Pattern typedEntityUpdatePattern = Pattern.compile("\\{\"type\":\"(.*?)\",\"originalEntity\":(\\{.*?\\}),\"updatedEntity\":(.*?)\\}$");
+    private static Pattern typedEntityPattern = Pattern.compile("\\{\"type\":\"(.*?)\",\"entity\":(.*?),\"repositoryName\":\"(.*?)\"\\}$");
+    private static Pattern typedEntityUpdatePattern = Pattern.compile("\\{\"type\":\"(.*?)\",\"originalEntity\":(\\{.*?\\}),\"updatedEntity\":(.*?),\"repositoryName\":\"(.*?)\"\\}$");
     private static Pattern typedResultPattern = Pattern.compile("\\{.*?\"name\":.*?\"result\":\\{\"type\":\"(.*?)\",\"result\":(.*?)\\},\"createdEntityList\":");
 
     public static String getProcessName(String processJson) {
@@ -69,19 +69,25 @@ public class ProcessJsonUtil {
             if (entityListJson.charAt(i) == '}') {
                 count--;
                 if (count == 0) {
-                    String typedEntityUpdateJson = entityListJson.substring(iStart, i + 1);
-                    Matcher matcher = typedEntityUpdatePattern.matcher(typedEntityUpdateJson);
-                    matcher.find();
-                    TypedEntityUpdateJson typedEntityUpdateJsonObj = new TypedEntityUpdateJson();
-                    typedEntityUpdateJsonObj.setType(matcher.group(1));
-                    typedEntityUpdateJsonObj.setOriginalEntityJson(matcher.group(2));
-                    typedEntityUpdateJsonObj.setUpdatedEntityJson(matcher.group(3));
+                    TypedEntityUpdateJson typedEntityUpdateJsonObj = getTypedEntityUpdateJson(entityListJson, iStart, i);
                     list.add(typedEntityUpdateJsonObj);
                     iStart = -1;
                 }
             }
         }
         return list;
+    }
+
+    private static TypedEntityUpdateJson getTypedEntityUpdateJson(String entityListJson, int iStart, int i) {
+        String typedEntityUpdateJson = entityListJson.substring(iStart, i + 1);
+        Matcher matcher = typedEntityUpdatePattern.matcher(typedEntityUpdateJson);
+        matcher.find();
+        TypedEntityUpdateJson typedEntityUpdateJsonObj = new TypedEntityUpdateJson();
+        typedEntityUpdateJsonObj.setType(matcher.group(1));
+        typedEntityUpdateJsonObj.setOriginalEntityJson(matcher.group(2));
+        typedEntityUpdateJsonObj.setUpdatedEntityJson(matcher.group(3));
+        typedEntityUpdateJsonObj.setRepositoryName(matcher.group(4));
+        return typedEntityUpdateJsonObj;
     }
 
     private static List<TypedEntityJson> parseEntityListJson(String entityListJson) {
@@ -104,6 +110,7 @@ public class ProcessJsonUtil {
                     TypedEntityJson typedEntityJsonObj = new TypedEntityJson();
                     typedEntityJsonObj.setType(matcher.group(1));
                     typedEntityJsonObj.setEntityJson(matcher.group(2));
+                    typedEntityJsonObj.setRepositoryName(matcher.group(3));
                     list.add(typedEntityJsonObj);
                     iStart = -1;
                 }

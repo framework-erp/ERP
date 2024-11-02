@@ -7,7 +7,7 @@ import test.arp.core.TestEntityRepository;
 
 public class TestService2 {
 
-    private TestEntityRepository testEntityRepository = new TestEntityRepository();
+    private TestEntityRepository testEntityRepository;
 
     @Process
     public TestEntity f1(int id) {
@@ -53,4 +53,7 @@ public class TestService2 {
         return 1;
     }
 
+    public void setTestEntityRepository(TestEntityRepository testEntityRepository) {
+        this.testEntityRepository = testEntityRepository;
+    }
 }

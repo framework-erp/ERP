@@ -38,14 +38,12 @@ public class RepositoryFactory {
     }
 
     private static <I> void verifyEntityType(Class<I> itfType, Repository underlyingRepository) {
-        String underlyingRepositoryEntityType = underlyingRepository.getEntityType();
+        Class underlyingRepositoryEntityType = underlyingRepository.getEntityType();
         try {
             // 获取put方法
-            Method putMethod = itfType.getMethod("put", Class.forName(underlyingRepositoryEntityType));
+            Method putMethod = itfType.getMethod("put", underlyingRepositoryEntityType);
             return;
         } catch (NoSuchMethodException e) {
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
         }
 
         Type[] genericInterfaces = itfType.getGenericInterfaces();
@@ -57,7 +55,7 @@ public class RepositoryFactory {
                 for (Type actualTypeArgument : actualTypeArguments) {
                     if (actualTypeArgument instanceof Class) {
                         Class<?> clazz = (Class<?>) actualTypeArgument;
-                        if (clazz.getName().equals(underlyingRepositoryEntityType)) {
+                        if (clazz.equals(underlyingRepositoryEntityType)) {
                             return;
                         }
                     }

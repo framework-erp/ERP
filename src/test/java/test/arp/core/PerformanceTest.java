@@ -14,7 +14,9 @@ public class PerformanceTest {
 
         ERP.useAnnotation();
 
+        TestEntityRepository testEntityRepository = new TestEntityRepository();
         TestService service = new TestService();
+        service.setTestEntityRepository(testEntityRepository);
 
         int accountsCount = 100000;
         if (args.length > 0) {

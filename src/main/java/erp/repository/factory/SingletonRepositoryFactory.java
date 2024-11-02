@@ -13,8 +13,13 @@ public class SingletonRepositoryFactory {
         return newInstance(itfType, underlyingRepository);
     }
 
-    public static synchronized <I, E> I newInstance(Class<I> itfType, Class<E> entityClass) {
-        SingletonRepository<E> underlyingRepository = new SingletonRepository<>(entityClass);
+    public static synchronized <I, E> I newInstance(Class<I> itfType, E entity, String repositoryName) {
+        SingletonRepository<E> underlyingRepository = new SingletonRepository<>(entity);
+        return newInstance(itfType, underlyingRepository);
+    }
+
+    public static synchronized <I, E> I newInstance(Class<I> itfType, String repositoryName) {
+        SingletonRepository<E> underlyingRepository = new SingletonRepository<>(repositoryName);
         return newInstance(itfType, underlyingRepository);
     }
 

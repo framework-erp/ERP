@@ -14,7 +14,7 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class SingletonRepository<T> {
 
-    private String entityType;
+    private String name;
 
     private T entity;
 
@@ -22,21 +22,26 @@ public class SingletonRepository<T> {
 
     private long acquireLockThreadId = -1;
 
-    public SingletonRepository(Class<T> entityClass) {
-        entityType = entityClass.getName();
-        AppContext.registerSingletonRepository(entityType, this);
+    public SingletonRepository(String repositoryName) {
+        this.name = repositoryName;
+        AppContext.registerSingletonRepository(this);
     }
 
     public SingletonRepository(T entity) {
-        this((Class<T>) entity.getClass());
+        this(entity.getClass().getName());
+        this.entity = entity;
+    }
+
+    public SingletonRepository(T entity, String repositoryName) {
+        this(repositoryName);
         this.entity = entity;
     }
 
     protected SingletonRepository() {
         Type genType = getClass().getGenericSuperclass();
         Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
-        entityType = paramsType.getTypeName();
-        AppContext.registerSingletonRepository(entityType, this);
+        name = paramsType.getTypeName();
+        AppContext.registerSingletonRepository(this);
     }
 
 
@@ -65,7 +70,7 @@ public class SingletonRepository<T> {
         do {
             if (lock.compareAndSet(0, 1)) {
                 acquireLockThreadId = Thread.currentThread().getId();
-                processContext.addEntityTakenFromSingletonRepo(entityType);
+                processContext.addEntityTakenFromSingletonRepo(name);
                 return;
             }
 
@@ -85,5 +90,7 @@ public class SingletonRepository<T> {
         acquireLockThreadId = -1;
     }
 
-
+    public String getName() {
+        return name;
+    }
 }

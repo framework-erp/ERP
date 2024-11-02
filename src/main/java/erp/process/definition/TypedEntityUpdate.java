@@ -4,14 +4,16 @@ public class TypedEntityUpdate {
     private String type;
     private Object originalEntity;
     private Object updatedEntity;
+    private String repositoryName;
 
     public TypedEntityUpdate() {
     }
 
-    public TypedEntityUpdate(String type, Object originalEntity, Object updatedEntity) {
-        this.type = type;
+    public TypedEntityUpdate(Object originalEntity, Object updatedEntity, String repositoryName) {
+        this.type = originalEntity.getClass().getName();
         this.originalEntity = originalEntity;
         this.updatedEntity = updatedEntity;
+        this.repositoryName = repositoryName;
     }
 
     public String getType() {
@@ -36,5 +38,13 @@ public class TypedEntityUpdate {
 
     public void setUpdatedEntity(Object updatedEntity) {
         this.updatedEntity = updatedEntity;
+    }
+
+    public String getRepositoryName() {
+        return repositoryName;
+    }
+
+    public void setRepositoryName(String repositoryName) {
+        this.repositoryName = repositoryName;
     }
 }

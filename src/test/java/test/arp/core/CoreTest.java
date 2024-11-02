@@ -12,7 +12,10 @@ public class CoreTest {
     @Test
     public void test() {
         ERP.useAnnotation();
+        TestEntityRepository testEntityRepository = new TestEntityRepository();
         TestService service = new TestService();
+        service.setTestEntityRepository(testEntityRepository);
+
         TestEntity entity1 = service.f1(1);
         assertEquals(1, entity1.getId());
         entity1.setiValue(2);
@@ -36,6 +39,7 @@ public class CoreTest {
         service.f5(0, 0);
 
         TestService2 service2 = new TestService2();
+        service2.setTestEntityRepository(testEntityRepository);
         TestEntity entity21 = service2.f1(1);
         assertEquals(1, entity21.getId());
         entity21.setiValue(2);

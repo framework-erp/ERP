@@ -3,13 +3,15 @@ package erp.process.definition;
 public class TypedEntity {
     private String type;
     private Object entity;
+    private String repositoryName;
 
     public TypedEntity() {
     }
 
-    public TypedEntity(String type, Object entity) {
-        this.type = type;
+    public TypedEntity(Object entity, String repositoryName) {
+        this.type = entity.getClass().getName();
         this.entity = entity;
+        this.repositoryName = repositoryName;
     }
 
     public String getType() {
@@ -26,5 +28,13 @@ public class TypedEntity {
 
     public void setEntity(Object entity) {
         this.entity = entity;
+    }
+
+    public String getRepositoryName() {
+        return repositoryName;
+    }
+
+    public void setRepositoryName(String repositoryName) {
+        this.repositoryName = repositoryName;
     }
 }

@@ -13,18 +13,30 @@ public class AppContext {
     private static Map<String, InnerSingletonRepository> singletonRepositories = new ConcurrentHashMap<>();
 
     public static void registerRepository(Repository repository) {
-        repositories.put(repository.getEntityType(), new InnerRepository(repository));
+        if (repositories.containsKey(repository.getName())) {
+            throw new RuntimeException("Repository already registered: " + repository.getName());
+        }
+        repositories.put(repository.getName(), new InnerRepository(repository));
     }
 
-    public static InnerRepository getRepository(String entityType) {
-        return repositories.get(entityType);
+    /**
+     * 注销Repository
+     *
+     * @param repository
+     */
+    public static void unregisterRepository(Repository repository) {
+        repositories.remove(repository.getName());
     }
 
-    public static void registerSingletonRepository(String entityType, SingletonRepository singletonRepository) {
-        singletonRepositories.put(entityType, new InnerSingletonRepository(singletonRepository));
+    public static InnerRepository getRepository(String repositoryName) {
+        return repositories.get(repositoryName);
     }
 
-    public static InnerSingletonRepository getSingletonRepository(String entityType) {
-        return singletonRepositories.get(entityType);
+    public static void registerSingletonRepository(SingletonRepository singletonRepository) {
+        singletonRepositories.put(singletonRepository.getName(), new InnerSingletonRepository(singletonRepository));
+    }
+
+    public static InnerSingletonRepository getSingletonRepository(String repositoryName) {
+        return singletonRepositories.get(repositoryName);
     }
 }

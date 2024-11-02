@@ -10,7 +10,7 @@ import java.util.concurrent.locks.LockSupport;
 
 public class TestService {
 
-    private TestEntityRepository testEntityRepository = new TestEntityRepository();
+    private TestEntityRepository testEntityRepository;
 
     @Process
     public TestEntity f1(int id) {
@@ -84,4 +84,7 @@ public class TestService {
     public void f5(long l1, int l2) {
     }
 
+    public void setTestEntityRepository(TestEntityRepository testEntityRepository) {
+        this.testEntityRepository = testEntityRepository;
+    }
 }

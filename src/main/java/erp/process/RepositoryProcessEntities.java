@@ -9,12 +9,12 @@ import java.util.Map;
 
 public class RepositoryProcessEntities<ID, E> {
 
-    private String entityType;
+    private String repositoryName;
 
     private Map<ID, ProcessEntity<E>> entities = new HashMap<>();
 
-    public RepositoryProcessEntities(String entityType) {
-        this.entityType = entityType;
+    public RepositoryProcessEntities(String repositoryName) {
+        this.repositoryName = repositoryName;
     }
 
     public void addEntityTaken(ID entityId, E entity) {
@@ -79,8 +79,8 @@ public class RepositoryProcessEntities<ID, E> {
         processEntity.changeStateByRemove();
     }
 
-    public String getEntityType() {
-        return entityType;
+    public String getRepositoryName() {
+        return repositoryName;
     }
 
     public Map<ID, ProcessEntity<E>> getEntities() {
