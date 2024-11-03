@@ -1,6 +1,5 @@
 package erp.repository;
 
-import erp.AppContext;
 import erp.process.ProcessContext;
 import erp.process.ProcessEntity;
 import erp.process.ThreadBoundProcessContextArray;
@@ -36,10 +35,9 @@ public abstract class Repository<E, ID> {
             throw new RuntimeException("createEntityIdGetter error", e);
         }
         this.entityType = (Class<E>) paramsType;
-        AppContext.registerRepository(this);
     }
 
-    public Repository(Class<E> entityType) {
+    protected Repository(Class<E> entityType) {
         this.name = entityType.getName();
         try {
             createEntityIdGetter(entityType);
@@ -47,10 +45,9 @@ public abstract class Repository<E, ID> {
             throw new RuntimeException("createEntityIdGetter error", e);
         }
         this.entityType = entityType;
-        AppContext.registerRepository(this);
     }
 
-    public Repository(Class<E> entityType, String repositoryName) {
+    protected Repository(Class<E> entityType, String repositoryName) {
         this.name = repositoryName;
         try {
             createEntityIdGetter(entityType);
@@ -58,7 +55,6 @@ public abstract class Repository<E, ID> {
             throw new RuntimeException("createEntityIdGetter error", e);
         }
         this.entityType = entityType;
-        AppContext.registerRepository(this);
     }
 
     protected ID getId(E entity) {
