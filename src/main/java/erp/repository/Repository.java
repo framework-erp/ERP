@@ -37,6 +37,18 @@ public abstract class Repository<E, ID> {
         this.entityType = (Class<E>) paramsType;
     }
 
+    protected Repository(String repositoryName) {
+        Type genType = getClass().getGenericSuperclass();
+        Type paramsType = ((ParameterizedType) genType).getActualTypeArguments()[0];
+        name = repositoryName;
+        try {
+            createEntityIdGetter((Class<?>) paramsType);
+        } catch (Exception e) {
+            throw new RuntimeException("createEntityIdGetter error", e);
+        }
+        this.entityType = (Class<E>) paramsType;
+    }
+
     protected Repository(Class<E> entityType) {
         this.name = entityType.getName();
         try {

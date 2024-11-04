@@ -13,6 +13,13 @@ public class MemRepository<E, ID> extends Repository<E, ID> {
         AppContext.registerRepository(this);
     }
 
+    protected MemRepository(String repositoryName) {
+        super(repositoryName);
+        this.store = new MemStore<>();
+        this.mutexes = new MemMutexes<>();
+        AppContext.registerRepository(this);
+    }
+
     public MemRepository(Class<E> entityType) {
         super(entityType);
         this.store = new MemStore<>();
