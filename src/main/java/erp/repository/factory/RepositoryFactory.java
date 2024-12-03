@@ -28,6 +28,8 @@ public class RepositoryFactory {
                             return underlyingRepository.takeOrPutIfAbsent(args[0], args[1]);
                         } else if ("remove".equals(method.getName())) {
                             return underlyingRepository.remove(args[0]);
+                        } else if ("equals".equals(method.getName())) {
+                            return underlyingRepository.equals(args[0]);
                         } else {
                             throw new UnsupportedOperationException(method.getName());
                         }

@@ -36,6 +36,8 @@ public class SingletonRepositoryFactory {
                         } else if ("put".equals(method.getName())) {
                             underlyingRepository.put((E) args[0]);
                             return null;
+                        } else if ("equals".equals(method.getName())) {
+                            return underlyingRepository.equals(args[0]);
                         } else {
                             throw new UnsupportedOperationException(method.getName());
                         }
