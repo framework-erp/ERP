@@ -48,6 +48,29 @@ public class RepositoryFactory {
         } catch (NoSuchMethodException e) {
         }
 
+        // 获取本身的泛型参数
+        TypeVariable<?>[] typeParameters = itfType.getTypeParameters();
+        for (TypeVariable<?> typeParameter : typeParameters) {
+            // 获取泛型的上界（即 extends 后面的类型）
+            Type[] bounds = typeParameter.getBounds();
+            for (Type bound : bounds) {
+                if (bound instanceof Class) {
+                    Class<?> clazz = (Class<?>) bound;
+                    if (clazz.equals(Object.class)) {
+                        continue;
+                    }
+                    if (clazz.equals(underlyingRepositoryEntityType)) {
+                        return;
+                    }
+                    //如果underlyingRepositoryEntityType是clazz的子类也是可以的
+                    if (clazz.isAssignableFrom(underlyingRepositoryEntityType)) {
+                        return;
+                    }
+                }
+            }
+        }
+
+        // 获取继承的泛型接口的泛型参数
         Type[] genericInterfaces = itfType.getGenericInterfaces();
         for (Type genericInterface : genericInterfaces) {
             if (genericInterface instanceof ParameterizedType) {
@@ -58,6 +81,10 @@ public class RepositoryFactory {
                     if (actualTypeArgument instanceof Class) {
                         Class<?> clazz = (Class<?>) actualTypeArgument;
                         if (clazz.equals(underlyingRepositoryEntityType)) {
+                            return;
+                        }
+                        //如果underlyingRepositoryEntityType是clazz的子类也是可以的
+                        if (clazz.isAssignableFrom(underlyingRepositoryEntityType)) {
                             return;
                         }
                     }
