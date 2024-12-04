@@ -49,4 +49,8 @@ public class MemStore<E, ID> implements Store<E, ID> {
     public Set<ID> getIdSet() {
         return data.keySet();
     }
+
+    public int count() {
+        return data.size();
+    }
 }

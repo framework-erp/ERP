@@ -37,4 +37,8 @@ public class MemRepository<E, ID> extends Repository<E, ID> {
     public List<ID> queryAllIds() {
         return new ArrayList<>(((MemStore) store).getIdSet());
     }
+
+    public int count() {
+        return ((MemStore) store).count();
+    }
 }
