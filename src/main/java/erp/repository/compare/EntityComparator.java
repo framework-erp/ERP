@@ -33,7 +33,7 @@ public class EntityComparator {
     }
 
     private static FieldComparator[] buildFieldComparators(Class<?> cls) {
-        Field[] fields = ClassUtil.getAllFields(cls);
+        Field[] fields = ClassUtil.getAllNonStaticFields(cls);
         FieldComparator[] comparators = new FieldComparator[fields.length];
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];

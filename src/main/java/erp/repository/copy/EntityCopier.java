@@ -34,7 +34,7 @@ public class EntityCopier {
     }
 
     private static FieldCopier[] buildFieldCopiers(Class<?> cls) {
-        Field[] fields = ClassUtil.getAllFields(cls);
+        Field[] fields = ClassUtil.getAllNonStaticFields(cls);
         FieldCopier[] copiers = new FieldCopier[fields.length];
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
