@@ -33,6 +33,9 @@ public class AppContext {
     }
 
     public static void registerSingletonRepository(SingletonRepository singletonRepository) {
+        if (singletonRepositories.containsKey(singletonRepository.getName())) {
+            throw new RuntimeException("SingletonRepository already registered: " + singletonRepository.getName());
+        }
         singletonRepositories.put(singletonRepository.getName(), new InnerSingletonRepository(singletonRepository));
     }
 
