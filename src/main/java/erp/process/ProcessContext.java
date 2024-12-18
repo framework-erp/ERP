@@ -9,7 +9,6 @@ import erp.process.states.CreatedInProcState;
 import erp.process.states.TakenFromRepoState;
 import erp.process.states.ToRemoveInRepoState;
 import erp.repository.InnerRepository;
-import erp.repository.InnerSingletonRepository;
 import erp.repository.copy.EntityCopier;
 import erp.util.Unsafe;
 
@@ -23,8 +22,6 @@ public class ProcessContext {
     private String processName;
 
     private Map<String, RepositoryProcessEntities<?, ?>> processEntities = new HashMap<>();
-
-    private List<String> singletonRepositoryNameList = new ArrayList<>();
 
     private List<Object> argumentList = new ArrayList<>();
 
@@ -182,14 +179,6 @@ public class ProcessContext {
             repository.releaseProcessEntity(ids);
 
         }
-        for (String name : singletonRepositoryNameList) {
-            InnerSingletonRepository repository = AppContext.getSingletonRepository(name);
-            repository.releaseProcessEntity();
-        }
-    }
-
-    public void addEntityTakenFromSingletonRepo(String repositoryName) {
-        singletonRepositoryNameList.add(repositoryName);
     }
 
     public void recordProcessResult(Object result) {

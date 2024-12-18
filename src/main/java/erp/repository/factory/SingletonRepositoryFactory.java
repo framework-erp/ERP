@@ -8,22 +8,7 @@ import java.lang.reflect.Proxy;
 
 public class SingletonRepositoryFactory {
 
-    public static synchronized <I, E> I newInstance(Class<I> itfType, E entity) {
-        SingletonRepository<E> underlyingRepository = new SingletonRepository<>(entity);
-        return newInstance(itfType, underlyingRepository);
-    }
-
-    public static synchronized <I, E> I newInstance(Class<I> itfType, E entity, String repositoryName) {
-        SingletonRepository<E> underlyingRepository = new SingletonRepository<>(entity, repositoryName);
-        return newInstance(itfType, underlyingRepository);
-    }
-
-    public static synchronized <I, E> I newInstance(Class<I> itfType, String repositoryName) {
-        SingletonRepository<E> underlyingRepository = new SingletonRepository<>(repositoryName);
-        return newInstance(itfType, underlyingRepository);
-    }
-
-    private static <I, E> I newInstance(Class<I> itfType, SingletonRepository<E> underlyingRepository) {
+    public static <I, E> I newInstance(Class<I> itfType, SingletonRepository<E> underlyingRepository) {
 
         I instance = (I) Proxy.newProxyInstance(underlyingRepository.getClass().getClassLoader(), new Class[]{itfType},
                 new InvocationHandler() {
