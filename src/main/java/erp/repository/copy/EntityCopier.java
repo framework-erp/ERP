@@ -56,7 +56,7 @@ public class EntityCopier {
             } else if (boolean.class.equals(fieldType)) {
                 copiers[i] = new BooleanFieldCopier(field);
             } else if (Object.class.equals(fieldType)) {
-                copiers[i] = new ValueObjectFieldCopier(field);
+                copiers[i] = new ObjectFieldCopier(field);
             } else if (Byte.class.equals(fieldType)) {
                 copiers[i] = new ValueObjectFieldCopier(field);
             } else if (Short.class.equals(fieldType)) {
