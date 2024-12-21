@@ -42,6 +42,10 @@ public abstract class SingletonRepository<T> {
         singletonEntitiesContainer.putIfAbsent(singletonEntity);
     }
 
+    public T remove() {
+        return (T) singletonEntitiesContainer.remove(name).getEntity();
+    }
+
     public String getName() {
         return name;
     }
