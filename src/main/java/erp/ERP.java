@@ -67,5 +67,12 @@ public class ERP {
         throw new RuntimeException("Should not reach here");
     }
 
+    public static void retry(Runnable process, int tryTimesForTakeEntityException, long sleepTime) {
+        retry(() -> {
+            process.run();
+            return null;
+        }, tryTimesForTakeEntityException, sleepTime);
+    }
+
 
 }
