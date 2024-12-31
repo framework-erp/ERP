@@ -5,6 +5,7 @@ import erp.process.ProcessContext;
 import erp.process.ProcessWrapper;
 import erp.process.ThreadBoundProcessContextArray;
 import erp.process.definition.Process;
+import erp.repository.TakeEntityException;
 
 import java.util.concurrent.Callable;
 
@@ -32,6 +33,38 @@ public class ERP {
             return null;
         }
         return processContext.buildProcess();
+    }
+
+    public static <T> RetryResult<T> retry(Callable<T> process, int tryTimesForTakeEntityException, long sleepTime) {
+        int triedTimes = 0;
+        while (triedTimes < tryTimesForTakeEntityException) {
+            try {
+                T processReturnValue = process.call();
+                triedTimes++;
+                RetryResult<T> retryResult = new RetryResult<>();
+                retryResult.setTriedTimes(triedTimes);
+                retryResult.setProcessReturnValue(processReturnValue);
+                return retryResult;
+            } catch (Exception e) {
+                if (e instanceof TakeEntityException) {
+                    if (triedTimes == tryTimesForTakeEntityException - 1) {
+                        throw (TakeEntityException) e;
+                    }
+                    triedTimes++;
+                    try {
+                        Thread.sleep(sleepTime);
+                    } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                } else {
+                    RetryResult<T> retryResult = new RetryResult<>();
+                    retryResult.setTriedTimes(triedTimes);
+                    retryResult.setException(e);
+                    return retryResult;
+                }
+            }
+        }
+        throw new RuntimeException("Should not reach here");
     }
 
 
