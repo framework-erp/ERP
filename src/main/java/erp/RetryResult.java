@@ -6,6 +6,9 @@ public class RetryResult<T> {
     private int triedTimes;
 
     public T getReturn() {
+        if (exception != null) {
+            throw new RuntimeException(exception);
+        }
         return processReturnValue;
     }
 
