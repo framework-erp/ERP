@@ -31,6 +31,9 @@ public class ProcessContext {
     private List<TypedEntity> deletedEntityList = new ArrayList<>();
     private List<TypedEntityUpdate> entityUpdateList = new ArrayList<>();
 
+    //用于记录从仓库中删除的实体，后面释放锁就不用释放了，删除实体同时也会删除锁
+    private Map<String, Set<Object>> repositoryEntityIdsToRemove = new HashMap<>();
+
     public void startProcess(String processName) {
         if (started) {
             throw new RuntimeException("can not start a process in another started process");
@@ -82,6 +85,7 @@ public class ProcessContext {
                     deletedEntityList.add(new TypedEntity(processEntity.getEntity(), repoPes.getRepositoryName()));
                 }
             }
+            repositoryEntityIdsToRemove.put(repoPes.getRepositoryName(), idsToRemoveEntity);
             InnerRepository repository = AppContext.getRepository(repoPes.getRepositoryName());
             repository.flushProcessEntities(entitiesToInsert, entitiesToUpdate, idsToRemoveEntity);
         }
@@ -165,12 +169,14 @@ public class ProcessContext {
 
             Map processEntities = repoPes.getEntities();
             Set<Object> ids = new HashSet<>();
+            Set<Object> idsToRemoveEntity = repositoryEntityIdsToRemove.get(repoPes.getRepositoryName());
 
             for (Object obj : processEntities.entrySet()) {
                 Entry entry = (Entry) obj;
                 Object id = entry.getKey();
                 ProcessEntity processEntity = (ProcessEntity) entry.getValue();
-                if (processEntity.isAddByTake()) {
+                if (processEntity.isAddByTake()
+                        && (idsToRemoveEntity == null || !idsToRemoveEntity.contains(id))) {
                     ids.add(id);
                 }
             }
