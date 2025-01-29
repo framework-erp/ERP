@@ -156,19 +156,19 @@ public class ProcessEnhancer {
                 }
                 Type[] argumentTypes = Type.getArgumentTypes(mthDesc);
                 return new AdviceAdapter(Opcodes.ASM9, super.visitMethod(access, mthName, mthDesc, signature, exceptions), access, mthName, mthDesc) {
-                    private boolean isProcess;
                     private ProcessInfo processInfo = null;
 
                     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-                        isProcess = Type.getDescriptor(Process.class).equals(desc);
-                        if (isProcess) {
+                        // 只处理 @Process 注解
+                        if (Type.getDescriptor(Process.class).equals(desc)) {
                             processInfo = new ProcessInfo((String) clsInfoMap.get("name"), mthName, mthDesc);
                         }
                         return super.visitAnnotation(desc, visible);
                     }
 
                     protected void onMethodEnter() {
-                        if (isProcess) {
+                        // 如果找到了 @Process 注解，则处理
+                        if (processInfo != null) {
                             processInfos.put(processInfo.getMthName() + "@" + processInfo.getMthDesc(), processInfo);
                         }
                         super.onMethodEnter();
