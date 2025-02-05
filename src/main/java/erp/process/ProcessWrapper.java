@@ -8,7 +8,7 @@ import java.util.List;
 public class ProcessWrapper {
 
     public static void beforeProcessStart(String processName) {
-        ProcessContext processContext = ThreadBoundProcessContextArray.createProcessContext();
+        ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
         processContext.startProcess(processName);
         List<ProcessListener> processListeners = AppContext.getProcessListeners();
         for (ProcessListener processListener : processListeners) {

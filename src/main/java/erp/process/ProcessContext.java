@@ -38,6 +38,7 @@ public class ProcessContext {
         if (started) {
             throw new RuntimeException("can not start a process in another started process");
         }
+        clear();
         this.processName = processName;
         started = true;
         Unsafe.loadFence();
@@ -190,6 +191,16 @@ public class ProcessContext {
 
     public void setStarted(boolean started) {
         this.started = started;
+    }
+
+    public void clear() {
+        processEntities.clear();
+        argumentList.clear();
+        createdEntityList.clear();
+        deletedEntityList.clear();
+        entityUpdateList.clear();
+        result = null;
+        repositoryEntityIdsToRemove.clear();
     }
 
     public Process buildProcess() {
