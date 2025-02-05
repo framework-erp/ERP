@@ -98,11 +98,8 @@ public abstract class Repository<E, ID> {
             }
             boolean ok = mutexes.newAndLock(id, processContext.getProcessName());
             if (!ok) {
-                //补锁不成功那就是有人抢先补锁，那么这里就需要再去获得锁了
-                lockRslt = mutexes.lock(id, processContext.getProcessName());
-                if (lockRslt == 0) {
-                    throw new TakeEntityException(mutexes.getLockProcess(id));
-                }
+                //补锁不成功那就是有人抢先补锁，那么这里就需要再去take(递归)
+                return take(id);
             }
         } else {
             if (lockRslt == 0) {
