@@ -18,19 +18,41 @@ public class ProcessWrapper {
 
     public static void afterProcessFinish() {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-        processContext.finishProcess();
-        List<ProcessListener> processListeners = AppContext.getProcessListeners();
-        for (ProcessListener processListener : processListeners) {
-            processListener.afterProcessFinish(processContext.getProcessName());
+        try {
+            processContext.finishProcess();
+            List<ProcessListener> processListeners = AppContext.getProcessListeners();
+            for (ProcessListener processListener : processListeners) {
+                processListener.afterProcessFinish(processContext.getProcessName());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("finish process faild", e);
+        } finally {
+            try {
+                processContext.releaseProcessEntities();
+            } catch (Exception e) {
+                throw new RuntimeException("release process entities faild", e);
+            } finally {
+                processContext.setStarted(false);
+            }
         }
     }
 
     public static void afterProcessFailed() {
         ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-        processContext.processFaild();
-        List<ProcessListener> processListeners = AppContext.getProcessListeners();
-        for (ProcessListener processListener : processListeners) {
-            processListener.afterProcessFailed(processContext.getProcessName());
+        processContext.setStarted(false);
+        try {
+            List<ProcessListener> processListeners = AppContext.getProcessListeners();
+            for (ProcessListener processListener : processListeners) {
+                processListener.afterProcessFailed(processContext.getProcessName());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                processContext.releaseProcessEntities();
+            } catch (Exception e) {
+                throw new RuntimeException("release process entities faild", e);
+            }
         }
     }
 

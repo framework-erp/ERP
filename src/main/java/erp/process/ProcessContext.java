@@ -43,21 +43,9 @@ public class ProcessContext {
         Unsafe.loadFence();
     }
 
-    public void finishProcess() {
+    public void finishProcess() throws Exception {
         Unsafe.storeFence();
-        try {
-            flushProcessEntities();
-        } catch (Exception e) {
-            throw new RuntimeException("flush process entities faild", e);
-        } finally {
-            try {
-                releaseProcessEntities();
-            } catch (Exception e) {
-                throw new RuntimeException("release process entities faild", e);
-            } finally {
-                started = false;
-            }
-        }
+        flushProcessEntities();
     }
 
     private void flushProcessEntities() throws Exception {
@@ -146,15 +134,7 @@ public class ProcessContext {
         addEntityTakenFromRepo(repositoryName, entityId, entity);
     }
 
-    public void processFaild() {
-        try {
-            releaseProcessEntities();
-        } catch (Exception e) {
-        }
-        started = false;
-    }
-
-    private void releaseProcessEntities() throws Exception {
+    public void releaseProcessEntities() throws Exception {
         for (RepositoryProcessEntities repoPes : processEntities.values()) {
 
             Map processEntities = repoPes.getEntities();
@@ -206,6 +186,10 @@ public class ProcessContext {
 
     public boolean isStarted() {
         return started;
+    }
+
+    public void setStarted(boolean started) {
+        this.started = started;
     }
 
     public Process buildProcess() {
