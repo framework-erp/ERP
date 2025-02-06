@@ -57,6 +57,9 @@ public class ERP {
                         throw new RuntimeException(ex);
                     }
                 } else {
+                    if (RuntimeException.class.isAssignableFrom(e.getClass())) {
+                        throw (RuntimeException) e;
+                    }
                     RetryResult<T> retryResult = new RetryResult<>();
                     retryResult.setTriedTimes(triedTimes);
                     retryResult.setException(e);
