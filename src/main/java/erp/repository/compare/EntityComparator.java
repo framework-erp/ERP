@@ -17,6 +17,9 @@ public class EntityComparator {
         if (one == null || another == null) {
             return false;
         }
+        if (!one.getClass().equals(another.getClass())) {
+            return false;
+        }
 
         String clsName = one.getClass().getName();
         FieldComparator[] fieldComparators = typeFieldComparators.get(clsName);
