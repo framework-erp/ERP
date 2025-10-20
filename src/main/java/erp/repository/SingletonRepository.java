@@ -28,11 +28,19 @@ public abstract class SingletonRepository<T> {
 
 
     public T get() {
-        return (T) singletonEntitiesContainer.find(name).getEntity();
+        SingletonEntity singletonEntity = singletonEntitiesContainer.find(name);
+        if (singletonEntity == null) {
+            return null;
+        }
+        return (T) singletonEntity.getEntity();
     }
 
     public T take() {
-        return (T) singletonEntitiesContainer.take(name).getEntity();
+        SingletonEntity singletonEntity = singletonEntitiesContainer.take(name);
+        if (singletonEntity == null) {
+            return null;
+        }
+        return (T) singletonEntity.getEntity();
     }
 
     public void put(T entity) {
@@ -43,7 +51,11 @@ public abstract class SingletonRepository<T> {
     }
 
     public T remove() {
-        return (T) singletonEntitiesContainer.remove(name).getEntity();
+        SingletonEntity singletonEntity = singletonEntitiesContainer.remove(name);
+        if (singletonEntity == null) {
+            return null;
+        }
+        return (T) singletonEntity.getEntity();
     }
 
     public String getName() {
