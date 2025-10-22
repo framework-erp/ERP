@@ -21,6 +21,13 @@ public class SingletonRepositoryFactory {
                         } else if ("put".equals(method.getName())) {
                             underlyingRepository.put((E) args[0]);
                             return null;
+                        } else if ("putIfAbsent".equals(method.getName())) {
+                            return underlyingRepository.putIfAbsent((E) args[0]);
+                        } else if ("takeOrPutIfAbsent".equals(method.getName())) {
+                            return underlyingRepository.takeOrPutIfAbsent((E) args[0]);
+                        } else if ("remove".equals(method.getName())) {
+                            underlyingRepository.remove();
+                            return null;
                         } else if ("equals".equals(method.getName())) {
                             return underlyingRepository.equals(args[0]);
                         } else {
