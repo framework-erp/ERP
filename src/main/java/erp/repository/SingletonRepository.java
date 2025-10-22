@@ -50,6 +50,25 @@ public abstract class SingletonRepository<T> {
         singletonEntitiesContainer.putIfAbsent(singletonEntity);
     }
 
+    public T putIfAbsent(T entity) {
+        SingletonEntity singletonEntity = new SingletonEntity();
+        singletonEntity.setName(name);
+        singletonEntity.setEntity(entity);
+        SingletonEntity existingEntity = singletonEntitiesContainer.putIfAbsent(singletonEntity);
+        if (existingEntity == null) {
+            return null;
+        }
+        return (T) existingEntity.getEntity();
+    }
+
+    public T takeOrPutIfAbsent(T newEntity) {
+        SingletonEntity singletonEntity = new SingletonEntity();
+        singletonEntity.setName(name);
+        singletonEntity.setEntity(newEntity);
+        SingletonEntity existingEntity = singletonEntitiesContainer.takeOrPutIfAbsent(name, singletonEntity);
+        return (T) existingEntity.getEntity();
+    }
+
     public T remove() {
         SingletonEntity singletonEntity = singletonEntitiesContainer.remove(name);
         if (singletonEntity == null) {
