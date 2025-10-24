@@ -38,6 +38,15 @@ public class CoreTest {
 
         service.f5(0, 0);
 
+        service.f6(1);
+
+        try {
+            service.f7(1);
+            service.f7(-1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         TestService2 service2 = new TestService2();
         service2.setTestEntityRepository(testEntityRepository);
         TestEntity entity21 = service2.f1(1);

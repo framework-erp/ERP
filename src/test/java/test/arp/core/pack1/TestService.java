@@ -84,6 +84,22 @@ public class TestService {
     public void f5(long l1, int l2) {
     }
 
+    @Process
+    public long f6(long id) {
+        if (id < 0) {
+            throw new IllegalArgumentException("id<0");
+        }
+        return id;
+    }
+
+    @Process
+    public long f7(long id) throws Exception {
+        if (id < 0) {
+            throw new Exception("id<0");
+        }
+        return id;
+    }
+
     public void setTestEntityRepository(TestEntityRepository testEntityRepository) {
         this.testEntityRepository = testEntityRepository;
     }

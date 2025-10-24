@@ -253,7 +253,7 @@ public class ProcessEnhancer {
 
                     protected void onMethodExit(int opcode) {
                         ProcessInfo processInfo = processInfos.get(mthName + "@" + mthDesc);
-                        if (processInfo != null) {
+                        if (processInfo != null && opcode != ATHROW) {
                             if (!Type.getDescriptor(void.class).equals(returnTypeDesc)) {
                                 dupStackTopAndToObject(returnTypeDesc, this);
                                 visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ProcessWrapper.class), "recordProcessResult", Type.getMethodDescriptor(Type.getType(void.class), Type.getType(Object.class)), false);
