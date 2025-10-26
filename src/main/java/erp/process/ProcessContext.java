@@ -1,10 +1,8 @@
 package erp.process;
 
 import erp.AppContext;
+import erp.process.definition.*;
 import erp.process.definition.Process;
-import erp.process.definition.TypedEntity;
-import erp.process.definition.TypedEntityUpdate;
-import erp.process.definition.TypedResult;
 import erp.process.states.CreatedInProcState;
 import erp.process.states.TakenFromRepoState;
 import erp.process.states.ToRemoveInRepoState;
@@ -25,7 +23,7 @@ public class ProcessContext {
 
     private List<Object> argumentList = new ArrayList<>();
 
-    private TypedResult result;
+    private Object result;
 
     private List<TypedEntity> createdEntityList = new ArrayList<>();
     private List<TypedEntity> deletedEntityList = new ArrayList<>();
@@ -159,10 +157,7 @@ public class ProcessContext {
     }
 
     public void recordProcessResult(Object result) {
-        if (result == null) {
-            return;
-        }
-        this.result = new TypedResult(result.getClass().getName(), result);
+        this.result = result;
     }
 
     public void recordProcessArgument(Object argument) {
@@ -206,10 +201,15 @@ public class ProcessContext {
     public Process buildProcess() {
         Process process = new Process();
         process.setName(processName);
-        process.setArgumentList(new ArrayList<>(argumentList));
+        List<TypedArgument> argumentList = new ArrayList<>();
+        for (Object arg : this.argumentList) {
+            argumentList.add(new TypedArgument(arg.getClass().getName(), arg));
+        }
+        process.setArgumentList(argumentList);
         process.setCreatedEntityList(new ArrayList<>(createdEntityList));
         process.setEntityUpdateList(new ArrayList<>(entityUpdateList));
         process.setDeletedEntityList(new ArrayList<>(deletedEntityList));
+        TypedObject result = this.result == null ? null : new TypedObject(this.result.getClass().getName(), this.result);
         process.setResult(result);
         return process;
     }

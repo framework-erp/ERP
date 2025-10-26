@@ -7,8 +7,8 @@ import java.util.List;
  */
 public class Process {
     private String name;
-    private List<Object> argumentList;
-    private TypedResult result;
+    private List<TypedArgument> argumentList;
+    private TypedObject result;
     private List<TypedEntity> createdEntityList;
     private List<TypedEntity> deletedEntityList;
     private List<TypedEntityUpdate> entityUpdateList;
@@ -21,19 +21,19 @@ public class Process {
         this.name = name;
     }
 
-    public List<Object> getArgumentList() {
+    public List<TypedArgument> getArgumentList() {
         return argumentList;
     }
 
-    public void setArgumentList(List<Object> argumentList) {
+    public void setArgumentList(List<TypedArgument> argumentList) {
         this.argumentList = argumentList;
     }
 
-    public TypedResult getResult() {
+    public TypedObject getResult() {
         return result;
     }
 
-    public void setResult(TypedResult result) {
+    public void setResult(TypedObject result) {
         this.result = result;
     }
 
