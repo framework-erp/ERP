@@ -203,7 +203,7 @@ public class ProcessContext {
         process.setName(processName);
         List<TypedArgument> argumentList = new ArrayList<>();
         for (Object arg : this.argumentList) {
-            argumentList.add(new TypedArgument(arg.getClass().getName(), arg));
+            argumentList.add(new TypedArgument(arg == null ? null : arg.getClass().getName(), arg));
         }
         process.setArgumentList(argumentList);
         process.setCreatedEntityList(new ArrayList<>(createdEntityList));
