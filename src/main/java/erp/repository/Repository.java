@@ -165,6 +165,11 @@ public abstract class Repository<E, ID> {
             E exists = take(id);
             return exists;
         }
+        //新建锁成功了也不能说明之前没有这个实体，因为可能是补锁成功的
+        E existsEntity = store.load(id);
+        if (existsEntity != null) {
+            return existsEntity;
+        }
         store.insert(id, entity);
         processContext.addEntityCreatedAndTakenFromRepo(name, id, entity);
         return null;
