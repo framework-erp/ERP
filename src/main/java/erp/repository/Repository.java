@@ -168,6 +168,7 @@ public abstract class Repository<E, ID> {
         //新建锁成功了也不能说明之前没有这个实体，因为可能是补锁成功的
         E existsEntity = store.load(id);
         if (existsEntity != null) {
+            processContext.addEntityTakenFromRepo(name, id, existsEntity);
             return existsEntity;
         }
         store.insert(id, entity);
