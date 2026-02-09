@@ -15,6 +15,10 @@ public class LinkedListFieldCopier extends BaseFieldCopier {
         LinkedList list = (LinkedList) Unsafe.getObjectFieldOfObject(fromEntity, fieldOffset);
         LinkedList listCopy = new LinkedList();
         for (Object element : list) {
+            if (element == null) {
+                listCopy.add(null);
+                continue;
+            }
             Class<?> elementClass = element.getClass();
             Object elementCopy = null;
             if (Object.class.equals(elementClass)

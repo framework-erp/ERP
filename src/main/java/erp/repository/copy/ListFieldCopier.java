@@ -20,6 +20,10 @@ public class ListFieldCopier extends BaseFieldCopier {
         if (list instanceof ArrayList) {
             listCopy = new ArrayList(list.size());
             for (Object element : list) {
+                if (element == null) {
+                    listCopy.add(null);
+                    continue;
+                }
                 Class<?> elementClass = element.getClass();
                 Object elementCopy = null;
                 if (Object.class.equals(elementClass)
@@ -42,6 +46,10 @@ public class ListFieldCopier extends BaseFieldCopier {
         } else if (list instanceof LinkedList) {
             listCopy = new LinkedList();
             for (Object element : list) {
+                if (element == null) {
+                    listCopy.add(null);
+                    continue;
+                }
                 Class<?> elementClass = element.getClass();
                 Object elementCopy = null;
                 if (Object.class.equals(elementClass)

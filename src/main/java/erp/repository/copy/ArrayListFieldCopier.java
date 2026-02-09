@@ -16,6 +16,10 @@ public class ArrayListFieldCopier extends BaseFieldCopier {
         ArrayList list = (ArrayList) Unsafe.getObjectFieldOfObject(fromEntity, fieldOffset);
         ArrayList listCopy = new ArrayList(list.size());
         for (Object element : list) {
+            if (element == null) {
+                listCopy.add(null);
+                continue;
+            }
             Class<?> elementClass = element.getClass();
             Object elementCopy = null;
             if (Object.class.equals(elementClass)
