@@ -16,8 +16,35 @@ public class EntityCopier {
             return null;
         }
 
-        if (Enum.class.equals(entity.getClass().getSuperclass())) {
+        Class<?> cls = entity.getClass();
+
+        if (cls.isPrimitive() ||
+                cls.equals(Byte.class) || cls.equals(Short.class) || cls.equals(Integer.class) ||
+                cls.equals(Long.class) || cls.equals(Float.class) || cls.equals(Double.class) ||
+                cls.equals(Boolean.class) || cls.equals(Character.class) ||
+                cls.equals(String.class) || cls.equals(Object.class)) {
             return entity;
+        }
+
+        if (Enum.class.isInstance(entity) || (cls.getSuperclass() != null && cls.getSuperclass().equals(Enum.class))) {
+            return entity;
+        }
+
+        if (entity instanceof List) {
+            return (T) copyList((List<?>) entity);
+        }
+        if (entity instanceof Map) {
+            return (T) copyMap((Map<?, ?>) entity);
+        }
+        if (entity instanceof Set) {
+            return (T) copySet((Set<?>) entity);
+        }
+        if (entity instanceof Queue) {
+            return (T) copyQueue((Queue<?>) entity);
+        }
+
+        if (cls.isArray()) {
+            return (T) copyArray(entity);
         }
 
         T copyOfEntity = Unsafe.allocateInstance(entity.getClass());
@@ -31,6 +58,83 @@ public class EntityCopier {
             fieldCopier.copyField(entity, copyOfEntity);
         }
         return copyOfEntity;
+    }
+
+    private static List copyList(List<?> list) {
+        List copy;
+        if (list instanceof ArrayList) {
+            copy = new ArrayList(list.size());
+        } else if (list instanceof LinkedList) {
+            copy = new LinkedList();
+        } else {
+            try {
+                copy = list.getClass().newInstance();
+            } catch (Exception e) {
+                copy = new ArrayList(list.size());
+            }
+        }
+        for (Object item : list) {
+            copy.add(copy(item));
+        }
+        return copy;
+    }
+
+    private static Map copyMap(Map<?, ?> map) {
+        Map copy;
+        if (map instanceof LinkedHashMap) {
+            copy = new LinkedHashMap(map.size());
+        } else if (map instanceof HashMap) {
+            copy = new HashMap(map.size());
+        } else {
+            try {
+                copy = map.getClass().newInstance();
+            } catch (Exception e) {
+                copy = new HashMap(map.size());
+            }
+        }
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            copy.put(copy(entry.getKey()), copy(entry.getValue()));
+        }
+        return copy;
+    }
+
+    private static Set copySet(Set<?> set) {
+        Set copy;
+        if (set instanceof HashSet) {
+            copy = new HashSet(set.size());
+        } else {
+            try {
+                copy = set.getClass().newInstance();
+            } catch (Exception e) {
+                copy = new HashSet(set.size());
+            }
+        }
+        for (Object item : set) {
+            copy.add(copy(item));
+        }
+        return copy;
+    }
+
+    private static Queue copyQueue(Queue<?> queue) {
+        Queue copy;
+        try {
+            copy = queue.getClass().newInstance();
+        } catch (Exception e) {
+            copy = new LinkedList();
+        }
+        for (Object item : queue) {
+            copy.add(copy(item));
+        }
+        return copy;
+    }
+
+    private static Object copyArray(Object array) {
+        int length = java.lang.reflect.Array.getLength(array);
+        Object copy = java.lang.reflect.Array.newInstance(array.getClass().getComponentType(), length);
+        for (int i = 0; i < length; i++) {
+            java.lang.reflect.Array.set(copy, i, copy(java.lang.reflect.Array.get(array, i)));
+        }
+        return copy;
     }
 
     private static FieldCopier[] buildFieldCopiers(Class<?> cls) {
@@ -107,6 +211,8 @@ public class EntityCopier {
                 copiers[i] = new HashSetFieldCopier(field);
             } else if (Set.class.equals(fieldType)) {
                 copiers[i] = new SetFieldCopier(field);
+            } else if (LinkedHashMap.class.equals(fieldType)) {
+                copiers[i] = new LinkedHashMapFieldCopier(field);
             } else if (HashMap.class.equals(fieldType)) {
                 copiers[i] = new HashMapFieldCopier(field);
             } else if (Map.class.equals(fieldType)) {

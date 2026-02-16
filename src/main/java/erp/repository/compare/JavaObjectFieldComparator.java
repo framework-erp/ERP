@@ -14,11 +14,6 @@ public class JavaObjectFieldComparator extends BaseFieldComparator {
     public <T> boolean equals(T one, T another) {
         Object oneObjectField = Unsafe.getObjectFieldOfObject(one, fieldOffset);
         Object anotherObjectField = Unsafe.getObjectFieldOfObject(another, fieldOffset);
-        if (oneObjectField == null) {
-            return anotherObjectField == null;
-        } else {
-            return oneObjectField.equals(anotherObjectField);
-        }
+        return EntityComparator.equals(oneObjectField, anotherObjectField);
     }
-
 }

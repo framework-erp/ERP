@@ -3,12 +3,13 @@ package erp.repository.copy;
 import erp.util.Unsafe;
 
 import java.lang.reflect.Field;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 
-public class QueueFieldCopier extends BaseFieldCopier {
+public class LinkedHashMapFieldCopier extends BaseFieldCopier {
 
-    public QueueFieldCopier(Field field) {
+    public LinkedHashMapFieldCopier(Field field) {
         super(field);
     }
 

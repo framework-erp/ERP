@@ -3,15 +3,13 @@ package erp.repository.compare;
 import erp.util.Unsafe;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 
-public class MapFieldComparator extends BaseFieldComparator {
+public class LinkedHashMapFieldComparator extends BaseFieldComparator {
 
-    public MapFieldComparator(Field field) {
+    public LinkedHashMapFieldComparator(Field field) {
         super(field);
     }
 

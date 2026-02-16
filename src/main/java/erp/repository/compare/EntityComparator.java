@@ -21,6 +21,37 @@ public class EntityComparator {
             return false;
         }
 
+        Class<?> cls = one.getClass();
+
+        if (cls.isPrimitive() ||
+                cls.equals(Byte.class) || cls.equals(Short.class) || cls.equals(Integer.class) ||
+                cls.equals(Long.class) || cls.equals(Float.class) || cls.equals(Double.class) ||
+                cls.equals(Boolean.class) || cls.equals(Character.class) ||
+                cls.equals(String.class) || cls.equals(Object.class)) {
+            return one.equals(another);
+        }
+
+        if (Enum.class.isInstance(one) || (cls.getSuperclass() != null && cls.getSuperclass().equals(Enum.class))) {
+            return one.equals(another);
+        }
+
+        if (one instanceof List) {
+            return equalsList((List<?>) one, (List<?>) another);
+        }
+        if (one instanceof Map) {
+            return equalsMap((Map<?, ?>) one, (Map<?, ?>) another);
+        }
+        if (one instanceof Set) {
+            return equalsSet((Set<?>) one, (Set<?>) another);
+        }
+        if (one instanceof Queue) {
+            return equalsCollection((Collection<?>) one, (Collection<?>) another);
+        }
+
+        if (cls.isArray()) {
+            return equalsArray(one, another);
+        }
+
         String clsName = one.getClass().getName();
         FieldComparator[] fieldComparators = typeFieldComparators.get(clsName);
         if (fieldComparators == null) {
@@ -29,6 +60,89 @@ public class EntityComparator {
         }
         for (FieldComparator fieldComparator : fieldComparators) {
             if (!fieldComparator.equals(one, another)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean equalsList(List<?> l1, List<?> l2) {
+        if (l1.size() != l2.size()) {
+            return false;
+        }
+        for (int i = 0; i < l1.size(); i++) {
+            if (!equals(l1.get(i), l2.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean equalsMap(Map<?, ?> m1, Map<?, ?> m2) {
+        if (m1.size() != m2.size()) {
+            return false;
+        }
+        if (m1 instanceof LinkedHashMap && m2 instanceof LinkedHashMap) {
+            Iterator<? extends Map.Entry<?, ?>> i1 = m1.entrySet().iterator();
+            Iterator<? extends Map.Entry<?, ?>> i2 = m2.entrySet().iterator();
+            while (i1.hasNext()) {
+                Map.Entry<?, ?> e1 = i1.next();
+                Map.Entry<?, ?> e2 = i2.next();
+                if (!equals(e1.getKey(), e2.getKey())) {
+                    return false;
+                }
+                if (!equals(e1.getValue(), e2.getValue())) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        for (Map.Entry<?, ?> entry : m1.entrySet()) {
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            if (value == null) {
+                if (!(m2.get(key) == null && m2.containsKey(key))) {
+                    return false;
+                }
+            } else {
+                if (!equals(value, m2.get(key))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean equalsSet(Set<?> s1, Set<?> s2) {
+        if (s1.size() != s2.size()) {
+            return false;
+        }
+        // 对于Set，如果要深比较且元素没有重写hashCode/equals，这在通用层面很难实现高效比较
+        // 这里暂时遵循原有逻辑，主要解决嵌套集合的识别问题
+        return s1.equals(s2);
+    }
+
+    private static boolean equalsCollection(Collection<?> c1, Collection<?> c2) {
+        if (c1.size() != c2.size()) {
+            return false;
+        }
+        Iterator<?> i1 = c1.iterator();
+        Iterator<?> i2 = c2.iterator();
+        while (i1.hasNext()) {
+            if (!equals(i1.next(), i2.next())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean equalsArray(Object a1, Object a2) {
+        int length = java.lang.reflect.Array.getLength(a1);
+        if (length != java.lang.reflect.Array.getLength(a2)) {
+            return false;
+        }
+        for (int i = 0; i < length; i++) {
+            if (!equals(java.lang.reflect.Array.get(a1, i), java.lang.reflect.Array.get(a2, i))) {
                 return false;
             }
         }
@@ -93,6 +207,8 @@ public class EntityComparator {
                 comparators[i] = new JavaObjectFieldComparator(field);
             } else if (Set.class.equals(fieldType)) {
                 comparators[i] = new JavaObjectFieldComparator(field);
+            } else if (LinkedHashMap.class.equals(fieldType)) {
+                comparators[i] = new LinkedHashMapFieldComparator(field);
             } else if (HashMap.class.equals(fieldType)) {
                 comparators[i] = new HashMapFieldComparator(field);
             } else if (Map.class.equals(fieldType)) {

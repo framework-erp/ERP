@@ -15,31 +15,11 @@ public class HashMapFieldCopier extends BaseFieldCopier {
 
     @Override
     public void copyField(Object fromEntity, Object toEntity) {
-        HashMap map = (HashMap) Unsafe.getObjectFieldOfObject(fromEntity,
-                fieldOffset);
-        HashMap copiedMap = new HashMap(map.size());
-        Iterator<Entry> i = map.entrySet().iterator();
-        while (i.hasNext()) {
-            Entry<?, ?> e = i.next();
-            Class<?> valueClass = e.getValue().getClass();
-            Object valueCopy = null;
-            if (Object.class.equals(valueClass)
-                    || Byte.class.equals(valueClass)
-                    || Short.class.equals(valueClass)
-                    || Integer.class.equals(valueClass)
-                    || Long.class.equals(valueClass)
-                    || Float.class.equals(valueClass)
-                    || Double.class.equals(valueClass)
-                    || Boolean.class.equals(valueClass)
-                    || Character.class.equals(valueClass)
-                    || String.class.equals(valueClass)
-                    || Enum.class.equals(valueClass)) {
-                valueCopy = e.getValue();
-            } else {
-                valueCopy = EntityCopier.copy(e.getValue());
-            }
-            copiedMap.put(e.getKey(), valueCopy);
+        Object value = Unsafe.getObjectFieldOfObject(fromEntity, fieldOffset);
+        if (value == null) {
+            Unsafe.setObjectFieldOfObject(toEntity, fieldOffset, null);
+            return;
         }
-        Unsafe.setObjectFieldOfObject(toEntity, fieldOffset, copiedMap);
+        Unsafe.setObjectFieldOfObject(toEntity, fieldOffset, EntityCopier.copy(value));
     }
 }
