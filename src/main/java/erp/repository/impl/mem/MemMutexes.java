@@ -1,5 +1,6 @@
 package erp.repository.impl.mem;
 
+import erp.repository.LockResult;
 import erp.repository.Mutexes;
 
 import java.util.Map;
@@ -11,16 +12,15 @@ public class MemMutexes<ID> implements Mutexes<ID> {
     private Map<ID, MemMutex> mutexes = new ConcurrentHashMap<>();
 
     @Override
-    public int lock(ID id, String processName) {
+    public LockResult lock(ID id, String processName) {
         if (!mutexes.containsKey(id)) {
-            return -1;
+            return LockResult.notFound();
         }
         MemMutex mutex = mutexes.get(id);
-        if (mutex.lock(processName)) {
-            return 1;
-        } else {
-            return 0;
+        if (mutex == null) {
+            return LockResult.notFound();
         }
+        return mutex.lock(processName);
     }
 
     @Override

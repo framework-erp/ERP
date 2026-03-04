@@ -1,33 +1,31 @@
 package erp.repository.impl.mem;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import erp.repository.LockResult;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MemMutex {
-    private AtomicInteger lock;
-    private String lockProcess;
+    private final AtomicReference<String> lock;
 
     /**
      * 创建一个mutex，创建出来就是被创建的process锁上的
      */
     public MemMutex(String lockProcess) {
-        this.lock = new AtomicInteger(1);
-        this.lockProcess = lockProcess;
+        this.lock = new AtomicReference<>(lockProcess);
     }
 
-    public boolean lock(String processName) {
-        if (lock.compareAndSet(0, 1)) {
-            lockProcess = processName;
-            return true;
+    public LockResult lock(String processName) {
+        if (lock.compareAndSet(null, processName)) {
+            return LockResult.success();
         } else {
-            return false;
+            return LockResult.failed(lock.get());
         }
     }
 
     public void unlock() {
-        lock.set(0);
+        lock.set(null);
     }
 
     public String getLockProcess() {
-        return lockProcess;
+        return lock.get();
     }
 }

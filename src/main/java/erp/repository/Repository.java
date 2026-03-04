@@ -88,9 +88,9 @@ public abstract class Repository<E, ID> {
             }
         }
 
-        int lockRslt = mutexes.lock(id, processContext.getProcessName());
+        LockResult lockRslt = mutexes.lock(id, processContext.getProcessName());
         E existsEntity;
-        if (lockRslt == -1) {
+        if (lockRslt.status == LockResult.NOT_FOUND) {
             //检查entity存在且补锁
             existsEntity = find(id);
             if (existsEntity == null) {
@@ -102,8 +102,8 @@ public abstract class Repository<E, ID> {
                 return take(id);
             }
         } else {
-            if (lockRslt == 0) {
-                throw new TakeEntityException(mutexes.getLockProcess(id));
+            if (lockRslt.status == LockResult.FAILED) {
+                throw new TakeEntityException(lockRslt.owner);
             }
             existsEntity = find(id);
             if (existsEntity == null) {
