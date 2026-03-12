@@ -177,7 +177,17 @@ public class ProcessContext {
     }
 
     public String getProcessName() {
-        return processName;
+        if (argumentList.isEmpty()) {
+            return processName;
+        }
+        StringBuilder sb = new StringBuilder(processName);
+        sb.append('(');
+        for (int i = 0; i < argumentList.size(); i++) {
+            if (i > 0) sb.append(", ");
+            sb.append(argumentList.get(i));
+        }
+        sb.append(')');
+        return sb.toString();
     }
 
     public boolean isStarted() {
